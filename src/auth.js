@@ -6,7 +6,7 @@
   * @param {string} nameFirst - the first name of the user
   * @param {string} nameLast - the last name of the user
   * 
-  * @returns {{authUserId: 1}} object 
+  * @returns {{authUserId: 1}} - object 
 */
 function adminAuthRegister(email, password, nameFirst, nameLast) {
     return {
