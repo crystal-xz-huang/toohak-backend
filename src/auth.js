@@ -1,8 +1,8 @@
 /**
-  * Given a registered user's email and password returns their authUserId value
+  * Given a registered user's email and password, returns their authUserId value
   * 
-  * @param {string} email - email of a registered user
-  * @param {string} password - password of a registered user
+  * @param {string} email - the email of a registered user
+  * @param {string} password - the password of a registered user
   * 
   * @returns {{authUserId: number}} - object containing the authUserId of the user 
 */
