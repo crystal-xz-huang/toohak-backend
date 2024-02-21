@@ -9,11 +9,12 @@
   * @returns { quizId: number } - object containing quizId of the user
 */
 
-function adminQuizList ( authUserId, name, description ) {
+function adminQuizCreate ( authUserId, name, description ) {
     return {
       quizId: 2
     }
-    
+}
+
 function adminQuizList ( authUserId ) {
   return {
     quizzes: [
