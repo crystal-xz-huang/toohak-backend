@@ -68,5 +68,5 @@ function adminUserDetails(authUserId) {
   * @returns { } - returns nothing
 */
 function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword ) {
-    return {};
+  return {};
 }
