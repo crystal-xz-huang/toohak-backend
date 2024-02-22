@@ -1,20 +1,4 @@
 /**
-  * Given a registered user's email and password, returns their authUserId value
-  * 
-  * @param {string} email - the email of a registered user
-  * @param {string} password - the password of a registered user
-  * 
-  * @returns {{authUserId: number}} - object containing the authUserId of the user 
-*/
-function adminAuthLogin(email, password) {
-  // TODO: Implement this function 
-  return {
-      authUserId: 1,
-  };
-}
-
-
-/**
   * Register a user with an email, password, and first and last name.
   * Returns the authUserId of the user.
   * 
@@ -30,6 +14,20 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
   return {
       authUserId: 1,
   };    
+}
+
+/** Given a registered user's email and password, returns their authUserId value
+  * 
+  * @param {string} email - the email of a registered user
+  * @param {string} password - the password of a registered user
+  * 
+  * @returns {{authUserId: number}} - object containing the authUserId of the user 
+*/
+function adminAuthLogin(email, password) {
+  // TODO: Implement this function 
+  return {
+      authUserId: 1,
+  };
 }
 
 
@@ -56,4 +54,34 @@ function adminUserDetails(authUserId) {
           numFailedPasswordsSinceLastLogin: 1,
       }
   };
+}
+
+/**
+  * Given an admin user's authUserId and a set of properties, 
+  * update the properties of this logged in admin user.
+  * 
+  * @param {number} authUserId - the id of an admin user
+  * @param {string} email - the email of an admin user
+  * @param {string} nameFirst - the first name of an admin user
+  * @param {string} nameLast - the last name of an admin user
+  * 
+  * @returns { } - returns nothing
+*/
+function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) {
+  return {};
+}
+
+
+/**
+  * Given details relating to a password change, update the 
+  * password of a logged in user.
+  * 
+  * @param {number} authUserId - the id of registered user
+  * @param {string} oldPassword - the old password of registered user
+  * @param {string} newPassword - the new password of registered user
+  * 
+  * @returns { } - returns nothing
+*/
+function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword ) {
+  return {};
 }
