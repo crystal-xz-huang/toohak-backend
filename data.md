@@ -25,21 +25,7 @@ let data = {
             timeLastEdited: 1,
         }
     ],
-    // method to return the number of quizzes owned by a user
-    numQuizzesByUserId: function(userId) {
-        let count = 0;
-        // to implement
-    },
-    // method to return the number of registered users
-    numUsers: function() {
-        // to implement
-    },
-    // method to return the number of quizzes
-    numQuizzes: function() {
-        // to implement
-    },
-    // add more
 }
 ```
 
-[Optional] short description: 
+[Optional] short description: This data structure contains information about the users and quizzes. Users is an array of objects where each user
