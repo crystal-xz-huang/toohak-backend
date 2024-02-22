@@ -28,4 +28,4 @@ let data = {
 }
 ```
 
-[Optional] short description: This data structure contains information about the users and quizzes. Users is an array of objects where each user
+[Optional] short description: This data structure contains information about the users and quizzes. Users and quizzes are an array of objects where user and quiz is an object.
