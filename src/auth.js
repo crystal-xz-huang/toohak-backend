@@ -1,5 +1,4 @@
-/**
-  * Given a registered user's email and password, returns their authUserId value
+/** Given a registered user's email and password, returns their authUserId value
   * 
   * @param {string} email - the email of a registered user
   * @param {string} password - the password of a registered user
@@ -56,4 +55,18 @@ function adminUserDetails(authUserId) {
           numFailedPasswordsSinceLastLogin: 1,
       }
   };
+}
+
+/**
+  * Given details relating to a password change, update the 
+  * password of a logged in user.
+  * 
+  * @param {integer} authUserId - the id of registered user
+  * @param {string} oldPassword - the old password of registered user
+  * @param {string} newPassword - the new password of registered user
+  * 
+  * @returns { } - returns nothing
+*/
+function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword ) {
+    return {};
 }
