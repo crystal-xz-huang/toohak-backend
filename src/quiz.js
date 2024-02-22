@@ -3,8 +3,7 @@
   * 
   * @param {number} authUserId - the id of registered user
   * 
-  * @returns { quizId: number } - object containing quizId of the user
-  * @returns { name: string } - object containing name of quiz
+  * @returns {Array<{quizId: number, name: string}>} - array containing the id and name of the quiz
 */
 function adminQuizList ( authUserId ) {
   return {
