@@ -1,19 +1,11 @@
 /**
-  *Given basic details about a new quiz,
-  * create one for the logged in user.
+  * Provide a list of all quizzes that are owned by the currently logged in user.
   * 
-  * @param {integer} authUserId - the id of registered user
-  * @param {string} name - the name of registered user
-  * @param {string} description - basic details about the quiz
+  * @param {number} authUserId - the id of registered user
   * 
   * @returns { quizId: number } - object containing quizId of the user
+  * @returns { name: string } - object containing name of quiz
 */
-
-function adminQuizList ( authUserId, name, description ) {
-    return {
-      quizId: 2
-    }
-    
 function adminQuizList ( authUserId ) {
   return {
     quizzes: [
@@ -25,10 +17,46 @@ function adminQuizList ( authUserId ) {
   };
 }
 
+/**
+  * Given basic details about a new quiz,
+  * create one for the logged in user.
+  * 
+  * @param {number} authUserId - the id of registered user
+  * @param {string} name - the name of registered user
+  * @param {string} description - basic details about the quiz
+  * 
+  * @returns { quizId: number } - object containing quizId of the user
+*/
+function adminQuizCreate ( authUserId, name, description ) {
+  return {
+    quizId: 2
+  }
+}
+
+/**
+  * Given a particular quiz, permanently remove the quiz.
+  * 
+  * @param {number} authUserId - the id of registered user
+  * @param {number} quizId - the id of the quiz
+  * 
+  * @returns { } - returns nothing
+*/
 function adminQuizRemove(authUserId, quizId) {
   return {};
 }
 
+/**
+  * Get all of the relevant information about the current quiz.
+  * 
+  * @param {number} authUserId - the id of registered user
+  * @param {number} quizId - the id of the quiz
+  * 
+  * @returns { quizId: number } - object containing quizId of the user
+  * @returns { name: string } - object containing name of quiz
+  * @returns { timeCreated: number } - object containing time quiz was created
+  * @returns { timeLastEdited: number} - object containing time quiz was last created
+  * @returns { description: string } - object containing a description of the quiz
+*/
 function adminQuizInfo(authUserId, quizId) {
   return {
     quizId: 1,
@@ -39,6 +67,15 @@ function adminQuizInfo(authUserId, quizId) {
   };
 }
 
+/**
+  * Update name of relevant quiz.
+  * 
+  * @param {number} authUserId - the id of registered user
+  * @param {number} quizId - the id of the quiz
+  * @param {string} name - the name of registered user
+  * 
+  * @returns { } - returns nothing
+*/
 function adminQuizNameUpdate(authUserId, quizId, name) {
     return {};
 }
