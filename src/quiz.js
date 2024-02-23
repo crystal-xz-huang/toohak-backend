@@ -71,10 +71,23 @@ function adminQuizInfo(authUserId, quizId) {
   * 
   * @param {number} authUserId - the id of registered user
   * @param {number} quizId - the id of the quiz
-  * @param {string} name - the name of registered user
+  * @param {string} name - the name of quiz
   * 
   * @returns { } - returns nothing
 */
 function adminQuizNameUpdate(authUserId, quizId, name) {
     return {};
+}
+
+/**
+  * Update the description of the relevant quiz.
+  * 
+  * @param {number} authUserId - the id of registered user
+  * @param {number} quizId - the id of the quiz
+  * @param {string} description - the description of quiz
+  * 
+  * @returns { } - returns nothing
+*/
+function adminQuizDescriptionUpdate(authUserId, quizId, description) {
+  return {};
 }
