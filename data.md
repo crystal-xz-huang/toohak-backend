@@ -8,10 +8,8 @@ let data = {
             password: 'hashed_passedword1',
             nameFirst: 'Jane',
             nameLast: 'Doe',
-            logins: {
-                numSuccess: 1,
-                numFailed: 0
-            },
+            numSuccessLogins: 1,
+            numFailedLogins: 0,
         }
     ],
     // array of quiz objects
