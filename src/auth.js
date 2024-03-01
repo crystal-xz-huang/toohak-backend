@@ -1,3 +1,10 @@
+import { getData, setData } from './dataStore';
+import {
+  isValidName,
+  isValidPassword,
+  isValidEmail,
+} from './other';
+
 /**
   * Register a user with an email, password, and first and last name.
   * Returns the authUserId of the user.
@@ -10,10 +17,40 @@
   * @returns {{authUserId: number}} - object containing the authUserId of the user
 */
 export function adminAuthRegister(email, password, nameFirst, nameLast) {
-  // TODO: Implement this function
-  return {
-      authUserId: 1,
-  };    
+  let emailError = isValidEmail(email);
+  if (emailError) {
+    return emailError;
+  }
+  
+  let passwordError = isValidPassword(password);
+  if (passwordError) {
+    return passwordError;
+  }
+  
+  let nameFirstError = isValidName(nameFirst, 'First');
+  if (nameFirstError) {
+    return nameFirstError;
+  }
+
+  let nameLastError = isValidName(nameLast, 'Last');
+  if (nameLastError) {
+    return nameLastError;
+  }
+
+  let dataStore = getData();
+  const user = {
+    userId: dataStore.users.length + 1,
+    email: email,
+    password: password,
+    nameFirst: nameFirst,
+    nameLast: nameLast,
+    numSuccessfulLogins: 0,
+    numFailedLogins: 0,
+  };
+
+  dataStore.users.push(user);
+  setData(dataStore);
+  return { authUserId: user.userId }; 
 }
 
 /** Given a registered user's email and password, returns their authUserId value
