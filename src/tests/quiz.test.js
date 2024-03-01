@@ -31,6 +31,10 @@ beforeEach(() => {
     clear();
 });
 
+afterEach(() => {
+    clear();
+});
+
 describe('testing adminQuizList', () => {
     // TODO
 });
