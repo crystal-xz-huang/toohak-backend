@@ -1,9 +1,12 @@
-import { getData, setData } from './dataStore';
+import { getData, setData } from './dataStore.js';
 import {
+  createError,
+  findUserbyEmail,
+  findUserbyId,
   isValidName,
   isValidPassword,
   isValidEmail,
-} from './other';
+} from './other.js';
 
 /**
   * Register a user with an email, password, and first and last name.
@@ -39,7 +42,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
 
   let dataStore = getData();
   const user = {
-    userId: dataStore.users.length + 1,
+    authUserId: dataStore.users.length + 1,
     email: email,
     password: password,
     nameFirst: nameFirst,
@@ -50,7 +53,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
 
   dataStore.users.push(user);
   setData(dataStore);
-  return { authUserId: user.userId }; 
+  return { authUserId: user.authUserId }; 
 }
 
 /** Given a registered user's email and password, returns their authUserId value
@@ -61,12 +64,15 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
   * @returns {{authUserId: number}} - object containing the authUserId of the user 
 */
 export function adminAuthLogin(email, password) {
-  // TODO: Implement this function 
-  return {
-      authUserId: 1,
-  };
-}
+  let foundUser = findUserbyEmail(email);
+  if (foundUser === undefined) {
+    return createError('Email does not exist');
+  } else if (foundUser.password !== password) {
+    return createError('Password is incorrect');
+  }
 
+  return { authUserId: foundUser.authUserId };
+}
 
 /**
   * Given an admin user's authUserId, return the user's details.
@@ -74,7 +80,7 @@ export function adminAuthLogin(email, password) {
   * @param {number} authUserId - a unique admin user identifier
   * 
   * @returns {object} user - an object containing the user's details
-  * @property {number} userID - the unique identifier of the user
+  * @property {number} authUserId - the unique identifier of the user
   * @property {string} name - the first and last name of the user
   * @property {string} email - the email of the user
   * @property {number} numSuccessfulLogins - the number of successful logins for the user
@@ -84,7 +90,7 @@ export function adminUserDetails(authUserId) {
   // TODO: Implement this function
   return { 
       user: {
-          userId: 1,
+          authUserId: 1,
           name: 'Hayden Smith',
           email: 'hayden.smith@unsw.edu.au',
           numSuccessfulLogins: 3,
