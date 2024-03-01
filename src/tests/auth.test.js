@@ -34,14 +34,14 @@ afterEach(() => {
     clear();
 });
 
-describe('testing adminAuthRegister', () => {
-    const user = {
-        email: 'janedoe@gmail.com',
-        password: 'hashed_passedword1',
-        nameFirst: 'Jane',
-        nameLast: 'Doe',
-    }
+const user = {
+    email: 'janedoe@gmail.com',
+    password: 'hashed_passedword1',
+    nameFirst: 'Jane',
+    nameLast: 'Doe',
+}
 
+describe('testing adminAuthRegister', () => {
     // check for correct return type - an object with authUserId 
     // - NOTE: do we check for a valid authUserId number?
     test('returns an object with "authUserId" key on success', () => {
@@ -130,7 +130,22 @@ describe('testing adminAuthRegister', () => {
 });
 
 describe('testing adminAuthLogin', () => {
-    // TODO
+    let result;
+    beforeEach(() => {
+        result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
+    });
+
+    test('returns an object with "authUserId" key when email and password exists and is matched', () => {
+        expect(adminAuthLogin(user.email, user.password)).toStrictEqual({ authUserId: result.authUserId });
+    });
+
+    test('returns an error object when email is invalid', () => {
+        expect(adminAuthLogin('unregistered@gmail.com', user.password)).toStrictEqual(ERROR);
+    });
+
+    test('returns an error object when password is invalid', () => {
+        expect(adminAuthLogin(user.email, 'incorrect_password')).toStrictEqual(ERROR);
+    });
 });
 
 describe('testing adminUserDetails', () => {
