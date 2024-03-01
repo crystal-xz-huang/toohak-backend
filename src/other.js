@@ -25,6 +25,9 @@ export function createError(message) {
   return { error: message };
 }
 
+////////////////////////////////////////////////////////////////////////////////
+/////////////////////////// AUTH HELPER FUNCTIONS //////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 /**
  * Given a registered user's email, returns the user object
  * Otherwise, returns undefined
@@ -48,9 +51,7 @@ export function findUserbyId(authUserId) {
   const dataStore = getData();
   return dataStore.users.find(user => user.authUserId === authUserId);
 }
-////////////////////////////////////////////////////////////////////////////////
-/////////////////////////// AUTH HELPER FUNCTIONS //////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+
 /**
  * Check if a string is a valid first or last name 
  * Returns null if the name is valid, otherwise returns an error object
@@ -117,3 +118,44 @@ export function isValidEmail(email) {
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// QUIZ HELPER FUNCTIONS //////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+/**
+ * Return an array of quizzes for the user where each quiz is the object:
+ * { 
+ *   quizId: number,
+ *   name: string,
+ *   authUserId: number,
+ *   description: string,
+ *   timeCreated: unix timestamp,
+ *   timeLastEdited: unix timestamp,
+ * }
+ * @param {number} authUserId - the id of registered user
+ * @returns { Array<{object}> } - array containing the quizzes of the user
+ */
+export function getUserQuizzes(authUserId) {
+  const dataStore = getData();
+  return dataStore.quizzes.filter(quiz => quiz.authUserId === authUserId);
+};
+
+/**
+ * Check if the quiz name is valid:
+ * Returns null if the name is valid, otherwise returns an error object
+ * 
+ * @param {string} name - the name of the quiz
+ * @returns {{error: string}} - object containing the error message, or null if the name is valid
+ */
+export function isValidQuizName(name) {
+  if (name === '') {
+    return createError('Name is empty');
+  } else if (typeof name !== 'string') {
+    return createError('Name is not a string');
+  } else if (name.length < 3) {
+    return createError('Name is less than 3 characters');
+  } else if (name.length > 30) {
+    return createError('Name is more than 30 characters');
+  } else if (!/^[a-zA-Z0-9\s]+$/.test(name)) {
+    return createError('Name contains invalid characters');
+  } else {
+    return null;
+  }
+}
+
