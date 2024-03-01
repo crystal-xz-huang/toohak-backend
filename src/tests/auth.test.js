@@ -34,16 +34,14 @@ afterEach(() => {
     clear();
 });
 
-const user = {
-    email: 'janedoe@gmail.com',
-    password: 'hashed_passedword1',
-    nameFirst: 'Jane',
-    nameLast: 'Doe',
-}
-
 describe('testing adminAuthRegister', () => {
-    // check for correct return type - an object with authUserId 
-    // - NOTE: do we check for a valid authUserId number?
+    const user = {
+        email: 'janedoe@gmail.com',
+        password: 'hashed_password1',
+        nameFirst: 'Jane',
+        nameLast: 'Doe',
+    };
+
     test('returns an object with "authUserId" key on success', () => {
         let result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
         expect(result).toStrictEqual({ authUserId: expect.any(Number) });
@@ -130,12 +128,19 @@ describe('testing adminAuthRegister', () => {
 });
 
 describe('testing adminAuthLogin', () => {
+    const user = {
+        email: 'johnsmith@gmail.com',
+        password: 'hashed_password2',
+        nameFirst: 'john',
+        nameLast: 'smith',
+    };
+
     let result;
     beforeEach(() => {
         result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
     });
 
-    test('returns an object with "authUserId" key when email and password exists and is matched', () => {
+    test('returns an object with the "authUserId" key when email and password is matched', () => {
         expect(adminAuthLogin(user.email, user.password)).toStrictEqual({ authUserId: result.authUserId });
     });
 
