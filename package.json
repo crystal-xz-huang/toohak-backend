@@ -4,6 +4,7 @@
     },
     "dependencies": {
         "rewire": "^6.0.0",
+        "unix-timestamp": "^1.0.4",
         "validator": "^13.11.0"
     },
     "devDependencies": {
