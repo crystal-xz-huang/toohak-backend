@@ -36,7 +36,9 @@ afterEach(() => {
 });
 
 describe('testing adminQuizList', () => {
-    // TOOD
+    // TODO - 
+    // check the return value on success
+    // check if after adminAuthRegister and adminQuizCreate, the quiz is in the list for the user
 });
 
 describe('testing adminQuizCreate', () => {
@@ -47,7 +49,8 @@ describe('testing adminQuizCreate', () => {
 
     let userId;
     beforeEach(() => {
-        userId = adminAuthRegister('janedoe@gmail.com, hashed_password1, Jane, Doe').authUserId;
+        let user = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
+        userId = user.authUserId;
     });
 
     test('returns an object with "quizId" key on success', () => {
