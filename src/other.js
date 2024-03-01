@@ -5,15 +5,12 @@ import validator from 'validator';
   * Reset the state of the application back to the start.
   * 
   * @param { } - has no parameters
+  * 
   * @returns { } - returns nothing
 */
 export function clear() {
-  let data = getData();
-  data.users = [];
-  data.quizzes = []; 
-  setData(data);
-  return {};
-}  
+    return {};
+}
 
 //////////////////////////////////////////////////////////////////////////////// 
 /////////////////////////////// HELPER FUNCTIONS ///////////////////////////////
@@ -44,12 +41,12 @@ export function findUserbyEmail(email) {
  * Given a userID, returns the user object
  * Otherwise, returns undefined if userID is not found
  * 
- * @param {number} userId 
+ * @param {number} authUserId 
  * @returns {object} - object containing the user's details
  */
-export function findUserbyId(userId) {
+export function findUserbyId(authUserId) {
   const dataStore = getData();
-  return dataStore.users.find(user => user.userId === userId);
+  return dataStore.users.find(user => user.authUserId === authUserId);
 }
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// AUTH HELPER FUNCTIONS //////////////////////////////

@@ -3,7 +3,7 @@ let data = {
     // array of user objects 
     users: [
         {
-            userId: 1,
+            authUserId: 1,
             email:'user1@example.com',
             password: 'hashed_passedword1',
             nameFirst: 'Jane',
@@ -17,7 +17,7 @@ let data = {
         {
             quizId: 1,
             name: 'quiz1',
-            userId: 1,
+            authUserId: 1,
             description: 'this is quiz1',
             timeCreated: 1,
             timeLastEdited: 1,

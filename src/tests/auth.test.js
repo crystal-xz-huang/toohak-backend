@@ -37,13 +37,11 @@ afterEach(() => {
 describe('testing adminAuthRegister', () => {
     const user = {
         email: 'janedoe@gmail.com',
-        password: 'hashed_passedword1',
+        password: 'hashed_password1',
         nameFirst: 'Jane',
         nameLast: 'Doe',
-    }
+    };
 
-    // check for correct return type - an object with authUserId 
-    // - NOTE: do we check for a valid authUserId number?
     test('returns an object with "authUserId" key on success', () => {
         let result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
         expect(result).toStrictEqual({ authUserId: expect.any(Number) });
@@ -130,7 +128,29 @@ describe('testing adminAuthRegister', () => {
 });
 
 describe('testing adminAuthLogin', () => {
-    // TODO
+    const user = {
+        email: 'johnsmith@gmail.com',
+        password: 'hashed_password2',
+        nameFirst: 'john',
+        nameLast: 'smith',
+    };
+
+    let result;
+    beforeEach(() => {
+        result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
+    });
+
+    test('returns an object with the "authUserId" key when email and password is matched', () => {
+        expect(adminAuthLogin(user.email, user.password)).toStrictEqual({ authUserId: result.authUserId });
+    });
+
+    test('returns an error object when email is invalid', () => {
+        expect(adminAuthLogin('unregistered@gmail.com', user.password)).toStrictEqual(ERROR);
+    });
+
+    test('returns an error object when password is invalid', () => {
+        expect(adminAuthLogin(user.email, 'incorrect_password')).toStrictEqual(ERROR);
+    });
 });
 
 describe('testing adminUserDetails', () => {
