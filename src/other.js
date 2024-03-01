@@ -15,7 +15,6 @@ export function clear() {
 //////////////////////////////////////////////////////////////////////////////// 
 /////////////////////////////// HELPER FUNCTIONS ///////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
 /**
  * Create a new error object with the given message
  * 
@@ -26,6 +25,32 @@ export function createError(message) {
   return { error: message };
 }
 
+/**
+ * Given a registered user's email, returns the user object
+ * Otherwise, returns undefined
+ * 
+ * @param {string} email 
+ * @returns {object} - object containing the user's details
+ */
+export function findUserbyEmail(email) {
+  const dataStore = getData();
+  return dataStore.users.find(user => user.email === email);
+}
+
+/**
+ * Given a userID, returns the user object
+ * Otherwise, returns undefined if userID is not found
+ * 
+ * @param {number} userId 
+ * @returns {object} - object containing the user's details
+ */
+export function findUserbyId(userId) {
+  const dataStore = getData();
+  return dataStore.users.find(user => user.userId === userId);
+}
+////////////////////////////////////////////////////////////////////////////////
+/////////////////////////// AUTH HELPER FUNCTIONS //////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 /**
  * Check if a string is a valid first or last name 
  * Returns null if the name is valid, otherwise returns an error object
@@ -89,27 +114,6 @@ export function isValidEmail(email) {
     return null;
   }
 }
-
-/**
- * Given a registered user's email, returns the user object
- * Otherwise, returns undefined
- * 
- * @param {string} email 
- * @returns {object} - object containing the user's details
- */
-export function findUserbyEmail(email) {
-  const dataStore = getData();
-  return dataStore.users.find(user => user.email === email);
-}
-
-/**
- * Given a userID, returns the user object
- * Otherwise, returns undefined if userID is not found
- * 
- * @param {number} userId 
- * @returns {object} - object containing the user's details
- */
-export function findUserbyId(authUserId) {
-  const dataStore = getData();
-  return dataStore.users.find(user => user.userId === userId);
-}
+////////////////////////////////////////////////////////////////////////////////
+/////////////////////////// QUIZ HELPER FUNCTIONS //////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
