@@ -9,7 +9,7 @@
   * 
   * @returns {{authUserId: number}} - object containing the authUserId of the user
 */
-function adminAuthRegister(email, password, nameFirst, nameLast) {
+export function adminAuthRegister(email, password, nameFirst, nameLast) {
   // TODO: Implement this function
   return {
       authUserId: 1,
@@ -23,7 +23,7 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
   * 
   * @returns {{authUserId: number}} - object containing the authUserId of the user 
 */
-function adminAuthLogin(email, password) {
+export function adminAuthLogin(email, password) {
   // TODO: Implement this function 
   return {
       authUserId: 1,
@@ -43,7 +43,7 @@ function adminAuthLogin(email, password) {
   * @property {number} numSuccessfulLogins - the number of successful logins for the user
   * @property {number} numFailedPasswordsSinceLastLogin - the number of failed password attempts since the last successful login
 */
-function adminUserDetails(authUserId) {
+export function adminUserDetails(authUserId) {
   // TODO: Implement this function
   return { 
       user: {
@@ -67,7 +67,7 @@ function adminUserDetails(authUserId) {
   * 
   * @returns { } - returns nothing
 */
-function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) {
+export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) {
   return {};
 }
 
@@ -82,6 +82,6 @@ function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) {
   * 
   * @returns { } - returns nothing
 */
-function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword ) {
+export function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword ) {
   return {};
 }

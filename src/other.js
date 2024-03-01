@@ -5,6 +5,6 @@
   * 
   * @returns { } - returns nothing
 */
-function clear() {
+export function clear() {
     return {};
 }
