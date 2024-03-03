@@ -98,7 +98,6 @@ describe('testing adminQuizCreate', () => {
     });
 });
 
-
 describe('testing adminQuizRemove', () => {
     // TODO
 });
@@ -108,7 +107,69 @@ describe('testing adminQuizInfo', () => {
 });
 
 describe('testing adminQuizNameUpdate', () => {
-    // TODO
+    let userId;
+    let quizId;
+    beforeEach(() => {
+        let user = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
+        userId = user.authUserId;
+        let quiz = adminQuizCreate(userId, 'Quiz 1', 'This is a quiz');
+        quizId = quiz.quizId;
+    });
+
+    test('returns an object with the updated name on success', () => {
+        adminQuizNameUpdate(userId, quizId, 'Quiz 2');
+        let expected = {
+            name: 'Quiz 2',
+            quizId: 1,
+        };
+        expect(adminQuizList(userId)).toStrictEqual([expected]);
+    });
+
+    test('returns error with an invalid userId', () => {
+        let result = adminQuizNameUpdate(userId + 1, quizId, 'Quiz 2');
+        expect(result).toStrictEqual({'error': 'AuthUserId is not a valid user'});
+    });
+
+    test('returns error with an invalid quizId', () => {
+        let result = adminQuizNameUpdate(userId, quizId + 1, 'Quiz 2');
+        expect(result).toStrictEqual({'error': 'QuizId is not a valid quiz'});
+    });
+
+    test('returns error with a quizId not owned by user', () => {
+        let user2 = adminAuthRegister('johncitizen@gmail.com', 'hashed_password1', 'John', 'Citizen');
+        let userId2 = user2.authUserId;
+        let quiz2 = adminQuizCreate(userId2, 'Quiz 2', 'This is a quiz');
+        let quizId2 = quiz2.quizId;
+        let result = adminQuizNameUpdate(userId, quizId2, 'Quiz 2');
+        expect(result).toStrictEqual({'error': 'QuizId is not owned by user'});
+    });
+
+    test('returns error when name contains invalid characters', () => {
+        let result = adminQuizNameUpdate(userId, quizId, 'Quiz 2&!');
+        expect(result).toStrictEqual({'error': 'Name contains invalid characters'});
+    });
+
+    test('returns error when name is empty', () => {
+        let result = adminQuizNameUpdate(userId, quizId, '');
+        expect(result).toStrictEqual({'error': 'Name is empty'});
+    });
+
+    test('returns error when name is less than 3 characters', () => {
+        let result = adminQuizNameUpdate(userId, quizId, 'Q');
+        expect(result).toStrictEqual({'error': 'Name is less than 3 characters'});
+    });
+
+    test('returns error when name is more than 30 characters', () => {
+        let longName = 'Q'.repeat(31); 
+        let result = adminQuizNameUpdate(userId, quizId, longName);
+        expect(result).toStrictEqual({'error': 'Name is more than 30 characters'});
+    });
+
+    test('returns error when name is already used for another quiz', () => {
+        adminQuizCreate(userId, 'Quiz 2', 'This is a quiz');
+        let result = adminQuizNameUpdate(userId, quizId, 'Quiz 2');
+        expect(result).toStrictEqual({'error': 'Name is already used by another quiz'});
+    });
 });
 
 describe('testing adminQuizDescriptionUpdate', () => {

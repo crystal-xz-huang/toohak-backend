@@ -1,6 +1,7 @@
 import {
   createError,
   findUserbyId,
+  findQuizbyId,
   isValidQuizName,
 } from './other.js';
 
@@ -120,7 +121,33 @@ export function adminQuizInfo(authUserId, quizId) {
   * @returns { } - returns nothing
 */
 export function adminQuizNameUpdate(authUserId, quizId, name) {
-    return {};
+  let user = findUserbyId(authUserId);
+  if (user === undefined) {
+    return createError('AuthUserId is not a valid user');
+  }
+
+  let quiz = findQuizbyId(quizId);
+  if (quiz === undefined) {
+    return createError('QuizId is not a valid quiz');
+  } else if (authUserId !== quiz.authUserId) {
+    return createError('QuizId is not owned by user');
+  }
+
+  let quizNameError = isValidQuizName(name);
+  if (quizNameError) {
+    return quizNameError;
+  }
+
+  // check if name is already used by another quiz for the user (case insensitive check)
+  let quizzes = adminQuizList(authUserId);
+  for (const quiz of quizzes) {
+    if (quiz.name === name || quiz.name.toLowerCase() === name.toLowerCase()){
+      return createError('Name is already used by another quiz');
+    }
+  }
+
+  quiz.name = name;
+  return {};
 }
 
 /**

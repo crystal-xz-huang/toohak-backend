@@ -9,7 +9,11 @@ import validator from 'validator';
   * @returns { } - returns nothing
 */
 export function clear() {
-    return {};
+  let dataStore = getData();
+  dataStore.users = [];
+  dataStore.quizzes = [];
+  setData(dataStore);
+  return {};
 }
 
 //////////////////////////////////////////////////////////////////////////////// 
@@ -50,6 +54,18 @@ export function findUserbyEmail(email) {
 export function findUserbyId(authUserId) {
   const dataStore = getData();
   return dataStore.users.find(user => user.authUserId === authUserId);
+}
+
+/**
+ * Given a quizId, returns the quiz object
+ * Otherwise, returns undefined if quizId is not found
+ * 
+ * @param {number} quizId 
+ * @returns {object} - object containing the quiz details
+ */
+export function findQuizbyId(quizId) {
+  const dataStore = getData();
+  return dataStore.quizzes.find(quiz => quiz.quizId === quizId);
 }
 
 /**
