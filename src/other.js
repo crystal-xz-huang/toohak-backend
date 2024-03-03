@@ -56,6 +56,18 @@ export function findUserbyId(authUserId) {
 }
 
 /**
+ * Given a quizId, returns the quiz object
+ * Otherwise, returns undefined if quizId is not found
+ * 
+ * @param {number} quizId 
+ * @returns {object} - object containing the quiz details
+ */
+export function findQuizbyId(quizId) {
+  const dataStore = getData();
+  return dataStore.quizzes.find(quiz => quiz.quizId === quizId);
+}
+
+/**
  * Check if a string is a valid first or last name 
  * Returns null if the name is valid, otherwise returns an error object
  * 
