@@ -154,7 +154,52 @@ describe('testing adminAuthLogin', () => {
 });
 
 describe('testing adminUserDetails', () => {
-    // TODO
+    const user = {
+        email: 'johnsmith@gmail.com',
+        password: 'hashed_password2',
+        nameFirst: 'john',
+        nameLast: 'smith',
+        numSuccessfulLogins: 2,
+        numFailedPasswordsSinceLastLogin: 1,
+    };
+
+    let id;
+    let result;
+    beforeEach(() => {
+        id = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
+        result = adminAuthLogin(user.email, 'hashed_password2');
+    })
+
+    test('return an error object when authUserId is invalid', () => {
+        expect(adminUserDetails(id + 10)).toStrictEqual(ERROR);
+    });
+
+    test('returns an object with "users" detail when authUserId is valid', () => {
+        expect(adminUserDetails(id)).toStrictEqual({
+            user: {
+                userId: id,
+                name: user.nameFirst + user.nameLast,
+                email: user.email,
+                numSuccessfulLogins: user.numSuccessfulLogins,
+                numFailedPasswordsSinceLastLogin: user.numFailedPasswordsSinceLastLogin,
+            }
+        });
+    });
+
+    //incorrect password increases numFailedPasswordsSinceLastLogin
+    result = adminAuthLogin(user.email, 'hashed_password33');
+    test('returns an object with "users" detail when authUserId is valid', () => {
+        expect(adminUserDetails(id)).toStrictEqual({
+            user: {
+                userId: id,
+                name: user.nameFirst + user.nameLast,
+                email: user.email,
+                numSuccessfulLogins: user.numSuccessfulLogins,
+                numFailedPasswordsSinceLastLogin: user.numFailedPasswordsSinceLastLogin,
+            }
+        });
+    });
+
 });
 
 describe('testing adminUserDetailsUpdate', () => {
