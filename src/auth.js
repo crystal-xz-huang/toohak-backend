@@ -47,7 +47,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
     password: password,
     nameFirst: nameFirst,
     nameLast: nameLast,
-    numSuccessfulLogins: 0,
+    numSuccessfulLogins: 1,
     numFailedLogins: 0,
   };
 
@@ -68,9 +68,11 @@ export function adminAuthLogin(email, password) {
   if (foundUser === undefined) {
     return createError('Email does not exist');
   } else if (foundUser.password !== password) {
+    foundUser.numFailedPasswordsSinceLastLogin =+ 1;
     return createError('Password is incorrect');
   }
-
+  foundUser.numFailedPasswordsSinceLastLogin = 0;
+  foundUser.numSuccessfulLogins =+1;
   return { authUserId: foundUser.authUserId };
 }
 
