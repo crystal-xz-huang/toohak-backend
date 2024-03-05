@@ -126,5 +126,7 @@ export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) 
   * @returns { } - returns nothing
 */
 export function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword ) {
+
+  
   return {};
 }

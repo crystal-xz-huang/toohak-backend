@@ -175,7 +175,7 @@ describe('testing adminUserPasswordUpdate', () => {
         adminAuthLogin(user.email, user.password);
     });
 
-    let newpassword = 'hey_me33'
+    let newpassword = 'hey_mee3'
 
     test ('returns an object with "authUserId" key on success', () => {
         expect(adminUserPasswordUpdate(result.authUserId, user.password, newpassword)).toStrictEqual({});
