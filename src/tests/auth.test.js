@@ -158,7 +158,93 @@ describe('testing adminUserDetails', () => {
 });
 
 describe('testing adminUserDetailsUpdate', () => {
-    // TODO
+    const user = {
+        email: 'johnsmith@gmail.com',
+        password: 'hashed_password2',
+        nameFirst: 'john',
+        nameLast: 'smith',
+    };
+    
+    const email_update = 'johnsmith99@gmail.com';
+    const nameFirst_update = 'joy';
+    const nameLast_update = 'hell';
+
+    let result;
+    beforeEach(() => {
+        result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
+        adminAuthLogin(user.email, user.password);
+    });
+
+    test('returns an "{}" key on success', () => {
+        let result = adminUserDetailsUpdate(result.authUserId, email_update, nameFirst_update, nameLast_update);
+        expect(result).toStrictEqual( );
+    });
+
+    test('AuthUserId is not a valid user.', () => {
+        expect(adminUserDetailsUpdate(result.authUserId + 1, email_update, nameFirst_update, nameLast_update)).toStrictEqual(ERROR);
+    });
+
+    describe('returns error with an invalid email', () => {
+        let invalidEmails = [
+            {email: ''}, // empty email
+            {email: 'example.com'},
+            {email: 'example@'},
+            {email: 'example@.com'},
+            {email: '@gmail.com'},
+            {email: 'user@gmail@gmail.com'},
+            {email: 'email'},                
+        ];
+
+        // check that error is returned when email address is invalid 
+        test.each(invalidEmails)("test invalid email '$#': '$email'", ({email}) => {
+            expect(adminUserDetailsUpdate(result.authUserId, email, nameFirst_update, nameLast_update)).toStrictEqual(ERROR);
+        });
+
+        //check that error is returned when email address already exist
+        test('Email is currently used by another user',() => {
+            adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
+            let result = adminAuthRegister(user.email, 'password2', 'John', 'Smith');
+            expect(adminUserDetailsUpdate(result.authUserId, user.email, nameFirst_update, nameLast_update)).toStrictEqual(ERROR);
+        });
+    });
+
+    describe('returns error with an invalid first name', () => {
+        test('test first name contains invalid characters', () => {
+            expect(adminUserDetailsUpdate(result.authUserId, email_update, 'Jane@.#7123', nameLast_update)).toStrictEqual(ERROR);
+        });
+
+        test('test first name is less than 2 characters', () => {
+            expect(adminUserDetailsUpdate(result.authUserId, email_update, 'J',nameLast_update)).toStrictEqual(ERROR);
+        });
+
+        test('test first name is empty', () => {
+            expect(adminUserDetailsUpdate(result.authUserId, email_update, '', nameLast_update)).toStrictEqual(ERROR);
+        });
+
+        test('test first name is more than 20 characters', () => {
+            expect(adminUserDetailsUpdate(result.authUserId, email_update, 'JaneJaneJaneJaneJaneJ', nameLast_update)).toStrictEqual(ERROR); 
+        });
+    });
+
+    describe('returns error with an invalid last name', () => {
+        test('test last name contains invalid characters', () => {
+            expect(adminUserDetailsUpdate(result.authUserId, email_update, nameFirst_update, 'Doe12*&^')).toStrictEqual(ERROR);
+        });
+
+        test('test last name is less than 2 characters', () => {
+            expect(adminUserDetailsUpdate(result.authUserId, email_update, nameFirst_update, 'D')).toStrictEqual(ERROR);
+        });
+
+        test('test last name is empty', () => {
+            expect(adminUserDetailsUpdate(result.authUserId, email_update, nameFirst_update, '')).toStrictEqual(ERROR);
+        });
+
+        test('test last name is more than 20 characters', () => {
+            expect(adminUserDetailsUpdate(result.authUserId, email_update, nameFirst_update, 'JaneJaneJaneJaneJaneJ')).toStrictEqual(ERROR); 
+        });
+    });
+
+
 });
 
 describe('testing adminUserPasswordUpdate', () => {
