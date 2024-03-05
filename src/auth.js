@@ -154,5 +154,21 @@ export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) 
   * @returns { } - returns nothing
 */
 export function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword ) {
+  let foundUser = findUserbyId(authUserId);
+  if (foundUser === undefined) {
+    return createError('authUserid does not exist');
+  }; 
+  if(foundUser.password !== oldPassword) {
+    return createError('Old Password is not the correct old password');
+  };
+  if (foundUser.password === newPassword) {
+    return createError('Old Password and New Password match exactly');
+  };
+  let passwordError = isValidPassword(newPassword);
+  if (passwordError) {
+    return passwordError;
+  };
+
+  foundUser.password = newPassword;
   return {};
 }
