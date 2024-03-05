@@ -132,6 +132,20 @@ export function isValidEmail(email) {
     return null;
   }
 }
+
+/**
+ * Update dataStore with the given user object
+ * 
+ * @param {object} user - the user object
+ * @returns { } - returns nothing
+ */
+export function updateUser(user) {
+  const dataStore = getData();
+  const index = dataStore.users.findIndex(u => u.authUserId === user.authUserId);
+  dataStore.users[index] = user;
+  setData(dataStore);
+  return {};
+}
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// QUIZ HELPER FUNCTIONS //////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
