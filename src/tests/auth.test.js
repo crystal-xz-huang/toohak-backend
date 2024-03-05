@@ -26,7 +26,7 @@ const user = {
 };
 
 const invalidEmails = [
-    {email: ''}, // empty email
+    {email: ''}, 
     {email: 'example.com'},
     {email: 'example@'},
     {email: 'example@.com'},

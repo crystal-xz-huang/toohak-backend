@@ -1,4 +1,3 @@
-import validator from 'validator';
 import { getData, setData } from './dataStore.js';
 import {
   createError,
@@ -73,14 +72,12 @@ export function adminAuthLogin(email, password) {
     return createError('Email does not exist');
   } 
     
-  // if the password is incorrect, increment the numFailedPasswordsSinceLastLogin
   if (foundUser.password !== password) {
     foundUser.numFailedPasswordsSinceLastLogin = foundUser.numFailedPasswordsSinceLastLogin + 1;
     updateUser(foundUser);
     return createError('Password is incorrect');
   }
 
-  // if the password is correct, reset the numFailedPasswordsSinceLastLogin and increment the numSuccessfulLogins
   foundUser.numFailedPasswordsSinceLastLogin = 0;
   foundUser.numSuccessfulLogins = foundUser.numSuccessfulLogins + 1;
   updateUser(foundUser);
