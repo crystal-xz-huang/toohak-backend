@@ -1,10 +1,3 @@
-/**
- * NOTE: This file is for testing the admin auth related functions.
- * We can finalise the file once everyone has finished their tests and make sure the tests are consistent
- * and do not conflict or overlap with each other.
- * I imported all the functions in case they are needed for testing side effects.
- */
-
 import {
     adminAuthRegister,
     adminAuthLogin,
@@ -12,15 +5,6 @@ import {
     adminUserDetailsUpdate,
     adminUserPasswordUpdate,
 } from '../auth';
-
-import {
-    adminQuizList,
-    adminQuizCreate,
-    adminQuizRemove,
-    adminQuizInfo,
-    adminQuizNameUpdate,
-    adminQuizDescriptionUpdate,
-} from '../quiz';
 
 import { clear } from '../other';
 
@@ -34,36 +18,39 @@ afterEach(() => {
     clear();
 });
 
-describe('testing adminAuthRegister', () => {
-    const user = {
-        email: 'janedoe@gmail.com',
-        password: 'hashed_password1',
-        nameFirst: 'Jane',
-        nameLast: 'Doe',
-    };
+const user = {
+    email: 'johnsmith@gmail.com',
+    password: 'hashed_password1',
+    nameFirst: 'john',
+    nameLast: 'smith',
+};
 
+const invalidEmails = [
+    {email: ''}, // empty email
+    {email: 'example.com'},
+    {email: 'example@'},
+    {email: 'example@.com'},
+    {email: '@gmail.com'},
+    {email: 'user@gmail@gmail.com'},
+    {email: 'email'},                
+];
+
+const invalidPasswords = [
+    {password: '12345678'},
+    {password: 'abcdefgh'},
+]
+
+describe('testing adminAuthRegister', () => {
     test('returns an object with "authUserId" key on success', () => {
         let result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
         expect(result).toStrictEqual({ authUserId: expect.any(Number) });
     });
 
     describe('returns error with an invalid email', () => {
-        let invalidEmails = [
-            {email: ''}, // empty email
-            {email: 'example.com'},
-            {email: 'example@'},
-            {email: 'example@.com'},
-            {email: '@gmail.com'},
-            {email: 'user@gmail@gmail.com'},
-            {email: 'email'},                
-        ];
-
-        // check that error is returned when email address is invalid 
         test.each(invalidEmails)("test invalid email '$#': '$email'", ({email}) => {
             expect(adminAuthRegister(email, user.password, user.nameFirst, user.nameLast)).toStrictEqual(ERROR);
         });
 
-        // check that error is returned when email address is used by another user
         test('test already used email', () => {
             adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
             let result = adminAuthRegister(user.email, 'password2', 'John', 'Smith');
@@ -108,11 +95,6 @@ describe('testing adminAuthRegister', () => {
     });
 
     describe('returns error with an invalid password', () => {
-        let invalidPassword = [
-            {password: '12345678'},
-            {password: 'abcdefgh'},
-        ]
-
         test('test password is less than 8 characters', () => {
             expect(adminAuthRegister(user.email, 'abc4567', user.nameFirst, user.nameLast)).toStrictEqual(ERROR);
         });
@@ -121,26 +103,19 @@ describe('testing adminAuthRegister', () => {
             expect(adminAuthRegister(user.email, '', user.nameFirst, user.nameLast)).toStrictEqual(ERROR);
         });
 
-        test.each(invalidPassword)("test password does not contain at least one number and one letter", ({passsword}) => {
+        test.each(invalidPasswords)("test password does not contain at least one number and one letter", ({passsword}) => {
             expect(adminAuthRegister(user.email, passsword, user.nameFirst, user.nameLast)).toStrictEqual(ERROR);
         });
     });
 });
 
 describe('testing adminAuthLogin', () => {
-    const user = {
-        email: 'johnsmith@gmail.com',
-        password: 'hashed_password2',
-        nameFirst: 'john',
-        nameLast: 'smith',
-    };
-
     let result;
     beforeEach(() => {
         result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
     });
 
-    test('returns an object with the "authUserId" key when email and password is matched', () => {
+    test('returns an object with "authUserId" key when email and password is matched', () => {
         expect(adminAuthLogin(user.email, user.password)).toStrictEqual({ authUserId: result.authUserId });
     });
 
@@ -154,58 +129,71 @@ describe('testing adminAuthLogin', () => {
 });
 
 describe('testing adminUserDetails', () => {
-    const user = {
-        email: 'johnsmith@gmail.com',
-        password: 'hashed_password2',
-        nameFirst: 'john',
-        nameLast: 'smith',
-    };
-
     let id;
     beforeEach(() => {
         id = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
-        adminAuthLogin(user.email, 'hashed_password2');
     });
 
-    test('return an error object when authUserId is invalid', () => {
+    test('returns error when authUserId is invalid', () => {
         expect(adminUserDetails(id + 10)).toStrictEqual(ERROR);
     });
 
-    test('returns an object with "users" detail when authUserId is valid', () => {
-        expect(adminUserDetails(id.authUserId)).toStrictEqual({
-            user: {
-                userId: id.authUserId,
-                name: user.nameFirst + ' ' +user.nameLast,
-                email: user.email,
-                numSuccessfulLogins: 1,
-                numFailedPasswordsSinceLastLogin: 0,
-            }
-     });
-    });
-
-    test('returns an object with "users" detail when authUserId is valid when password is entered invalid', () => {
-        adminAuthLogin(user.email, 'hashed_password33');
-        expect(adminUserDetails(id.authUserId)).toStrictEqual({
-            user: {
-                userId: id.authUserId,
-                name: user.nameFirst + ' ' + user.nameLast,
-                email: user.email,
-                numSuccessfulLogins: 1,
-                numFailedPasswordsSinceLastLogin: 1,
-            }
+    describe('returns an object with correct key-values when authUserId is valid', () => {
+        test('test numSuccessfulLogins is 1 when user is registered with adminAuthRegister', () => {
+            expect(adminUserDetails(id.authUserId)).toStrictEqual({
+                user: {
+                    userId: id.authUserId,
+                    name: `${user.nameFirst} ${user.nameLast}`,
+                    email: user.email,
+                    numSuccessfulLogins: 1,
+                    numFailedPasswordsSinceLastLogin: 0,
+                }
+            });
         });
-    });
 
+        test('test numSuccessfulLogins is 2 when user successfully logs in with adminAuthLogin', () => {
+            adminAuthLogin(user.email, user.password);
+            expect(adminUserDetails(id.authUserId)).toStrictEqual({
+                user: {
+                    userId: id.authUserId,
+                    name: `${user.nameFirst} ${user.nameLast}`,
+                    email: user.email,
+                    numSuccessfulLogins: 2,
+                    numFailedPasswordsSinceLastLogin: 0,
+                }
+            });
+        });
+
+        test('test numFailedPasswordsSinceLastLogin is 1 when user fails to log in with an invalid password', () => {
+            adminAuthLogin(user.email, 'invalid_password1');
+            expect(adminUserDetails(id.authUserId)).toStrictEqual({
+                user: {
+                    userId: id.authUserId,
+                    name: `${user.nameFirst} ${user.nameLast}`,
+                    email: user.email,
+                    numSuccessfulLogins: 1,
+                    numFailedPasswordsSinceLastLogin: 1,
+                }
+            });
+        });
+
+        test('test numFailedPasswordsSinceLastLogin is reset with a successful login', () => {
+            adminAuthLogin(user.email, 'invalid_password1');
+            adminAuthLogin(user.email, user.password);
+            expect(adminUserDetails(id.authUserId)).toStrictEqual({
+                user: {
+                    userId: id.authUserId,
+                    name: `${user.nameFirst} ${user.nameLast}`,
+                    email: user.email,
+                    numSuccessfulLogins: 2,
+                    numFailedPasswordsSinceLastLogin: 0,
+                }
+            });
+        });
+    });    
 });
 
 describe('testing adminUserDetailsUpdate', () => {
-    const user = {
-        email: 'johnsmith@gmail.com',
-        password: 'hashed_password2',
-        nameFirst: 'john',
-        nameLast: 'smith',
-    };
-    
     const email_update = 'johnsmith99@gmail.com';
     const nameFirst_update = 'joy';
     const nameLast_update = 'hell';
@@ -216,35 +204,23 @@ describe('testing adminUserDetailsUpdate', () => {
         adminAuthLogin(user.email, user.password);
     });
 
-    test('returns an "{}" key on success', () => {
+    test('returns an empty object on success', () => {
         let result2 = adminUserDetailsUpdate(result.authUserId, email_update, nameFirst_update, nameLast_update);
         expect(result2).toStrictEqual({});
     });
 
-    test('AuthUserId is not a valid user.', () => {
+    test('returns error when authUserId is not a valid user.', () => {
         expect(adminUserDetailsUpdate(result.authUserId + 1, email_update, nameFirst_update, nameLast_update)).toStrictEqual(ERROR);
     });
 
     describe('returns error with an invalid email', () => {
-        let invalidEmails = [
-            {email: ''}, // empty email
-            {email: 'example.com'},
-            {email: 'example@'},
-            {email: 'example@.com'},
-            {email: '@gmail.com'},
-            {email: 'user@gmail@gmail.com'},
-            {email: 'email'},                
-        ];
-
-        // check that error is returned when email address is invalid 
         test.each(invalidEmails)("test invalid email '$#': '$email'", ({email}) => {
             expect(adminUserDetailsUpdate(result.authUserId, email, nameFirst_update, nameLast_update)).toStrictEqual(ERROR);
         });
 
-        //check that error is returned when email address already exist
-        test('Email is currently used by another user',() => {
+        test('test email is currently used by another user',() => {
             adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
-            let result = adminAuthRegister(user.email, 'password2', 'John', 'Smith');
+            let result = adminAuthRegister(user.email, 'password2', 'Jane', 'Smith');
             expect(adminUserDetailsUpdate(result.authUserId, user.email, nameFirst_update, nameLast_update)).toStrictEqual(ERROR);
         });
     });
@@ -284,18 +260,9 @@ describe('testing adminUserDetailsUpdate', () => {
             expect(adminUserDetailsUpdate(result.authUserId, email_update, nameFirst_update, 'JaneJaneJaneJaneJaneJ')).toStrictEqual(ERROR); 
         });
     });
-
-
 });
 
 describe('testing adminUserPasswordUpdate', () => {
-    const user = {
-        email: 'johnsmith@gmail.com',
-        password: 'hashed_password2',
-        nameFirst: 'john',
-        nameLast: 'smith',
-    };
-
     let result;
     beforeEach(() => {
         result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
@@ -304,35 +271,33 @@ describe('testing adminUserPasswordUpdate', () => {
 
     let newpassword = 'hey_mee3'
 
-    test ('returns an object with "authUserId" key on success', () => {
+    test ('returns an empty object on success', () => {
         expect(adminUserPasswordUpdate(result.authUserId, user.password, newpassword)).toStrictEqual({});
     });
 
-    test ('AuthUserId is not a valid user.', () => {
+    test ('returns error when authUserId is not a valid user.', () => {
         expect(adminUserPasswordUpdate(result.authUserId + 1, user.password, newpassword)).toStrictEqual(ERROR);
     });
 
-    test('Old Password is not the correct old password', () => {
+    test('returns error when old password is not correct', () => {
         expect(adminUserPasswordUpdate(result.authUserId, 'hashed_password3', newpassword)).toStrictEqual(ERROR);
     });
-
-    test('Old Password and New Password match exactly', () => {
-        expect(adminUserPasswordUpdate(result.authUserId, user.password, 'hashed_password2')).toStrictEqual(ERROR);
+    
+    test('returns error when old password and new password match exactly', () => {
+        expect(adminUserPasswordUpdate(result.authUserId, user.password, user.password)).toStrictEqual(ERROR);
     });
 
-    test ('New Password is less than 8 characters', () => {
-        expect(adminUserPasswordUpdate(result.authUserId, user.password, 'abc2v')).toStrictEqual(ERROR);
-    });
+    describe('returns error with an invalid new password', () => {
+        test('test new password is less than 8 characters', () => {
+            expect(adminUserPasswordUpdate(result.authUserId, user.password, 'abc4567')).toStrictEqual(ERROR);
+        });
 
-    test ('New password is empty', () => {
-        expect(adminUserPasswordUpdate(result.authUserId, user.password, '')).toStrictEqual(ERROR);
-    });
+        test('test new password is empty', () => {
+            expect(adminUserPasswordUpdate(result.authUserId, user.password, '')).toStrictEqual(ERROR);
+        });
 
-    test ('New Password does not contain at least one number', () => {
-        expect(adminUserPasswordUpdate(result.authUserId, user.password, 'abcdefgh')).toStrictEqual(ERROR);
-    });
-
-    test ('New Password does not contain at least one letter', () => {
-        expect(adminUserPasswordUpdate(result.authUserId, user.password, '12345678')).toStrictEqual(ERROR);
+        test.each(invalidPasswords)("test new password does not contain at least one number and one letter", ({passsword}) => {
+            expect(adminUserPasswordUpdate(result.authUserId, user.password, passsword)).toStrictEqual(ERROR);
+        });
     });
 });
