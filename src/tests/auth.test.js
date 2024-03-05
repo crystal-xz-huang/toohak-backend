@@ -176,8 +176,8 @@ describe('testing adminUserDetailsUpdate', () => {
     });
 
     test('returns an "{}" key on success', () => {
-        let result = adminUserDetailsUpdate(result.authUserId, email_update, nameFirst_update, nameLast_update);
-        expect(result).toStrictEqual( );
+        let result2 = adminUserDetailsUpdate(result.authUserId, email_update, nameFirst_update, nameLast_update);
+        expect(result2).toStrictEqual({});
     });
 
     test('AuthUserId is not a valid user.', () => {
