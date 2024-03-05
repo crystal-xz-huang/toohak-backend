@@ -162,5 +162,50 @@ describe('testing adminUserDetailsUpdate', () => {
 });
 
 describe('testing adminUserPasswordUpdate', () => {
-    // TODO
+    const user = {
+        email: 'johnsmith@gmail.com',
+        password: 'hashed_password2',
+        nameFirst: 'john',
+        nameLast: 'smith',
+    };
+
+    let result;
+    beforeEach(() => {
+        result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
+        adminAuthLogin(user.email, user.password);
+    });
+
+    let newpassword = 'hey_me33'
+
+    test ('returns an object with "authUserId" key on success', () => {
+        expect(adminUserPasswordUpdate(result.authUserId, user.password, newpassword)).toStrictEqual({});
+    });
+
+    test ('AuthUserId is not a valid user.', () => {
+        expect(adminUserPasswordUpdate(result.authUserId + 1, user.password, newpassword)).toStrictEqual(ERROR);
+    });
+
+    test('Old Password is not the correct old password', () => {
+        expect(adminUserPasswordUpdate(result.authUserId, 'hashed_password3', newpassword)).toStrictEqual(ERROR);
+    });
+
+    test('Old Password and New Password match exactly', () => {
+        expect(adminUserPasswordUpdate(result.authUserId, user.password, 'hashed_password2')).toStrictEqual(ERROR);
+    });
+
+    test ('New Password is less than 8 characters', () => {
+        expect(adminUserPasswordUpdate(result.authUserId, user.password, 'abc2v')).toStrictEqual(ERROR);
+    });
+
+    test ('New password is empty', () => {
+        expect(adminUserPasswordUpdate(result.authUserId, user.password, '')).toStrictEqual(ERROR);
+    });
+
+    test ('New Password does not contain at least one number', () => {
+        expect(adminUserPasswordUpdate(result.authUserId, user.password, 'abcdefgh')).toStrictEqual(ERROR);
+    });
+
+    test ('New Password does not contain at least one letter', () => {
+        expect(adminUserPasswordUpdate(result.authUserId, user.password, '12345678')).toStrictEqual(ERROR);
+    });
 });
