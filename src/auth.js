@@ -48,7 +48,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
     nameFirst: nameFirst,
     nameLast: nameLast,
     numSuccessfulLogins: 1,
-    numFailedLogins: 0,
+    numFailedPasswordsSinceLastLogin: 0,
   };
 
   dataStore.users.push(user);
@@ -65,6 +65,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
 */
 export function adminAuthLogin(email, password) {
   let foundUser = findUserbyEmail(email);
+  let dataStore = getData();
   if (foundUser === undefined) {
     return createError('Email does not exist');
   } else if (foundUser.password !== password) {
@@ -89,15 +90,18 @@ export function adminAuthLogin(email, password) {
   * @property {number} numFailedPasswordsSinceLastLogin - the number of failed password attempts since the last successful login
 */
 export function adminUserDetails(authUserId) {
-  // TODO: Implement this function
-  return { 
-      user: {
-          authUserId: 1,
-          name: 'Hayden Smith',
-          email: 'hayden.smith@unsw.edu.au',
-          numSuccessfulLogins: 3,
-          numFailedPasswordsSinceLastLogin: 1,
-      }
+   let foundUser = findUserbyId(authUserId);
+   if (foundUser === undefined) {
+    return createError('authUserId is invalid');
+   }
+   return { 
+    user: {
+        userId: foundUser.authUserId,
+        name: foundUser.nameFirst + ' ' + foundUser.nameLast,
+        email: foundUser.email,
+        numSuccessfulLogins: foundUser.numSuccessfulLogins,
+        numFailedPasswordsSinceLastLogin: foundUser.numFailedPasswordsSinceLastLogin,
+    }
   };
 }
 
