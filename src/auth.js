@@ -1,3 +1,4 @@
+import validator from 'validator';
 import { getData, setData } from './dataStore.js';
 import {
   createError,
@@ -21,11 +22,11 @@ import {
   * @returns {{authUserId: number}} - object containing the authUserId of the user
 */
 export function adminAuthRegister(email, password, nameFirst, nameLast) {
-  let emailError = isValidEmail(email);
+  let emailError = isValidEmail(email, -1);
   if (emailError) {
     return emailError;
-  }
-  
+  } 
+
   let passwordError = isValidPassword(password);
   if (passwordError) {
     return passwordError;
@@ -56,6 +57,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
   setData(dataStore);
   return { authUserId: user.authUserId }; 
 }
+
 
 /** Given a registered user's email and password, returns their authUserId value
   * 
@@ -127,10 +129,10 @@ export function adminUserDetails(authUserId) {
 export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) {
   let foundUser = findUserbyId(authUserId);
   if (foundUser === undefined) {
-    return createError('authUserId is not a valid user.');
+    return createError('authUserId is invalid');
   }
 
-  let emailError = isValidEmail(email);
+  let emailError = isValidEmail(email, authUserId);
   if (emailError) {
     return emailError;
   }
@@ -144,12 +146,13 @@ export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) 
   if (nameLastError) {
     return nameLastError;
   }
+
   foundUser.email = email;
   foundUser.nameFirst = nameFirst;
   foundUser.nameLast = nameLast;
+  updateUser(foundUser);
   return {};
 }
-
 
 /**
   * Given details relating to a password change, update the 
@@ -164,19 +167,23 @@ export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) 
 export function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword ) {
   let foundUser = findUserbyId(authUserId);
   if (foundUser === undefined) {
-    return createError('authUserid does not exist');
+    return createError('authUserId is invalid');
   }; 
+
   if(foundUser.password !== oldPassword) {
-    return createError('Old Password is not the correct old password');
+    return createError('Old password is incorrect');
   };
+
   if (foundUser.password === newPassword) {
-    return createError('Old Password and New Password match exactly');
+    return createError('Old password and new password are the same');
   };
+
   let passwordError = isValidPassword(newPassword);
   if (passwordError) {
     return passwordError;
   };
 
   foundUser.password = newPassword;
+  updateUser(foundUser);
   return {};
 }

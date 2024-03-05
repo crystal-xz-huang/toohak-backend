@@ -117,20 +117,25 @@ export function isValidPassword(password) {
  * Returns null if the email is valid, otherwise returns an error object
  * 
  * @param {string} email - the email of the user
+ * @param {number} authUserId - the id of the user (if updating email) or -1 if registering
  * @returns {{error: string}} - object containing the error message, or null if the email is valid
  */
-export function isValidEmail(email) {
+export function isValidEmail(email, authUserId) {
   if (email === '') {
     return createError('Email is empty');
   } else if (typeof email !== 'string') {
     return createError('Email is not a string');
   } else if (!validator.isEmail(email)) {
     return createError('Email is invalid');
-  } else if (findUserbyEmail(email)) {
-    return createError('Email already exists');
-  } else {
+  } else if (findUserbyEmail(email) === undefined && authUserId === -1) {
     return null;
-  }
+  } else if (findUserbyEmail(email) === undefined && authUserId !== -1) {
+    return null;
+  } else if (findUserbyEmail(email).authUserId === authUserId) {
+    return null;
+  } else {
+    return createError('Email is currently used by another user');
+  } 
 }
 
 /**
