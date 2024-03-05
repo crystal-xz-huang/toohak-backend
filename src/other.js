@@ -78,6 +78,8 @@ export function findQuizbyId(quizId) {
 export function isValidName(name, type) {
   if (name === '') {
     return createError(`${type} name is empty`);
+  } else if (name.length > 20) {
+    return createError(`${type} name is more than 20 characters`);
   } else if (typeof name !== 'string') {
     return createError(`${type} name is not a string`);
   } else if (name.length < 2) {

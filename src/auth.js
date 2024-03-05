@@ -117,6 +117,28 @@ export function adminUserDetails(authUserId) {
   * @returns { } - returns nothing
 */
 export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) {
+  let foundUser = findUserbyId(authUserId);
+  if (foundUser === undefined) {
+    return createError('AuthUserId is not a valid user.');
+  }
+
+  let emailError = isValidEmail(email);
+  if (emailError) {
+    return emailError;
+  }
+  
+  let nameFirstError = isValidName(nameFirst, 'First');
+  if (nameFirstError) {
+    return nameFirstError;
+  }
+
+  let nameLastError = isValidName(nameLast, 'Last');
+  if (nameLastError) {
+    return nameLastError;
+  }
+  foundUser.email = email;
+  foundUser.nameFirst = nameFirst;
+  foundUser.nameLast = nameLast;
   return {};
 }
 
