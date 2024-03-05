@@ -6,6 +6,7 @@ import {
   isValidName,
   isValidPassword,
   isValidEmail,
+  updateUser,
 } from './other.js';
 
 /**
@@ -65,15 +66,22 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
 */
 export function adminAuthLogin(email, password) {
   let foundUser = findUserbyEmail(email);
-  let dataStore = getData();
+
   if (foundUser === undefined) {
     return createError('Email does not exist');
-  } else if (foundUser.password !== password) {
-    foundUser.numFailedPasswordsSinceLastLogin =+ 1;
+  } 
+    
+  // if the password is incorrect, increment the numFailedPasswordsSinceLastLogin
+  if (foundUser.password !== password) {
+    foundUser.numFailedPasswordsSinceLastLogin = foundUser.numFailedPasswordsSinceLastLogin + 1;
+    updateUser(foundUser);
     return createError('Password is incorrect');
   }
+
+  // if the password is correct, reset the numFailedPasswordsSinceLastLogin and increment the numSuccessfulLogins
   foundUser.numFailedPasswordsSinceLastLogin = 0;
-  foundUser.numSuccessfulLogins =+1;
+  foundUser.numSuccessfulLogins = foundUser.numSuccessfulLogins + 1;
+  updateUser(foundUser);
   return { authUserId: foundUser.authUserId };
 }
 
@@ -97,7 +105,7 @@ export function adminUserDetails(authUserId) {
    return { 
     user: {
         userId: foundUser.authUserId,
-        name: foundUser.nameFirst + ' ' + foundUser.nameLast,
+        name: `${foundUser.nameFirst} ${foundUser.nameLast}`,
         email: foundUser.email,
         numSuccessfulLogins: foundUser.numSuccessfulLogins,
         numFailedPasswordsSinceLastLogin: foundUser.numFailedPasswordsSinceLastLogin,
@@ -119,7 +127,7 @@ export function adminUserDetails(authUserId) {
 export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) {
   let foundUser = findUserbyId(authUserId);
   if (foundUser === undefined) {
-    return createError('AuthUserId is not a valid user.');
+    return createError('authUserId is not a valid user.');
   }
 
   let emailError = isValidEmail(email);
