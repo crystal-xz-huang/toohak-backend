@@ -130,7 +130,9 @@ export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) 
   if (nameLastError) {
     return nameLastError;
   }
-
+  foundUser.email = email;
+  foundUser.nameFirst = nameFirst;
+  foundUser.nameLast = nameLast;
   return {};
 }
 
