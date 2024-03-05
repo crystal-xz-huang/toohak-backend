@@ -300,6 +300,11 @@ describe('testing adminUserPasswordUpdate', () => {
         expect(adminUserPasswordUpdate(result.authUserId, user.password, newpassword)).toStrictEqual({});
     });
 
+    test('password is updated on success', () => {
+        adminUserPasswordUpdate(result.authUserId, user.password, newpassword);
+        expect(adminAuthLogin(user.email, newpassword)).toStrictEqual({ authUserId: result.authUserId });
+    });
+
     test ('returns error when authUserId is not a valid user', () => {
         expect(adminUserPasswordUpdate(result.authUserId + 1, user.password, newpassword)).toStrictEqual(ERROR);
     });
