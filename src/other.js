@@ -11,6 +11,8 @@ export function clear() {
   let dataStore = getData();
   dataStore.users = [];
   dataStore.quizzes = [];
+  dataStore.userId_counter = 0;
+  dataStore.quizId_counter = 0;
   setData(dataStore);
   return {};
 }
