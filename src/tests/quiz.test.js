@@ -24,7 +24,6 @@ import {
 } from '../auth';
 
 import { clear } from '../other';
-import test from 'node:test';
 
 const ERROR = { error: expect.any(String) };
 
@@ -123,9 +122,13 @@ describe('testing adminQuizRemove', () => {
     })
     
     test('owner of one quiz removes their quiz', () => {
+        /*
         const emptyResult = {
             quizzes: []
         }
+        */
+
+        const emptyResult = [];
 
         adminQuizRemove(userId.authUserId, quizId.quizId);
         expect(adminQuizList(userId.authUserId)).toStrictEqual(emptyResult);
@@ -138,7 +141,7 @@ describe('testing adminQuizRemove', () => {
         let quizId3 = adminQuizCreate(userId2.authUserId, 'Quiz 3', 'This is a quiz3');
         let quizId4 = adminQuizCreate(userId2.authUserId, 'Quiz 4', 'This is a quiz4');
 
-        const result1 = {
+        /* const result1 = {
             quizzes: [
                 {
                     quizId: quizId2.quizId,
@@ -154,14 +157,26 @@ describe('testing adminQuizRemove', () => {
                     name: 'Quiz 4'
                 }
             ]
-        }
+        } */
+
+        const result1 = [
+            {
+                quizId: quizId2.quizId,
+                name: 'Quiz 2',
+            }
+        ];
+        const result2 = [
+            {
+                quizId: quizId4.quizId,
+                name: 'Quiz 4'
+            }
+        ]
 
         adminQuizRemove(userId.authUserId, quizId.quizId);
-        adminQuizRemove(userId2.authUserId, quizId3.quizId3);
+        adminQuizRemove(userId2.authUserId, quizId3.quizId);
 
-        expect(adminQUizList(userId.authUserId)).toStrictEqual(result1);
+        expect(adminQuizList(userId.authUserId)).toStrictEqual(result1);
         expect(adminQuizList(userId2.authUserId)).toStrictEqual(result2);
-
     })
 });
 
