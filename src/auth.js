@@ -7,7 +7,6 @@ import {
   isValidPassword,
   isValidEmail,
   updateUser,
-  generateAuthUserId,
 } from './other.js';
 
 /**
@@ -43,8 +42,9 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
   }
 
   let dataStore = getData();
+  dataStore.userId_counter = dataStore.userId_counter + 1;
   const user = {
-    authUserId: generateAuthUserId(),
+    authUserId: dataStore.userId_counter,
     email: email,
     password: password,
     nameFirst: nameFirst,
