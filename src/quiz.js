@@ -86,6 +86,25 @@ export function adminQuizCreate ( authUserId, name, description ) {
   * @returns { } - returns nothing
 */
 export function adminQuizRemove(authUserId, quizId) {
+  let user = findUserbyId(authUserId);
+  let quiz = findQuizbyId(quizId);
+
+  if (quiz === undefined) {
+    return createError('Quiz ID does not refer to a valid quiz');
+  }
+  else if (user === undefined) {
+    return createError('AuthUserId is not a valid user.');
+  }
+  else if (quiz.authUserId !== user.authUserId) {
+    return createError('Quiz ID does not refer to a quiz that this user owns');
+  }
+  else {
+    const dataStore = getData();
+    const index = dataStore.quizzes.findIndex((quiz) => quiz.quizId === quizId)
+
+    dataStore.quizzes.splice(index, 1);
+    setData(dataStore);
+  }
   return {};
 }
 

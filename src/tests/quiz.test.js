@@ -100,6 +100,84 @@ describe('testing adminQuizCreate', () => {
 
 describe('testing adminQuizRemove', () => {
     // TODO
+    let userId;
+    let quizId;
+
+    beforeEach(() => {
+        userId = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
+        quizId = adminQuizCreate(userId.authUserId, 'Quiz 1', 'This is a quiz');
+    })
+
+    test('returns error with an invalid userId', () => {
+        expect(adminQuizRemove(userId.authUserId + 1, quizId.quizId)).toStrictEqual(ERROR);
+    })
+
+    test('returns error with an invalid quizId', () => {
+        expect(adminQuizRemove(userId.authUserId, quizId.quizId + 1)).toStrictEqual(ERROR);
+    })
+
+    test('returns error for requesting info about a quiz not owned by the user', () => {
+        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
+        expect(adminQuizRemove(userId2.authUserId, quizId.quizId)).toStrictEqual(ERROR);
+    })
+    
+    test('owner of one quiz removes their quiz', () => {
+        /*
+        const emptyResult = {
+            quizzes: []
+        }
+        */
+
+        const emptyResult = [];
+
+        adminQuizRemove(userId.authUserId, quizId.quizId);
+        expect(adminQuizList(userId.authUserId)).toStrictEqual(emptyResult);
+    })
+
+    test('two owners of two quizzes each remove one of each of their quizzes',
+    () => {
+        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
+        let quizId2 = adminQuizCreate(userId.authUserId, 'Quiz 2', 'This is a quiz2');
+        let quizId3 = adminQuizCreate(userId2.authUserId, 'Quiz 3', 'This is a quiz3');
+        let quizId4 = adminQuizCreate(userId2.authUserId, 'Quiz 4', 'This is a quiz4');
+
+        /* const result1 = {
+            quizzes: [
+                {
+                    quizId: quizId2.quizId,
+                    name: 'Quiz 2'
+                }
+            ]
+        }
+
+        const result2 = {
+            quizzee: [
+                {
+                    quizId: quizId4.quizId,
+                    name: 'Quiz 4'
+                }
+            ]
+        } */
+
+        const result1 = [
+            {
+                quizId: quizId2.quizId,
+                name: 'Quiz 2',
+            }
+        ];
+        const result2 = [
+            {
+                quizId: quizId4.quizId,
+                name: 'Quiz 4'
+            }
+        ]
+
+        adminQuizRemove(userId.authUserId, quizId.quizId);
+        adminQuizRemove(userId2.authUserId, quizId3.quizId);
+
+        expect(adminQuizList(userId.authUserId)).toStrictEqual(result1);
+        expect(adminQuizList(userId2.authUserId)).toStrictEqual(result2);
+    })
 });
 
 describe('testing adminQuizInfo', () => {
