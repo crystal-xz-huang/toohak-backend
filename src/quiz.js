@@ -13,20 +13,17 @@ import timestamp from 'unix-timestamp';
   * 
   * @param {number} authUserId - the id of registered user
   * 
-  * @returns {Array<{quizId: number, name: string}>} - array containing the id and name of the quiz
+  * @returns {quizzes: Array<{quizId: number, name: string}>} - an object containing an array of quizzes
 */
 export function adminQuizList ( authUserId ) {
-  // Sorry I had to implement this function for you
-  // because I need to use it in my function adminQuizCreate 
-  // to check if the name is already used by another quiz for the user
   const dataStore = getData();
-  let quizzes = dataStore.quizzes.filter(quiz => quiz.authUserId === authUserId);
-  return quizzes.map(quiz => {
-    return {
-      quizId: quiz.quizId,
-      name: quiz.name,
-    };
-  });
+  let quiz_list = [];
+  for (const quiz of dataStore.quizzes) {
+    if (quiz.authUserId === authUserId) {
+      quiz_list.push({ quizId: quiz.quizId, name: quiz.name });
+    }
+  }
+  return { 'quizzes': quiz_list };
 }
 
 /**
@@ -50,9 +47,8 @@ export function adminQuizCreate ( authUserId, name, description ) {
     return quizNameError;
   }
 
-  // check if name is already used by another quiz for the user (case insensitive check)
-  let quizzes = adminQuizList(authUserId);
-  for (const quiz of quizzes) {
+  let user_quizzes = adminQuizList(authUserId);
+  for (const quiz of user_quizzes.quizzes) {
     if (quiz.name === name || quiz.name.toLowerCase() === name.toLowerCase()){
       return createError('Name is already used by another quiz');
     }
@@ -63,10 +59,10 @@ export function adminQuizCreate ( authUserId, name, description ) {
   }
 
   const dataStore = getData();
-  dataStore.quizId_counter++;
+  dataStore.quizId_counter = dataStore.quizId_counter + 1;
 
   const quiz = {
-    quizId: dataStore.userId_counter,
+    quizId: dataStore.quizId_counter,
     name: name,
     authUserId: authUserId,
     description: description,

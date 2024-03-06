@@ -36,10 +36,24 @@ afterEach(() => {
 });
 
 describe('testing adminQuizList', () => {
-    // TODO - 
-    // check the return value on success
-    // check if after adminAuthRegister and adminQuizCreate, the quiz is in the list for the user
+//     const quiz1 = {
+//         name: 'Quiz 1',
+//         description: 'This is a quiz',
+//     };
+
+//    const quiz2 = {
+//         name: 'Quiz 2',
+//         description: 'This is another quiz',
+//     }; 
+
+//     const user = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
+
+//     test('returns an object with an empty array when the user has no quizzes', () => {
+//         let result = adminQuizList(user.authUserId);
+//         expect(result).toStrictEqual({ quizzes: [] });
+//     });
 });
+
 
 describe('testing adminQuizCreate', () => {
     const quiz = {
@@ -58,12 +72,17 @@ describe('testing adminQuizCreate', () => {
         expect(result).toStrictEqual({ quizId: expect.any(Number) });
     });
 
+    test('does not return the same quizId for two different quizzes', () => {
+        let result1 = adminQuizCreate(userId, quiz.name, quiz.description);
+        let result2 = adminQuizCreate(userId, 'Quiz 2', 'This is another quiz');
+        expect(result1.quizId).not.toStrictEqual(result2.quizId);
+    });
+
     test('returns error with an invalid userId', () => {
         let result = adminQuizCreate(userId + 1, quiz.name, quiz.description);
         expect(result).toStrictEqual(ERROR);
     });
 
-    // Valid characters are alphanumeric and spaces.
     test('returns error when name contains invalid characters', () => {
         let result = adminQuizCreate(userId, 'Quiz 1&!', quiz.description);
         expect(result).toStrictEqual(ERROR);
