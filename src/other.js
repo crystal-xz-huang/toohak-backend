@@ -28,6 +28,27 @@ export function createError(message) {
   return { error: message };
 }
 
+/**
+ * Generate an id for a new user 
+ * 
+ * @param { } - has no parameters
+ * @returns {number} - the id of the new user
+ */
+export function generateAuthUserId() {
+  const dataStore = getData();
+  return dataStore.userId_counter++;
+}
+
+/**
+ * Generate an id for a new quiz
+ * 
+ * @param { } - has no parameters
+ * @returns {number} - the id of the new quiz
+ */
+export function generateQuizId() {
+  const dataStore = getData();
+  return dataStore.quizId_counter++;
+}
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// AUTH HELPER FUNCTIONS //////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -195,3 +216,10 @@ export function isValidQuizName(name) {
   }
 }
 
+export function updateQuiz(quiz) {
+  const dataStore = getData();
+  const index = dataStore.quizzes.findIndex(q => q.quizId === quiz.quizId);
+  dataStore.quizzes[index] = quiz;
+  setData(dataStore);
+  return {};
+}
