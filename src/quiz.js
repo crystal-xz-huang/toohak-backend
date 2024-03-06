@@ -16,14 +16,14 @@ import timestamp from 'unix-timestamp';
   * @returns {quizzes: Array<{quizId: number, name: string}>} - an object containing an array of quizzes
 */
 export function adminQuizList ( authUserId ) {
-  // const dataStore = getData();
-  // let quiz_list = [];
-  // for (const quiz of dataStore.quizzes) {
-  //   if (quiz.authUserId === authUserId) {
-  //     quiz_list.push({ quizId: quiz.quizId, name: quiz.name });
-  //   }
-  // }
-  // return { quizzes: quiz_list };
+  const dataStore = getData();
+  let quiz_list = [];
+  for (const quiz of dataStore.quizzes) {
+    if (quiz.authUserId === authUserId) {
+      quiz_list.push({ quizId: quiz.quizId, name: quiz.name });
+    }
+  }
+  return { 'quizzes': quiz_list };
 }
 
 /**
@@ -47,7 +47,6 @@ export function adminQuizCreate ( authUserId, name, description ) {
     return quizNameError;
   }
 
-  // check if name is already used by another quiz for the user (case insensitive check)
   let user_quizzes = adminQuizList(authUserId);
   for (const quiz of user_quizzes.quizzes) {
     if (quiz.name === name || quiz.name.toLowerCase() === name.toLowerCase()){
