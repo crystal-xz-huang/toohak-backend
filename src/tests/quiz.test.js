@@ -109,7 +109,7 @@ describe('testing adminQuizInfo', () => {
 
     beforeEach(() => {
         userId = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
-        quizId = adminQuizCreate(userId.userId, 'Quiz 1', 'This is a quiz');
+        quizId = adminQuizCreate(userId.authUserId, 'Quiz 1', 'This is a quiz');
     })
 
     test('returns error with an invalid userId', () => {
