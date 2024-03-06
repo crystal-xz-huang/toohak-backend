@@ -113,11 +113,11 @@ describe('testing adminQuizInfo', () => {
     })
 
     test('returns error with an invalid userId', () => {
-        expect(adminQuizInfo(userId.authUserId + 1, quizId)).toStrictEqual(ERROR);
+        expect(adminQuizInfo(userId.authUserId + 1, quizId.quizId)).toStrictEqual(ERROR);
     })
 
     test('returns error with an invalid quizId', () => {
-        expect(adminQuizInfo(userId, quizId.quizId + 1)).toStrictEqual(ERROR);
+        expect(adminQuizInfo(userId.authUserId, quizId.quizId + 1)).toStrictEqual(ERROR);
     })
 
     test('returns error for requesting info about a quiz not owned by the user', () => {
