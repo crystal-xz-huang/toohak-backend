@@ -2,6 +2,8 @@
 let data = {
   users : [],
   quizzes : [],
+  userId_counter : 0,
+  quizId_counter : 0,
 };
 
 // YOU SHOULD MODIFY THIS OBJECT ABOVE ONLY

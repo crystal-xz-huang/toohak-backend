@@ -7,6 +7,7 @@ import {
   isValidPassword,
   isValidEmail,
   updateUser,
+  generateAuthUserId,
 } from './other.js';
 
 /**
@@ -43,7 +44,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
 
   let dataStore = getData();
   const user = {
-    authUserId: dataStore.users.length + 1,
+    authUserId: generateAuthUserId(),
     email: email,
     password: password,
     nameFirst: nameFirst,

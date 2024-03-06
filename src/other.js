@@ -195,3 +195,10 @@ export function isValidQuizName(name) {
   }
 }
 
+export function updateQuiz(quiz) {
+  const dataStore = getData();
+  const index = dataStore.quizzes.findIndex(q => q.quizId === quiz.quizId);
+  dataStore.quizzes[index] = quiz;
+  setData(dataStore);
+  return {};
+}

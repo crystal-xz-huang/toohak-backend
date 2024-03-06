@@ -63,15 +63,16 @@ export function adminQuizCreate ( authUserId, name, description ) {
   }
 
   const dataStore = getData();
+  dataStore.quizId_counter++;
+
   const quiz = {
-    quizId: dataStore.quizzes.length + 1,
+    quizId: dataStore.userId_counter,
     name: name,
     authUserId: authUserId,
     description: description,
     timeCreated: timestamp.now(),
     timeLastEdited: timestamp.now(),
   };
-
   dataStore.quizzes.push(quiz);
   setData(dataStore);
   return { quizId: quiz.quizId };

@@ -23,6 +23,9 @@ let data = {
             timeLastEdited: 1,
         }
     ],
+
+    userId_counter = 0,
+    quizId_counter = 0,
 }
 ```
 
