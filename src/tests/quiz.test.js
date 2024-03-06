@@ -104,6 +104,52 @@ describe('testing adminQuizRemove', () => {
 
 describe('testing adminQuizInfo', () => {
     // TODO
+    let userId;
+    let quizId;
+
+    beforeEach(() => {
+        userId = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
+        quizId = adminQuizCreate(userId.authUserId, 'Quiz 1', 'This is a quiz');
+    })
+
+    test('returns error with an invalid userId', () => {
+        expect(adminQuizInfo(userId.authUserId + 1, quizId)).toStrictEqual(ERROR);
+    })
+
+    test('returns error with an invalid quizId', () => {
+        expect(adminQuizInfo(userId, quizId.quizId + 1)).toStrictEqual(ERROR);
+    })
+
+    test('returns error for requesting info about a quiz not owned by the user', () => {
+        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
+        expect(adminQuizInfo(userId2.authUserId, quizId.quizId)).toStrictEqual(ERROR);
+    })
+
+    test('returning info of one quiz created by one user', () => {
+        let returnObject = {
+            quizId: quizId.quizId,
+            name: 'Quiz 1',
+            timeCreated: expect.any(Number),
+            timeLastEdited: expect.any(Number),
+            description: 'This is a quiz',
+        }
+        expect(adminQuizInfo(userId.authUserId, quizId.quizId)).toStrictEqual(returnObject);
+    })
+
+    test('returning info of second quiz created by second user', () => {
+        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
+        let quizId2 = adminQuizCreate(userId2.authUserId, 'Quiz 2', 'This is a quiz2');
+
+        let returnObject = {
+            quizId: quizId2.quizId,
+            name: 'Quiz 2',
+            timeCreated: expect.any(Number),
+            timeLastEdited: expect.any(Number),
+            description: 'This is a quiz2',
+        }
+
+        expect(adminQuizInfo(userId2.authUserId, quizId2.quizId)).toStrictEqual(returnObject);
+    })
 });
 
 describe('testing adminQuizNameUpdate', () => {
