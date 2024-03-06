@@ -113,42 +113,42 @@ describe('testing adminQuizInfo', () => {
     })
 
     test('returns error with an invalid userId', () => {
-        expect(adminQuizInfo(userId + 1, quizId)).toStrictEqual(ERROR);
+        expect(adminQuizInfo(userId.authUserId + 1, quizId)).toStrictEqual(ERROR);
     })
 
     test('returns error with an invalid quizId', () => {
-        expect(adminQuizInfo(userId, quizId + 1)).toStrictEqual(ERROR);
+        expect(adminQuizInfo(userId, quizId.quizId + 1)).toStrictEqual(ERROR);
     })
 
     test('returns error for requesting info about a quiz not owned by the user', () => {
-        let userIdTwo = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
-        expect(adminQuizInfo(userIdTwo, quizId)).toStrictEqual(ERROR);
+        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
+        expect(adminQuizInfo(userId2.authUserId, quizId.quizId)).toStrictEqual(ERROR);
     })
 
     test('returning info of one quiz created by one user', () => {
         let returnObject = {
-            quizId: quizId,
+            quizId: quizId.quizId,
             name: 'Quiz 1',
             timeCreated: expect.any(Number),
             timeLastEdited: expect.any(Number),
             description: 'This is a quiz',
         }
-        expect(adminQuizInfo(userId, quizId)).toStrictEqual(returnObject);
+        expect(adminQuizInfo(userId.authUserId, quizId.quizId)).toStrictEqual(returnObject);
     })
 
     test('returning info of second quiz created by second user', () => {
-        let userIdTwo = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
-        let quizIdTwo = adminQuizCreate(userIdTwo, 'Quiz 2', 'This is a quizTwo');
+        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
+        let quizId2 = adminQuizCreate(userId2.authUserId, 'Quiz 2', 'This is a quiz2');
 
         let returnObject = {
-            quizId: quizIdTwo,
+            quizId: quizId2.quizId,
             name: 'Quiz 2',
             timeCreated: expect.any(Number),
             timeLastEdited: expect.any(Number),
-            description: 'This is a quizTwo',
+            description: 'This is a quiz2',
         }
 
-        expect(adminQuizInfo(userIdTwo, quizIdTwo)).toStrictEqual(returnObject);
+        expect(adminQuizInfo(userId2.authUserId, quizId2.quizId)).toStrictEqual(returnObject);
     })
 });
 
