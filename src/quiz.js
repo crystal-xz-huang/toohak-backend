@@ -16,14 +16,14 @@ import timestamp from 'unix-timestamp';
   * @returns {quizzes: Array<{quizId: number, name: string}>} - an object containing an array of quizzes
 */
 export function adminQuizList ( authUserId ) {
-  const dataStore = getData();
-  let quiz_list = [];
-  for (const quiz of dataStore.quizzes) {
-    if (quiz.authUserId === authUserId) {
-      quiz_list.push({ quizId: quiz.quizId, name: quiz.name });
-    }
-  }
-  return { quizzes: quiz_list };
+  // const dataStore = getData();
+  // let quiz_list = [];
+  // for (const quiz of dataStore.quizzes) {
+  //   if (quiz.authUserId === authUserId) {
+  //     quiz_list.push({ quizId: quiz.quizId, name: quiz.name });
+  //   }
+  // }
+  // return { quizzes: quiz_list };
 }
 
 /**
