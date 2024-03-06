@@ -102,13 +102,27 @@ export function adminQuizRemove(authUserId, quizId) {
   * @returns { description: string } - object containing a description of the quiz
 */
 export function adminQuizInfo(authUserId, quizId) {
-  return {
-    quizId: 1,
-    name: 'My Quiz',
-    timeCreated: 1683125870,
-    timeLastEdited: 1683125871,
-    description: 'This is my quiz',
-  };
+  let user = findUserbyId(authUserId);
+  let quiz = findQuizbyId(quizId);
+
+  if (quiz === undefined) {
+    return createError('Quiz ID does not refer to a valid quiz');
+  }
+  else if (user === undefined) {
+    return createError('AuthUserId is not a valid user.');
+  }
+  else if (quiz.authUserId !== user.authUserId) {
+    return createError('Quiz ID does not refer to a quiz that this user owns');
+  }
+  else {
+    return {
+      quizId: quiz.quizId,
+      name: quiz.name,
+      timeCreated: quiz.timeCreated,
+      timeLastEdited: quiz.timeLastEdited,
+      description: quiz.description,
+    }
+  }
 }
 
 /**
