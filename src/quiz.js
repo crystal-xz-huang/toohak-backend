@@ -3,6 +3,7 @@ import {
   findUserbyId,
   findQuizbyId,
   isValidQuizName,
+  generateQuizId
 } from './other.js';
 
 import { getData, setData } from './dataStore.js';
@@ -64,7 +65,7 @@ export function adminQuizCreate ( authUserId, name, description ) {
 
   const dataStore = getData();
   const quiz = {
-    quizId: dataStore.quizzes.length + 1,
+    quizId: generateQuizId(),
     name: name,
     authUserId: authUserId,
     description: description,
