@@ -46,6 +46,28 @@ describe('testing adminAuthRegister', () => {
         expect(result).toStrictEqual({ authUserId: expect.any(Number) });
     });
 
+    test('user is registered with correct details', () => {
+        let result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
+        expect(adminUserDetails(result.authUserId)).toStrictEqual({
+            user: {
+                userId: result.authUserId,
+                name: `${user.nameFirst} ${user.nameLast}`,
+                email: user.email,
+                numSuccessfulLogins: 1,
+                numFailedPasswordsSinceLastLogin: 0,
+            }
+        });
+    });
+
+    test('authUserId is unique for each user', () => {
+        let result1 = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
+        let result2 = adminAuthRegister('janedoe@gmail.com', 'hashed_password2', 'Jane', 'Doe');
+        let result3 = adminAuthRegister('hayden@gmail.com', 'hashed_password3', 'Hayden', 'Smith');
+        expect(result1.authUserId).not.toStrictEqual(result2.authUserId);
+        expect(result2.authUserId).not.toStrictEqual(result3.authUserId);
+        expect(result3.authUserId).not.toStrictEqual(result1.authUserId);
+    });
+
     describe('returns error with an invalid email', () => {
         test.each(invalidEmails)("test invalid email '$#': '$email'", ({email}) => {
             expect(adminAuthRegister(email, user.password, user.nameFirst, user.nameLast)).toStrictEqual(ERROR);
