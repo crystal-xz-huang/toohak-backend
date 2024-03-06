@@ -36,10 +36,24 @@ afterEach(() => {
 });
 
 describe('testing adminQuizList', () => {
-    // TODO - 
-    // check the return value on success
-    // check if after adminAuthRegister and adminQuizCreate, the quiz is in the list for the user
+    const quiz1 = {
+        name: 'Quiz 1',
+        description: 'This is a quiz',
+    };
+
+   const quiz2 = {
+        name: 'Quiz 2',
+        description: 'This is another quiz',
+    }; 
+
+    const user = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
+
+    test('returns an object with an empty array when the user has no quizzes', () => {
+        let result = adminQuizList(user.authUserId);
+        expect(result).toStrictEqual({ quizzes: [] });
+    });
 });
+
 
 describe('testing adminQuizCreate', () => {
     const quiz = {
@@ -56,6 +70,12 @@ describe('testing adminQuizCreate', () => {
     test('returns an object with "quizId" key on success', () => {
         let result = adminQuizCreate(userId, quiz.name, quiz.description);
         expect(result).toStrictEqual({ quizId: expect.any(Number) });
+    });
+
+    test('does not return the same quizId for two different quizzes', () => {
+        let result1 = adminQuizCreate(userId, quiz.name, quiz.description);
+        let result2 = adminQuizCreate(userId, 'Quiz 2', 'This is another quiz');
+        expect(result1.quizId).not.toStrictEqual(result2.quizId);
     });
 
     test('returns error with an invalid userId', () => {
