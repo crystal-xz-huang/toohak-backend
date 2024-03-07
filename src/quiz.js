@@ -62,12 +62,12 @@ export function adminQuizCreate ( authUserId, name, description ) {
   dataStore.quizId_counter = dataStore.quizId_counter + 1;
 
   const quiz = {
-    quizId: dataStore.quizId_counter,
-    name: name,
-    authUserId: authUserId,
-    description: description,
-    timeCreated: timestamp.now(),
-    timeLastEdited: timestamp.now(),
+    'quizId': dataStore.quizId_counter,
+    'name': name,
+    'authUserId': authUserId,
+    'description': description,
+    'timeCreated': timestamp.now(),
+    'timeLastEdited': timestamp.now(),
   };
   dataStore.quizzes.push(quiz);
   setData(dataStore);
@@ -132,11 +132,11 @@ export function adminQuizInfo(authUserId, quizId) {
   }
   else {
     return {
-      quizId: quiz.quizId,
-      name: quiz.name,
-      timeCreated: quiz.timeCreated,
-      timeLastEdited: quiz.timeLastEdited,
-      description: quiz.description,
+      'quizId': quiz.quizId,
+      'name': quiz.name,
+      'timeCreated': quiz.timeCreated,
+      'timeLastEdited': quiz.timeLastEdited,
+      'description': quiz.description,
     }
   }
 }
