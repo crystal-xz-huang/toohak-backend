@@ -316,5 +316,43 @@ describe('testing adminQuizNameUpdate', () => {
 });
 
 describe('testing adminQuizDescriptionUpdate', () => {
-    // TODO
+    let userId;
+    let quizId;
+    beforeEach(() => {
+        let user = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
+        userId = user.authUserId;
+        let quiz = adminQuizCreate(userId, 'Quiz 1', 'This is a quiz');
+        quizId = quiz.quizId;
+    });
+
+    test('returns an object with the updated description on success', () => {
+        adminQuizDescriptionUpdate(userId, quizId, 'This is a new description');
+        let result = adminQuizInfo(userId, quizId);
+        expect(result.description).toStrictEqual('This is a new description');
+    });
+
+    test('returns error with an invalid userId', () => {
+        let result = adminQuizDescriptionUpdate(userId + 1, quizId, 'This is a new description');
+        expect(result).toStrictEqual({'error': 'AuthUserId is not a valid user'});
+    });
+
+    test('returns error with an invalid quizId', () => {
+        let result = adminQuizDescriptionUpdate(userId, quizId + 1, 'This is a new description');
+        expect(result).toStrictEqual({'error': 'QuizId is not a valid quiz'});
+    });
+
+    test('returns error with a quizId not owned by user', () => {
+        let user2 = adminAuthRegister('johncitizen@gmail.com', 'hashed_password1', 'John', 'Citizen');
+        let userId2 = user2.authUserId;
+        let quiz2 = adminQuizCreate(userId2, 'Quiz 2', 'This is a quiz');
+        let quizId2 = quiz2.quizId;
+        let result = adminQuizDescriptionUpdate(userId, quizId2, 'This is a new description');
+        expect(result).toStrictEqual({'error': 'QuizId is not owned by user'});
+    });
+
+    test('returns error when description is more than 100 characters', () => {
+        let longDescription = 'Q'.repeat(101);
+        let result = adminQuizDescriptionUpdate(userId, quizId, longDescription);
+        expect(result).toStrictEqual({'error': 'Description is more than 100 characters'});
+    });
 });
