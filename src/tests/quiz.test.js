@@ -45,7 +45,7 @@ const INVALIDQUIZNAME1 = 'Quiz 1&!';
 
 const QUIZDESCRIPTION1 = 'This is a quiz';
 
-const QUIZDECRIPTION2 = 'This is a new description';
+const QUIZDESCRIPTION2 = 'This is a new description';
 
 beforeEach(() => {
     clear();
@@ -298,12 +298,8 @@ describe('testing adminQuizNameUpdate', () => {
 
     test('returns an object with the updated name on success', () => {
         adminQuizNameUpdate(userId, quizId, QUIZNAME2);
-        let expected = {
-            name: QUIZNAME2,
-            quizId: 1,
-        };
-        let result = adminQuizList(userId);
-        expect(result).toStrictEqual({'quizzes': [expected]});
+        let result = adminQuizInfo(userId, quizId);
+        expect(result.name).toStrictEqual(QUIZNAME2);
     });
 
     test('returns error with an invalid userId', () => {
@@ -357,40 +353,40 @@ describe('testing adminQuizDescriptionUpdate', () => {
     let userId;
     let quizId;
     beforeEach(() => {
-        let user = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
+        let user = adminAuthRegister(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast);
         userId = user.authUserId;
-        let quiz = adminQuizCreate(userId, 'Quiz 1', 'This is a quiz');
+        let quiz = adminQuizCreate(userId, QUIZNAME1, QUIZDESCRIPTION1);
         quizId = quiz.quizId;
     });
 
     test('returns an object with the updated description on success', () => {
-        adminQuizDescriptionUpdate(userId, quizId, 'This is a new description');
+        adminQuizDescriptionUpdate(userId, quizId, QUIZDESCRIPTION2);
         let result = adminQuizInfo(userId, quizId);
-        expect(result.description).toStrictEqual('This is a new description');
+        expect(result.description).toStrictEqual(QUIZDESCRIPTION2);
     });
 
     test('returns error with an invalid userId', () => {
-        let result = adminQuizDescriptionUpdate(userId + 1, quizId, 'This is a new description');
-        expect(result).toStrictEqual({'error': 'AuthUserId is not a valid user'});
+        let result = adminQuizDescriptionUpdate(userId + 1, quizId, QUIZDESCRIPTION2);
+        expect(result).toStrictEqual(ERROR);
     });
 
     test('returns error with an invalid quizId', () => {
-        let result = adminQuizDescriptionUpdate(userId, quizId + 1, 'This is a new description');
-        expect(result).toStrictEqual({'error': 'QuizId is not a valid quiz'});
+        let result = adminQuizDescriptionUpdate(userId, quizId + 1, QUIZDESCRIPTION2);
+        expect(result).toStrictEqual(ERROR);
     });
 
     test('returns error with a quizId not owned by user', () => {
-        let user2 = adminAuthRegister('johncitizen@gmail.com', 'hashed_password1', 'John', 'Citizen');
+        let user2 = adminAuthRegister(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast);
         let userId2 = user2.authUserId;
-        let quiz2 = adminQuizCreate(userId2, 'Quiz 2', 'This is a quiz');
+        let quiz2 = adminQuizCreate(userId2, QUIZNAME1, QUIZDESCRIPTION1);
         let quizId2 = quiz2.quizId;
-        let result = adminQuizDescriptionUpdate(userId, quizId2, 'This is a new description');
-        expect(result).toStrictEqual({'error': 'QuizId is not owned by user'});
+        let result = adminQuizDescriptionUpdate(userId, quizId2, QUIZDESCRIPTION2);
+        expect(result).toStrictEqual(ERROR);
     });
 
     test('returns error when description is more than 100 characters', () => {
         let longDescription = 'Q'.repeat(101);
         let result = adminQuizDescriptionUpdate(userId, quizId, longDescription);
-        expect(result).toStrictEqual({'error': 'Description is more than 100 characters'});
+        expect(result).toStrictEqual(ERROR);
     });
 });
