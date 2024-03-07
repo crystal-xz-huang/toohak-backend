@@ -6,6 +6,7 @@ import {
   isValidName,
   isValidPassword,
   isValidEmail,
+  getUserIndex,
 } from './helper.js';
 
 /**
@@ -78,9 +79,7 @@ export function adminAuthLogin(email, password) {
     return createError('Email does not exist');
   }  
 
-  const index = dataStore.users.findIndex(u => u.authUserId === user.authUserId);
   let ret;
-
   if (user.password !== password) {
     user.numFailedPasswordsSinceLastLogin = user.numFailedPasswordsSinceLastLogin + 1;
     ret = createError('Password is incorrect');
@@ -90,7 +89,7 @@ export function adminAuthLogin(email, password) {
     ret = { authUserId: user.authUserId };
   }
 
-  dataStore.users[index] = user;
+  dataStore.users[getUserIndex(user.authUserId, dataStore)] = user;
   setData(dataStore);
   return ret;
 }
@@ -165,8 +164,7 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
   foundUser.email = email;
   foundUser.nameFirst = nameFirst;
   foundUser.nameLast = nameLast;
-  const index = dataStore.users.findIndex(user => user.authUserId === authUserId);
-  dataStore.users[index] = foundUser;
+  dataStore.users[getUserIndex(authUserId, dataStore)] = foundUser;
   setData(dataStore);
   return {};
 }
@@ -202,8 +200,7 @@ export function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) 
   };
 
   foundUser.password = newPassword;
-  const index = dataStore.users.findIndex(u => u.authUserId === authUserId);
-  dataStore.users[index] = foundUser;
+  dataStore.users[getUserIndex(authUserId, dataStore)] = foundUser;
   setData(dataStore);
   return {};
 }
