@@ -163,11 +163,13 @@ export function adminQuizInfo(authUserId, quizId) {
   * @returns { } - returns nothing
 */
 export function adminQuizNameUpdate(authUserId, quizId, name) {
+  // check that the user exists and is valid
   let user = findUserbyId(authUserId);
   if (user === undefined) {
     return createError('AuthUserId is not a valid user');
   }
 
+  // check if quiz exists by Id and that the quiz is owned by the current user
   let quiz = findQuizbyId(quizId);
   if (quiz === undefined) {
     return createError('QuizId is not a valid quiz');
@@ -175,6 +177,7 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
     return createError('QuizId is not owned by user');
   }
 
+  // check if name is valid
   let quizNameError = isValidQuizName(name);
   if (quizNameError) {
     return quizNameError;
