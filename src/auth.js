@@ -27,7 +27,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
   if (emailError) {
     return emailError;
   } 
-
+  
   if (findUserbyEmail(email, dataStore) !== undefined) {
     return createError('Email is currently used by another user');
   }

@@ -8,6 +8,7 @@ import {
     MIN_QUIZ_NAME_LENGTH,
     MAX_QUIZ_NAME_LENGTH,
     QUIZNAME_REGEX,
+    MAX_QUIZ_DESCRIPTION_LENGTH,
 } from './types';
 
 
@@ -179,4 +180,74 @@ export function isValidQuizName(name) {
   } else {
     return null;
   }
+}
+
+/**
+ * Check if the quiz description is valid (less than 100 characters)
+ * Returns null if the description is valid, otherwise returns an error object
+ * 
+ * @param {string} description 
+ * @returns {{error: string}} - object containing the error message, or null if the description is valid
+ */
+export function isValidQuizDescription(description) {
+  if (description.length > MAX_QUIZ_DESCRIPTION_LENGTH) {
+    return createError('Description is more than 100 characters');
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Check if quiz name is already used by another quiz
+ * Returns null if the name is not used, otherwise returns an error object
+ * 
+ * @param {string} name - the name of the quiz
+ * @param {number} authUserId - the id of registered user
+ * @returns {{error: string}} - object containing the error message, or null if the name is not used
+ */
+export function isQuizNameUsed(name, authUserId, data) {
+  let user_quizzes = getUserQuizzes(authUserId, data);
+  if (user_quizzes.some(quiz => quiz.name.toLowerCase() === name.toLowerCase())) {
+    return createError('Name is already used by another quiz');
+  }
+  return null;
+};
+
+
+/**
+ * Check if the authUserId is valid
+ * Returns null if the authUserId is valid, otherwise returns an error object
+ * 
+ * @param {number} authUserId
+ * @param {object} data - the data object from getData()
+ */
+
+export function isValidAuthUserId(authUserId, data) {
+  if (findUserbyId(authUserId, data) === undefined) {
+    return createError('AuthUserId is not a valid user');
+  }
+  return null;
+}
+    
+
+/**
+ * Check if the quizId is valid for the given authUserId
+ * Returns null if the quizId is valid, otherwise returns an error object
+ * 
+ * @param {number} authUserId
+ * @param {number} quizId
+ * @param {object} data - the data object from getData()
+ * @returns {{error: string}} - object containing the error message, or null if the quizId is valid
+ */
+export function isValidQuizIdForUser(authUserId, quizId, data) {
+  if (findUserbyId(authUserId, data) === undefined) {
+    return createError('AuthUserId is not a valid user');
+  }
+  else if (findQuizbyId(quizId, data) === undefined) {
+    return createError('QuizId is not a valid quiz');
+  } 
+  else if (authUserId !== findQuizbyId(quizId, data).authUserId) {
+    return createError('QuizId is not owned by user');
+  }
+  return null;
 }

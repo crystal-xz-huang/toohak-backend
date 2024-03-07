@@ -12,5 +12,5 @@ export const PASSWORD_REGEX = /^(?=.*[0-9])(?=.*[a-zA-Z]).*$/;
 export const MIN_QUIZ_NAME_LENGTH = 3;
 export const MAX_QUIZ_NAME_LENGTH = 30;
 export const QUIZNAME_REGEX = /^[a-zA-Z0-9\s]+$/;
-
+export const MAX_QUIZ_DESCRIPTION_LENGTH = 100;
 
