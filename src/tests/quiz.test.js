@@ -17,15 +17,33 @@ import {
 
 import {
     adminAuthRegister,
-    adminAuthLogin,
-    adminUserDetails,
-    adminUserDetailsUpdate,
-    adminUserPasswordUpdate,
 } from '../auth';
 
 import { clear } from '../other';
 
 const ERROR = { error: expect.any(String) };
+
+const USER1 = {
+    email: 'janedoe@gmail.com',
+    password: 'hashed_password1',
+    nameFirst: 'Jane',
+    nameLast: 'Doe',
+};
+
+const USER2 = {
+    email: 'johncitizen@gmail.com',
+    password: 'hashed_password1',
+    nameFirst: 'John',
+    nameLast: 'Citizen'
+};
+
+const QUIZNAME1 = 'Quiz 1';
+
+const QUIZNAME2 = 'Quiz 2';
+
+const QUIZDESCRIPTION1 = 'This is a quiz';
+
+const QUIZDECRIPTION2 = 'This is a new description';
 
 beforeEach(() => {
     clear();
@@ -88,7 +106,6 @@ describe('testing adminQuizList', () => {
         expect(adminQuizList(userId2.authUserId)).toStrictEqual(result);
     })
 });
-
 
 describe('testing adminQuizCreate', () => {
     const quiz = {
