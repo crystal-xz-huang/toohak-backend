@@ -210,11 +210,13 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
   * @returns { } - returns nothing
 */
 export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
+  // check that the user exists and is valid
   let user = findUserbyId(authUserId);
   if (user === undefined) {
     return createError('AuthUserId is not a valid user');
   }
 
+  // check if quiz exists by Id and that the quiz is owned by the current user
   let quiz = findQuizbyId(quizId);
   if (quiz === undefined) {
     return createError('QuizId is not a valid quiz');
@@ -222,11 +224,12 @@ export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
     return createError('QuizId is not owned by user');
   }
 
+  // checks if description is a valid length
   if (description.length > 100) {
     return createError('Description is more than 100 characters');
   }
 
-  // update the name of the quiz in the dataStore
+  // update the description of the quiz in the dataStore
   const dataStore = getData();
   quiz.description = description;
   quiz.timeLastEdited = timestamp.now();
