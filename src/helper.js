@@ -8,7 +8,9 @@ import {
     MIN_QUIZ_NAME_LENGTH,
     MAX_QUIZ_NAME_LENGTH,
     QUIZNAME_REGEX,
+    MAX_QUIZ_DESCRIPTION_LENGTH,
 } from './types';
+
 
 /**
  * Create a new error object with the given message
@@ -20,9 +22,6 @@ export function createError(message) {
   return { error: message };
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/////////////////////////// AUTH HELPER FUNCTIONS //////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 /**
  * Given a registered user's email, returns the user object
  * Otherwise, returns undefined
@@ -34,7 +33,7 @@ export function createError(message) {
 export function findUserbyEmail(email, data) {
   return data.users.find(user => user.email === email);
 }
-
+  
 /**
  * Given a userID, returns the user object
  * Otherwise, returns undefined if userID is not found
@@ -46,18 +45,46 @@ export function findUserbyEmail(email, data) {
 export function findUserbyId(authUserId, data) {
   return data.users.find(user => user.authUserId === authUserId);
 }
-
+  
 /**
  * Given a quizId, returns the quiz object
  * Otherwise, returns undefined if quizId is not found
  * 
  * @param {number} quizId 
+ * @param {object} data - the data object from getData()
  * @returns {object} - object containing the quiz details
  */
 export function findQuizbyId(quizId, data) {
   return data.quizzes.find(quiz => quiz.quizId === quizId);
 }
 
+/**
+ * Returns the index of the user with the given authUserId's in data.users array
+ * Otherwise, returns -1 if the user is not found
+ * 
+ * @param {number} authUserId 
+ * @param {object} data - the data object from getData()
+ * @returns {number} - the index of the user in data.users array
+ */
+export function getUserIndex(authUserId, data) {
+  return data.users.findIndex(user => user.authUserId === authUserId);
+}
+
+/**
+ * Returns the index of the quiz with the given quizId's in data.quizzes array
+ * Otherwise, returns -1 if the quiz is not found
+ * 
+ * @param {number} quizId 
+ * @param {object} data - the data object from getData()
+ * @returns {number} - the index of the quiz in data.quizzes array
+ */
+export function getQuizIndex(quizId, data) {
+  return data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/////////////////////////// AUTH HELPER FUNCTIONS //////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 /**
  * Check if a string is a valid first or last name 
  * Returns null if the name is valid, otherwise returns an error object
@@ -95,10 +122,8 @@ export function isValidPassword(password, name) {
     return createError(`${name} is not a string`);
   } else if (password.length < MIN_PASSWORD_LENGTH) {
     return createError(`${name} is less than 8 characters`);
-//   } else if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
-//     return createError(`${name} does not contain a letter and a number`);
   } else if (!PASSWORD_REGEX.test(password)) {
-    return createError(`${name} contains invalid characters`);
+    return createError(`${name} does not contain a letter and a number`);
   } else {
     return null;
   }
@@ -121,58 +146,13 @@ export function isValidEmail(email) {
   }
 }
 
-
-// /**
-//  * Check if the email is valid
-//  * Returns null if the email is valid, otherwise returns an error object
-//  * 
-//  * @param {string} email - the email of the user
-//  * @param {number} authUserId - the id of the user (if updating email) or -1 if registering
-//  * @param {object} data - the data object from getData()
-//  * @returns {{error: string}} - object containing the error message, or null if the email is valid
-//  */
-// export function isValidEmail(email, authUserId, data) {
-//   if (email === '') {
-//     return createError('Email is empty');
-//   } else if (!validator.isEmail(email)) {
-//     return createError('Email is invalid');
-//   } else if (findUserbyEmail(email, data) === undefined && authUserId === -1) {
-//     return null;
-//   } else if (findUserbyEmail(email, data) === undefined && authUserId !== -1) {
-//     return null;
-//   } else if (findUserbyEmail(email,data).authUserId === authUserId) {
-//     return null;
-//   } else {
-//     return createError('Email is currently used by another user');
-//   } 
-// }
-
-/**
- * Update dataStore with the given user object
- * 
- * @param {object} user - the user object
- * @returns { } - returns nothing
- */
-export function updateUser(user) {
-  const dataStore = getData();
-  const index = dataStore.users.findIndex(u => u.authUserId === user.authUserId);
-  dataStore.users[index] = user;
-  setData(dataStore);
-  return {};
-}
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// QUIZ HELPER FUNCTIONS //////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 /**
- * Return an array of quizzes for the user where each quiz is the object:
- * { 
- *   quizId: number,
- *   name: string,
- *   authUserId: number,
- *   description: string,
- *   timeCreated: unix timestamp,
- *   timeLastEdited: unix timestamp,
- * }
+ * Returns an array containing the quizzes of the user with the given authUserId
+ * Otherwise, returns an empty array if no quizzes are found
+ * 
  * @param {number} authUserId - the id of registered user
  * @param {object} data - the data object from getData()
  * @returns { Array<{object}> } - array containing the quizzes of the user
@@ -200,4 +180,74 @@ export function isValidQuizName(name) {
   } else {
     return null;
   }
+}
+
+/**
+ * Check if the quiz description is valid (less than 100 characters)
+ * Returns null if the description is valid, otherwise returns an error object
+ * 
+ * @param {string} description 
+ * @returns {{error: string}} - object containing the error message, or null if the description is valid
+ */
+export function isValidQuizDescription(description) {
+  if (description.length > MAX_QUIZ_DESCRIPTION_LENGTH) {
+    return createError('Description is more than 100 characters');
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Check if quiz name is already used by another quiz
+ * Returns null if the name is not used, otherwise returns an error object
+ * 
+ * @param {string} name - the name of the quiz
+ * @param {number} authUserId - the id of registered user
+ * @returns {{error: string}} - object containing the error message, or null if the name is not used
+ */
+export function isQuizNameUsed(name, authUserId, data) {
+  let user_quizzes = getUserQuizzes(authUserId, data);
+  if (user_quizzes.some(quiz => quiz.name.toLowerCase() === name.toLowerCase())) {
+    return createError('Name is already used by another quiz');
+  }
+  return null;
+};
+
+
+/**
+ * Check if the authUserId is valid
+ * Returns null if the authUserId is valid, otherwise returns an error object
+ * 
+ * @param {number} authUserId
+ * @param {object} data - the data object from getData()
+ */
+
+export function isValidAuthUserId(authUserId, data) {
+  if (findUserbyId(authUserId, data) === undefined) {
+    return createError('AuthUserId is not a valid user');
+  }
+  return null;
+}
+    
+
+/**
+ * Check if the quizId is valid for the given authUserId
+ * Returns null if the quizId is valid, otherwise returns an error object
+ * 
+ * @param {number} authUserId
+ * @param {number} quizId
+ * @param {object} data - the data object from getData()
+ * @returns {{error: string}} - object containing the error message, or null if the quizId is valid
+ */
+export function isValidQuizIdForUser(authUserId, quizId, data) {
+  if (findUserbyId(authUserId, data) === undefined) {
+    return createError('AuthUserId is not a valid user');
+  }
+  else if (findQuizbyId(quizId, data) === undefined) {
+    return createError('QuizId is not a valid quiz');
+  } 
+  else if (authUserId !== findQuizbyId(quizId, data).authUserId) {
+    return createError('QuizId is not owned by user');
+  }
+  return null;
 }
