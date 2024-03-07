@@ -26,7 +26,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
     return emailError;
   } 
 
-  let passwordError = isValidPassword(password);
+  let passwordError = isValidPassword(password, 'Password');
   if (passwordError) {
     return passwordError;
   }
@@ -59,7 +59,8 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
 }
 
 
-/** Given a registered user's email and password, returns their authUserId value
+/** 
+  * Given a registered user's email and password, returns their authUserId value
   * 
   * @param {string} email - the email of a registered user
   * @param {string} password - the password of a registered user
@@ -100,7 +101,7 @@ export function adminAuthLogin(email, password) {
 export function adminUserDetails(authUserId) {
    let foundUser = findUserbyId(authUserId);
    if (foundUser === undefined) {
-    return createError('authUserId is invalid');
+    return createError('AuthUserId is invalid');
    }
    return { 
     user: {
@@ -124,10 +125,10 @@ export function adminUserDetails(authUserId) {
   * 
   * @returns { } - returns nothing
 */
-export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) {
+export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
   let foundUser = findUserbyId(authUserId);
   if (foundUser === undefined) {
-    return createError('authUserId is invalid');
+    return createError('AuthUserId is invalid');
   }
 
   let emailError = isValidEmail(email, authUserId);
@@ -162,10 +163,10 @@ export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) 
   * 
   * @returns { } - returns nothing
 */
-export function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword ) {
+export function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
   let foundUser = findUserbyId(authUserId);
   if (foundUser === undefined) {
-    return createError('authUserId is invalid');
+    return createError('AuthUserId is invalid');
   }; 
 
   if(foundUser.password !== oldPassword) {
@@ -176,7 +177,7 @@ export function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword )
     return createError('Old password and new password are the same');
   };
 
-  let passwordError = isValidPassword(newPassword);
+  let passwordError = isValidPassword(newPassword, 'New password');
   if (passwordError) {
     return passwordError;
   };

@@ -46,7 +46,7 @@ describe('testing adminAuthRegister', () => {
         expect(result).toStrictEqual({ authUserId: expect.any(Number) });
     });
 
-    test('user is registered with correct details', () => {
+    test('logs in and registers a user with the correct details', () => {
         let result = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
         expect(adminUserDetails(result.authUserId)).toStrictEqual({
             user: {
@@ -141,11 +141,11 @@ describe('testing adminAuthLogin', () => {
         expect(adminAuthLogin(user.email, user.password)).toStrictEqual({ authUserId: result.authUserId });
     });
 
-    test('returns an error object when email is invalid', () => {
+    test('returns error when email does not exist', () => {
         expect(adminAuthLogin('unregistered@gmail.com', user.password)).toStrictEqual(ERROR);
     });
 
-    test('returns an error object when password is invalid', () => {
+    test('returns error when password is not correct', () => {
         expect(adminAuthLogin(user.email, 'incorrect_password')).toStrictEqual(ERROR);
     });
 });
@@ -221,7 +221,6 @@ describe('testing adminUserDetailsUpdate', () => {
     const nameLast_update = 'Doe';
 
     let id;
-    let before;
     beforeEach(() => {
         let ret = adminAuthRegister(user.email, user.password, user.nameFirst, user.nameLast);
         id = ret.authUserId

@@ -98,24 +98,24 @@ export function isValidName(name, type) {
  * Returns null if the password is valid, otherwise returns an error object
  * 
  * @param {string} password - the password of the user
+ * @param {string} name - New password for adminUserPasswordUpdate, otherwise Password for adminAuthRegister
  * @returns {{error: string}} - object containing the error message, or null if the password is valid
  */
-export function isValidPassword(password) {
+export function isValidPassword(password, name) {
   if (password === '') {
-    return createError('Password is empty');
+    return createError(`${name} is empty`);
   } else if (typeof password !== 'string') {
-    return createError('Password is not a string');
+    return createError(`${name} is not a string`);
   } else if (password.length < 8) {
-    return createError('Password is less than 8 characters');
+    return createError(`${name} is less than 8 characters`);
   } else if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
-    return createError('Password does not contain at least one letter and number');
+    return createError(`${name} does not contain a letter and a number`);
   } else {
     return null;
   }
 }
-
 /**
- * Check if the email is valid:
+ * Check if the email is valid
  * Returns null if the email is valid, otherwise returns an error object
  * 
  * @param {string} email - the email of the user
