@@ -265,7 +265,7 @@ describe('testing adminQuizNameUpdate', () => {
             name: 'Quiz 2',
             quizId: 1,
         };
-        expect(adminQuizList(userId)).toStrictEqual([expected]);
+        expect(adminQuizList(userId)).toStrictEqual({'quizzes': [expected]});
     });
 
     test('returns error with an invalid userId', () => {

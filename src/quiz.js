@@ -169,14 +169,19 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
   }
 
   // check if name is already used by another quiz for the user (case insensitive check)
-  let quizzes = adminQuizList(authUserId);
-  for (const quiz of quizzes) {
+  let user_quizzes = adminQuizList(authUserId);
+  for (const quiz of user_quizzes.quizzes) {
     if (quiz.name === name || quiz.name.toLowerCase() === name.toLowerCase()){
       return createError('Name is already used by another quiz');
     }
   }
 
+  // update the name of the quiz in the dataStore
+  const dataStore = getData();
   quiz.name = name;
+  quiz.timeLastEdited = timestamp.now();
+  dataStore.quizzes[quizId - 1] = quiz;
+  setData(dataStore);
   return {};
 }
 
