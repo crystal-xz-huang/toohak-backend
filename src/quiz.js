@@ -195,5 +195,27 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
   * @returns { } - returns nothing
 */
 export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
+  let user = findUserbyId(authUserId);
+  if (user === undefined) {
+    return createError('AuthUserId is not a valid user');
+  }
+
+  let quiz = findQuizbyId(quizId);
+  if (quiz === undefined) {
+    return createError('QuizId is not a valid quiz');
+  } else if (authUserId !== quiz.authUserId) {
+    return createError('QuizId is not owned by user');
+  }
+
+  if (description.length > 100) {
+    return createError('Description is more than 100 characters');
+  }
+
+  // update the name of the quiz in the dataStore
+  const dataStore = getData();
+  quiz.description = description;
+  quiz.timeLastEdited = timestamp.now();
+  dataStore.quizzes[quizId - 1] = quiz;
+  setData(dataStore);
   return {};
 }
