@@ -36,22 +36,57 @@ afterEach(() => {
 });
 
 describe('testing adminQuizList', () => {
-//     const quiz1 = {
-//         name: 'Quiz 1',
-//         description: 'This is a quiz',
-//     };
+    let userId;
+    
+    beforeEach(() => {
+        userId = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
+    });
 
-//    const quiz2 = {
-//         name: 'Quiz 2',
-//         description: 'This is another quiz',
-//     }; 
+    test('returns error with an invalid userId', () => {
+        expect(adminQuizList(userId.authUserId + 1)).toStrictEqual(ERROR);
+    });
 
-//     const user = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
+    test('returns an object with an empty array when the user has no quizzes', () => {
+        expect(adminQuizList(userId.authUserId)).toStrictEqual({quizzes: []});
+    });
 
-//     test('returns an object with an empty array when the user has no quizzes', () => {
-//         let result = adminQuizList(user.authUserId);
-//         expect(result).toStrictEqual({ quizzes: [] });
-//     });
+    test('returns an object with an array of the user\'s one quiz',  () => {
+        let quizId = adminQuizCreate(userId.authUserId, 'Quiz 1', 'This is a quiz');
+
+        let result = {
+            quizzes: [
+                {
+                    quizId: quizId.quizId,
+                    name: 'Quiz 1'
+                }
+            ]
+        }
+
+        expect(adminQuizList(userId.authUserId)).toStrictEqual(result);
+    })
+
+    test('returns an object with an an array of a second user\'s two quizzes', () => {
+        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
+
+        let quizId = adminQuizCreate(userId.authUserId, 'Quiz 1', 'This is a quiz');
+        let quizId2 = adminQuizCreate(userId2.authUserId, 'Quiz 2', 'This is a quiz2');
+        let quizId3 = adminQuizCreate(userId2.authUserId, 'Quiz 3', 'This is a quiz3');
+
+        let result = {
+            quizzes: [
+                {
+                    quizId: quizId2.quizId,
+                    name: 'Quiz 2'
+                },
+                {
+                    quizId: quizId3.quizId,
+                    name: 'Quiz 3'
+                },
+            ]
+        }
+
+        expect(adminQuizList(userId2.authUserId)).toStrictEqual(result);
+    })
 });
 
 
@@ -141,13 +176,9 @@ describe('testing adminQuizRemove', () => {
     })
     
     test('owner of one quiz removes their quiz', () => {
-        /*
         const emptyResult = {
             quizzes: []
         }
-        */
-
-        const emptyResult = [];
 
         adminQuizRemove(userId.authUserId, quizId.quizId);
         expect(adminQuizList(userId.authUserId)).toStrictEqual(emptyResult);
@@ -160,7 +191,7 @@ describe('testing adminQuizRemove', () => {
         let quizId3 = adminQuizCreate(userId2.authUserId, 'Quiz 3', 'This is a quiz3');
         let quizId4 = adminQuizCreate(userId2.authUserId, 'Quiz 4', 'This is a quiz4');
 
-        /* const result1 = {
+        const result1 = {
             quizzes: [
                 {
                     quizId: quizId2.quizId,
@@ -170,26 +201,13 @@ describe('testing adminQuizRemove', () => {
         }
 
         const result2 = {
-            quizzee: [
+            quizzes: [
                 {
                     quizId: quizId4.quizId,
                     name: 'Quiz 4'
                 }
             ]
-        } */
-
-        const result1 = [
-            {
-                quizId: quizId2.quizId,
-                name: 'Quiz 2',
-            }
-        ];
-        const result2 = [
-            {
-                quizId: quizId4.quizId,
-                name: 'Quiz 4'
-            }
-        ]
+        }
 
         adminQuizRemove(userId.authUserId, quizId.quizId);
         adminQuizRemove(userId2.authUserId, quizId3.quizId);
