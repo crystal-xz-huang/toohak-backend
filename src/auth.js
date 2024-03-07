@@ -6,8 +6,7 @@ import {
   isValidName,
   isValidPassword,
   isValidEmail,
-  updateUser,
-} from './other.js';
+} from './helper.js';
 
 /**
   * Register a user with an email, password, and first and last name.
@@ -21,12 +20,18 @@ import {
   * @returns {{authUserId: number}} - object containing the authUserId of the user
 */
 export function adminAuthRegister(email, password, nameFirst, nameLast) {
-  let emailError = isValidEmail(email, -1);
+  const dataStore = getData();
+
+  let emailError = isValidEmail(email);
   if (emailError) {
     return emailError;
   } 
 
-  let passwordError = isValidPassword(password);
+  if (findUserbyEmail(email, dataStore) !== undefined) {
+    return createError('Email is currently used by another user');
+  }
+
+  let passwordError = isValidPassword(password, 'Password');
   if (passwordError) {
     return passwordError;
   }
@@ -41,7 +46,6 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
     return nameLastError;
   }
 
-  let dataStore = getData();
   dataStore.userId_counter = dataStore.userId_counter + 1;
   const user = {
     authUserId: dataStore.userId_counter,
@@ -52,14 +56,15 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
   };
-
+  
   dataStore.users.push(user);
   setData(dataStore);
   return { authUserId: user.authUserId }; 
 }
 
 
-/** Given a registered user's email and password, returns their authUserId value
+/** 
+  * Given a registered user's email and password, returns their authUserId value
   * 
   * @param {string} email - the email of a registered user
   * @param {string} password - the password of a registered user
@@ -67,22 +72,27 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
   * @returns {{authUserId: number}} - object containing the authUserId of the user 
 */
 export function adminAuthLogin(email, password) {
-  let foundUser = findUserbyEmail(email);
-
-  if (foundUser === undefined) {
+  const dataStore = getData();
+  const user = findUserbyEmail(email, dataStore);
+  if (user === undefined) {
     return createError('Email does not exist');
-  } 
-    
-  if (foundUser.password !== password) {
-    foundUser.numFailedPasswordsSinceLastLogin = foundUser.numFailedPasswordsSinceLastLogin + 1;
-    updateUser(foundUser);
-    return createError('Password is incorrect');
+  }  
+
+  const index = dataStore.users.findIndex(u => u.authUserId === user.authUserId);
+  let ret;
+
+  if (user.password !== password) {
+    user.numFailedPasswordsSinceLastLogin = user.numFailedPasswordsSinceLastLogin + 1;
+    ret = createError('Password is incorrect');
+  } else {
+    user.numFailedPasswordsSinceLastLogin = 0;
+    user.numSuccessfulLogins = user.numSuccessfulLogins + 1;
+    ret = { authUserId: user.authUserId };
   }
 
-  foundUser.numFailedPasswordsSinceLastLogin = 0;
-  foundUser.numSuccessfulLogins = foundUser.numSuccessfulLogins + 1;
-  updateUser(foundUser);
-  return { authUserId: foundUser.authUserId };
+  dataStore.users[index] = user;
+  setData(dataStore);
+  return ret;
 }
 
 /**
@@ -91,18 +101,19 @@ export function adminAuthLogin(email, password) {
   * @param {number} authUserId - a unique admin user identifier
   * 
   * @returns {object} user - an object containing the user's details
-  * @property {number} authUserId - the unique identifier of the user
+  * @property {number} userId - the unique identifier of the user
   * @property {string} name - the first and last name of the user
   * @property {string} email - the email of the user
   * @property {number} numSuccessfulLogins - the number of successful logins for the user
   * @property {number} numFailedPasswordsSinceLastLogin - the number of failed password attempts since the last successful login
 */
 export function adminUserDetails(authUserId) {
-   let foundUser = findUserbyId(authUserId);
-   if (foundUser === undefined) {
-    return createError('authUserId is invalid');
-   }
-   return { 
+  const dataStore = getData();
+  let foundUser = findUserbyId(authUserId, dataStore);
+  if (foundUser === undefined) {
+    return createError('AuthUserId is invalid');
+  }
+  return { 
     user: {
         userId: foundUser.authUserId,
         name: `${foundUser.nameFirst} ${foundUser.nameLast}`,
@@ -124,15 +135,21 @@ export function adminUserDetails(authUserId) {
   * 
   * @returns { } - returns nothing
 */
-export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) {
-  let foundUser = findUserbyId(authUserId);
+export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
+  const dataStore = getData();
+  let foundUser = findUserbyId(authUserId, dataStore);
   if (foundUser === undefined) {
-    return createError('authUserId is invalid');
+    return createError('AuthUserId is invalid');
   }
 
-  let emailError = isValidEmail(email, authUserId);
+  let emailError = isValidEmail(email);
   if (emailError) {
     return emailError;
+  }
+
+  let foundUserbyEmail = findUserbyEmail(email, dataStore);
+  if (foundUserbyEmail !== undefined && foundUserbyEmail.authUserId !== authUserId) {
+    return createError('Email is currently used by another user');
   }
   
   let nameFirstError = isValidName(nameFirst, 'First');
@@ -148,7 +165,9 @@ export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) 
   foundUser.email = email;
   foundUser.nameFirst = nameFirst;
   foundUser.nameLast = nameLast;
-  updateUser(foundUser);
+  const index = dataStore.users.findIndex(user => user.authUserId === authUserId);
+  dataStore.users[index] = foundUser;
+  setData(dataStore);
   return {};
 }
 
@@ -162,10 +181,11 @@ export function adminUserDetailsUpdate (authUserId, email, nameFirst, nameLast) 
   * 
   * @returns { } - returns nothing
 */
-export function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword ) {
-  let foundUser = findUserbyId(authUserId);
+export function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
+  const dataStore = getData();
+  let foundUser = findUserbyId(authUserId, dataStore);
   if (foundUser === undefined) {
-    return createError('authUserId is invalid');
+    return createError('AuthUserId is invalid');
   }; 
 
   if(foundUser.password !== oldPassword) {
@@ -176,12 +196,14 @@ export function adminUserPasswordUpdate ( authUserId, oldPassword, newPassword )
     return createError('Old password and new password are the same');
   };
 
-  let passwordError = isValidPassword(newPassword);
+  let passwordError = isValidPassword(newPassword, 'New password');
   if (passwordError) {
     return passwordError;
   };
 
   foundUser.password = newPassword;
-  updateUser(foundUser);
+  const index = dataStore.users.findIndex(u => u.authUserId === authUserId);
+  dataStore.users[index] = foundUser;
+  setData(dataStore);
   return {};
 }
