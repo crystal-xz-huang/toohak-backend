@@ -41,6 +41,8 @@ const QUIZNAME1 = 'Quiz 1';
 
 const QUIZNAME2 = 'Quiz 2';
 
+const INVALIDQUIZNAME1 = 'Quiz 1&!';
+
 const QUIZDESCRIPTION1 = 'This is a quiz';
 
 const QUIZDECRIPTION2 = 'This is a new description';
@@ -324,7 +326,7 @@ describe('testing adminQuizNameUpdate', () => {
     });
 
     test('returns error when name contains invalid characters', () => {
-        let result = adminQuizNameUpdate(userId, quizId, 'Quiz 1&!');
+        let result = adminQuizNameUpdate(userId, quizId, INVALIDQUIZNAME1);
         expect(result).toStrictEqual(ERROR);
     });
 
