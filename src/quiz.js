@@ -3,6 +3,7 @@ import {
   findUserbyId,
   findQuizbyId,
   isValidQuizName,
+  getUserQuizzes
 } from './other.js';
 
 import { getData, setData } from './dataStore.js';
@@ -17,13 +18,24 @@ import timestamp from 'unix-timestamp';
 */
 export function adminQuizList ( authUserId ) {
   const dataStore = getData();
-  let quiz_list = [];
-  for (const quiz of dataStore.quizzes) {
-    if (quiz.authUserId === authUserId) {
-      quiz_list.push({ quizId: quiz.quizId, name: quiz.name });
+  const newList = [];
+  
+  if (findUserbyId(authUserId) === undefined) {
+    return {error: 'AuthUserId is not a valid user'}
+  }
+  else {
+    const listOfQuizzes = getUserQuizzes(authUserId);
+
+    for (const quiz of listOfQuizzes) {
+      newList.push(
+        {
+          quizId: quiz.quizId,
+          name: quiz.name,
+        }
+      )
     }
   }
-  return { 'quizzes': quiz_list };
+  return {quizzes: newList};
 }
 
 /**
