@@ -118,11 +118,11 @@ export function adminUserDetails(authUserId) {
 
   return { 
     user: {
-        userId: foundUser.authUserId,
-        name: `${foundUser.nameFirst} ${foundUser.nameLast}`,
-        email: foundUser.email,
-        numSuccessfulLogins: foundUser.numSuccessfulLogins,
-        numFailedPasswordsSinceLastLogin: foundUser.numFailedPasswordsSinceLastLogin,
+      userId: foundUser.authUserId,
+      name: `${foundUser.nameFirst} ${foundUser.nameLast}`,
+      email: foundUser.email,
+      numSuccessfulLogins: foundUser.numSuccessfulLogins,
+      numFailedPasswordsSinceLastLogin: foundUser.numFailedPasswordsSinceLastLogin,
     }
   };
 }

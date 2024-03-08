@@ -1,14 +1,14 @@
 import validator from 'validator';
 import {
-    MIN_USER_NAME_LENGTH,
-    MAX_USER_NAME_LENGTH,
-    MIN_PASSWORD_LENGTH,
-    USERNAME_REGEX,
-    PASSWORD_REGEX,
-    MIN_QUIZ_NAME_LENGTH,
-    MAX_QUIZ_NAME_LENGTH,
-    QUIZNAME_REGEX,
-    MAX_QUIZ_DESCRIPTION_LENGTH,
+  MIN_USER_NAME_LENGTH,
+  MAX_USER_NAME_LENGTH,
+  MIN_PASSWORD_LENGTH,
+  USERNAME_REGEX,
+  PASSWORD_REGEX,
+  MIN_QUIZ_NAME_LENGTH,
+  MAX_QUIZ_NAME_LENGTH,
+  QUIZNAME_REGEX,
+  MAX_QUIZ_DESCRIPTION_LENGTH,
 } from './types';
 
 
@@ -92,7 +92,7 @@ export function getQuizIndex(quizId, data) {
  */
 export function getUserQuizzes(authUserId, data) {
   return data.quizzes.filter(quiz => quiz.authUserId === authUserId);
-};
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// AUTH HELPER FUNCTIONS //////////////////////////////
@@ -240,7 +240,7 @@ export function isQuizNameUsed(name, authUserId, data) {
     return createError('Name is already used by another quiz');
   }
   return null;
-};
+}
     
 
 /**
