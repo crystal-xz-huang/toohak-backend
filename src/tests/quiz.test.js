@@ -41,11 +41,19 @@ const QUIZNAME1 = 'Quiz 1';
 
 const QUIZNAME2 = 'Quiz 2';
 
+const QUIZNAME3 = 'Quiz 3';
+
+const QUIZNAME4 = 'Quiz 4';
+
 const INVALIDQUIZNAME1 = 'Quiz 1&!';
 
 const QUIZDESCRIPTION1 = 'This is a quiz';
 
 const QUIZDESCRIPTION2 = 'This is a new description';
+
+const QUIZDESCRIPTION3 = 'This is a new description twice';
+
+const QUIZDESCRIPTION4 = 'This is a new description thrice';
 
 beforeEach(() => {
     clear();
@@ -59,25 +67,26 @@ describe('testing adminQuizList', () => {
     let userId;
     
     beforeEach(() => {
-        userId = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
+        userId = adminAuthRegister(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast);
     });
 
     test('returns error with an invalid userId', () => {
         expect(adminQuizList(userId.authUserId + 1)).toStrictEqual(ERROR);
     });
+    
 
     test('returns an object with an empty array when the user has no quizzes', () => {
         expect(adminQuizList(userId.authUserId)).toStrictEqual({quizzes: []});
     });
 
     test('returns an object with an array of the user\'s one quiz',  () => {
-        let quizId = adminQuizCreate(userId.authUserId, 'Quiz 1', 'This is a quiz');
+        let quizId = adminQuizCreate(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
 
         let result = {
             quizzes: [
                 {
                     quizId: quizId.quizId,
-                    name: 'Quiz 1'
+                    name: QUIZNAME1
                 }
             ]
         }
@@ -85,22 +94,49 @@ describe('testing adminQuizList', () => {
         expect(adminQuizList(userId.authUserId)).toStrictEqual(result);
     })
 
-    test('returns an object with an an array of a second user\'s two quizzes', () => {
-        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
+    test('first returns an object with an empty array when first user has no quiz, then an object with three quizzes in an array for second user', () => {
+        let userId2 = adminAuthRegister(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast);
 
-        let quizId = adminQuizCreate(userId.authUserId, 'Quiz 1', 'This is a quiz');
-        let quizId2 = adminQuizCreate(userId2.authUserId, 'Quiz 2', 'This is a quiz2');
-        let quizId3 = adminQuizCreate(userId2.authUserId, 'Quiz 3', 'This is a quiz3');
+        let quizId = adminQuizCreate(userId2.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
+        let quizId2 = adminQuizCreate(userId2.authUserId, QUIZNAME2, QUIZDESCRIPTION2);
+        let quizId3 = adminQuizCreate(userId2.authUserId, QUIZNAME3, QUIZDESCRIPTION3);
+
+        let result = {
+            quizzes: [
+                {
+                    quizId: quizId.quizId,
+                    name: QUIZNAME1
+                },
+                {
+                    quizId: quizId2.quizId,
+                    name: QUIZNAME2
+                },
+                {
+                    quizId: quizId3.quizId,
+                    name: QUIZNAME3
+                }
+            ]
+        }
+        expect(adminQuizList(userId.authUserId)).toStrictEqual({quizzes: []});
+        expect(adminQuizList(userId2.authUserId)).toStrictEqual(result);
+    });
+
+    test('returns an object with an an array of a second user\'s two quizzes', () => {
+        let userId2 = adminAuthRegister(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast);
+
+        let quizId = adminQuizCreate(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
+        let quizId2 = adminQuizCreate(userId2.authUserId, QUIZNAME2, QUIZDESCRIPTION2);
+        let quizId3 = adminQuizCreate(userId2.authUserId, QUIZNAME3, QUIZDESCRIPTION3);
 
         let result = {
             quizzes: [
                 {
                     quizId: quizId2.quizId,
-                    name: 'Quiz 2'
+                    name: QUIZNAME2
                 },
                 {
                     quizId: quizId3.quizId,
-                    name: 'Quiz 3'
+                    name: QUIZNAME3
                 },
             ]
         }
@@ -177,8 +213,8 @@ describe('testing adminQuizRemove', () => {
     let quizId;
 
     beforeEach(() => {
-        userId = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
-        quizId = adminQuizCreate(userId.authUserId, 'Quiz 1', 'This is a quiz');
+        userId = adminAuthRegister(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast);
+        quizId = adminQuizCreate(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
     })
 
     test('returns error with an invalid userId', () => {
@@ -194,27 +230,60 @@ describe('testing adminQuizRemove', () => {
         expect(adminQuizRemove(userId2.authUserId, quizId.quizId)).toStrictEqual(ERROR);
     })
     
-    test('owner of one quiz removes their quiz', () => {
+    test('owner of one quiz removes their quiz, and creates their quiz again', () => {
         const emptyResult = {
             quizzes: []
         }
 
+        const result = {
+            quizzes: [
+                {
+                    quizId: expect.any(Number),
+                    name: QUIZNAME1
+                }
+            ]
+        }
+
         adminQuizRemove(userId.authUserId, quizId.quizId);
         expect(adminQuizList(userId.authUserId)).toStrictEqual(emptyResult);
+        adminQuizCreate(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
+        expect(adminQuizList(userId.authUserId)).toStrictEqual(result);
+    })
+
+    test('owner of one quiz removes their quiz, and second user recreates their quiz for themselves', () => {
+        let userId2 = adminAuthRegister(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast);
+
+        const emptyResult = {
+            quizzes: []
+        }
+
+        const result = {
+            quizzes: [
+                {
+                    quizId: expect.any(Number),
+                    name: QUIZNAME1
+                }
+            ]
+        }
+        expect(adminQuizList(userId.authUserId)).toStrictEqual(result);
+        adminQuizRemove(userId.authUserId, quizId.quizId);
+        expect(adminQuizList(userId.authUserId)).toStrictEqual(emptyResult);
+        adminQuizCreate(userId2.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
+        expect(adminQuizList(userId2.authUserId)).toStrictEqual(result)
     })
 
     test('two owners of two quizzes each remove one of each of their quizzes',
     () => {
-        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
-        let quizId2 = adminQuizCreate(userId.authUserId, 'Quiz 2', 'This is a quiz2');
-        let quizId3 = adminQuizCreate(userId2.authUserId, 'Quiz 3', 'This is a quiz3');
-        let quizId4 = adminQuizCreate(userId2.authUserId, 'Quiz 4', 'This is a quiz4');
+        let userId2 = adminAuthRegister(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast);
+        let quizId2 = adminQuizCreate(userId.authUserId, QUIZNAME2, QUIZDESCRIPTION2);
+        let quizId3 = adminQuizCreate(userId2.authUserId, QUIZNAME3, QUIZDESCRIPTION3);
+        let quizId4 = adminQuizCreate(userId2.authUserId, QUIZNAME4, QUIZDESCRIPTION4);
 
         const result1 = {
             quizzes: [
                 {
                     quizId: quizId2.quizId,
-                    name: 'Quiz 2'
+                    name: QUIZNAME2
                 }
             ]
         }
@@ -223,7 +292,7 @@ describe('testing adminQuizRemove', () => {
             quizzes: [
                 {
                     quizId: quizId4.quizId,
-                    name: 'Quiz 4'
+                    name: QUIZNAME4
                 }
             ]
         }
@@ -242,8 +311,8 @@ describe('testing adminQuizInfo', () => {
     let quizId;
 
     beforeEach(() => {
-        userId = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
-        quizId = adminQuizCreate(userId.authUserId, 'Quiz 1', 'This is a quiz');
+        userId = adminAuthRegister(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast);
+        quizId = adminQuizCreate(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
     })
 
     test('returns error with an invalid userId', () => {
@@ -255,31 +324,31 @@ describe('testing adminQuizInfo', () => {
     })
 
     test('returns error for requesting info about a quiz not owned by the user', () => {
-        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
+        let userId2 = adminAuthRegister(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast);
         expect(adminQuizInfo(userId2.authUserId, quizId.quizId)).toStrictEqual(ERROR);
     })
 
     test('returning info of one quiz created by one user', () => {
         let returnObject = {
             quizId: quizId.quizId,
-            name: 'Quiz 1',
+            name: QUIZNAME1,
             timeCreated: expect.any(Number),
             timeLastEdited: expect.any(Number),
-            description: 'This is a quiz',
+            description: QUIZDESCRIPTION1,
         }
         expect(adminQuizInfo(userId.authUserId, quizId.quizId)).toStrictEqual(returnObject);
     })
 
     test('returning info of second quiz created by second user', () => {
-        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
-        let quizId2 = adminQuizCreate(userId2.authUserId, 'Quiz 2', 'This is a quiz2');
+        let userId2 = adminAuthRegister(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast);
+        let quizId2 = adminQuizCreate(userId2.authUserId, QUIZNAME2, QUIZDESCRIPTION2);
 
         let returnObject = {
             quizId: quizId2.quizId,
-            name: 'Quiz 2',
+            name: QUIZNAME2,
             timeCreated: expect.any(Number),
             timeLastEdited: expect.any(Number),
-            description: 'This is a quiz2',
+            description: QUIZDESCRIPTION2,
         }
 
         expect(adminQuizInfo(userId2.authUserId, quizId2.quizId)).toStrictEqual(returnObject);
