@@ -43,7 +43,7 @@ const QUIZNAME2 = 'Quiz 2';
 
 const QUIZNAME3 = 'Quiz 3';
 
-const QUIZNAME4 = 'Quiz 3';
+const QUIZNAME4 = 'Quiz 4';
 
 const INVALIDQUIZNAME1 = 'Quiz 1&!';
 
@@ -213,8 +213,8 @@ describe('testing adminQuizRemove', () => {
     let quizId;
 
     beforeEach(() => {
-        userId = adminAuthRegister('janedoe@gmail.com', 'hashed_password1', 'Jane', 'Doe');
-        quizId = adminQuizCreate(userId.authUserId, 'Quiz 1', 'This is a quiz');
+        userId = adminAuthRegister(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast);
+        quizId = adminQuizCreate(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
     })
 
     test('returns error with an invalid userId', () => {
@@ -235,23 +235,55 @@ describe('testing adminQuizRemove', () => {
             quizzes: []
         }
 
+        const result = {
+            quizzes: [
+                {
+                    quizId: expect.any(Number),
+                    name: QUIZNAME1
+                }
+            ]
+        }
+
         adminQuizRemove(userId.authUserId, quizId.quizId);
         expect(adminQuizList(userId.authUserId)).toStrictEqual(emptyResult);
-        expect(adminQuizCreate(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1)).toStrictEqual({quizId: expect.any(Number)})
+        adminQuizCreate(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
+        expect(adminQuizList(userId.authUserId)).toStrictEqual(result);
+    })
+
+    test('owner of one quiz removes their quiz, and second user recreates their quiz for themselves', () => {
+        let userId2 = adminAuthRegister(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast);
+
+        const emptyResult = {
+            quizzes: []
+        }
+
+        const result = {
+            quizzes: [
+                {
+                    quizId: expect.any(Number),
+                    name: QUIZNAME1
+                }
+            ]
+        }
+        expect(adminQuizList(userId.authUserId)).toStrictEqual(result);
+        adminQuizRemove(userId.authUserId, quizId.quizId);
+        expect(adminQuizList(userId.authUserId)).toStrictEqual(emptyResult);
+        adminQuizCreate(userId2.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
+        expect(adminQuizList(userId2.authUserId)).toStrictEqual(result)
     })
 
     test('two owners of two quizzes each remove one of each of their quizzes',
     () => {
-        let userId2 = adminAuthRegister('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
-        let quizId2 = adminQuizCreate(userId.authUserId, 'Quiz 2', 'This is a quiz2');
-        let quizId3 = adminQuizCreate(userId2.authUserId, 'Quiz 3', 'This is a quiz3');
-        let quizId4 = adminQuizCreate(userId2.authUserId, 'Quiz 4', 'This is a quiz4');
+        let userId2 = adminAuthRegister(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast);
+        let quizId2 = adminQuizCreate(userId.authUserId, QUIZNAME2, QUIZDESCRIPTION2);
+        let quizId3 = adminQuizCreate(userId2.authUserId, QUIZNAME3, QUIZDESCRIPTION3);
+        let quizId4 = adminQuizCreate(userId2.authUserId, QUIZNAME4, QUIZDESCRIPTION4);
 
         const result1 = {
             quizzes: [
                 {
                     quizId: quizId2.quizId,
-                    name: 'Quiz 2'
+                    name: QUIZNAME2
                 }
             ]
         }
@@ -260,7 +292,7 @@ describe('testing adminQuizRemove', () => {
             quizzes: [
                 {
                     quizId: quizId4.quizId,
-                    name: 'Quiz 4'
+                    name: QUIZNAME4
                 }
             ]
         }
