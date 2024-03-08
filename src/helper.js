@@ -1,14 +1,14 @@
 import validator from 'validator';
 import {
-    MIN_USER_NAME_LENGTH,
-    MAX_USER_NAME_LENGTH,
-    MIN_PASSWORD_LENGTH,
-    USERNAME_REGEX,
-    PASSWORD_REGEX,
-    MIN_QUIZ_NAME_LENGTH,
-    MAX_QUIZ_NAME_LENGTH,
-    QUIZNAME_REGEX,
-    MAX_QUIZ_DESCRIPTION_LENGTH,
+  MIN_USER_NAME_LENGTH,
+  MAX_USER_NAME_LENGTH,
+  MIN_PASSWORD_LENGTH,
+  USERNAME_REGEX,
+  PASSWORD_REGEX,
+  MIN_QUIZ_NAME_LENGTH,
+  MAX_QUIZ_NAME_LENGTH,
+  QUIZNAME_REGEX,
+  MAX_QUIZ_DESCRIPTION_LENGTH,
 } from './types';
 
 
@@ -82,11 +82,27 @@ export function getQuizIndex(quizId, data) {
   return data.quizzes.findIndex(quiz => quiz.quizId === quizId);
 }
 
+/**
+ * Returns an array containing the quizzes of the user with the given authUserId
+ * Otherwise, returns an empty array if no quizzes are found
+ * 
+ * @param {number} authUserId - the id of registered user
+ * @param {object} data - the data object from getData()
+ * @returns { Array<{object}> } - array containing the quizzes of the user
+ */
+export function getUserQuizzes(authUserId, data) {
+  return data.quizzes.filter(quiz => quiz.authUserId === authUserId);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// AUTH HELPER FUNCTIONS //////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 /**
- * Check if a string is a valid first or last name 
+ * Check if a string is a valid first or last name:
+ * 1. Name is not empty
+ * 2. Name is between 2 and 20 characters
+ * 3. Name contains only letters, spaces, hyphens, and apostrophes
+ * 
  * Returns null if the name is valid, otherwise returns an error object
  * 
  * @param {string} name - the first or last name of the user
@@ -109,6 +125,10 @@ export function isValidName(name, type) {
 
 /**
  * Check if password is valid:
+ * 1. Password is not empty
+ * 2. Password is a string
+ * 3. Password is at least 8 characters long
+ * 4. Password contains at least one letter and one number
  * Returns null if the password is valid, otherwise returns an error object
  * 
  * @param {string} password - the password of the user
@@ -130,7 +150,9 @@ export function isValidPassword(password, name) {
 }
 
 /**
- * Check if the email is valid
+ * Check if the email is valid:
+ * 1. Email is not empty
+ * 2. Email is a valid email address format
  * Returns null if the email is valid, otherwise returns an error object
  * 
  * @param {string} email 
@@ -146,23 +168,29 @@ export function isValidEmail(email) {
   }
 }
 
+/**
+ * Check if the authUserId is valid
+ * Returns null if the authUserId is valid, otherwise returns an error object
+ * 
+ * @param {number} authUserId
+ * @param {object} data - the data object from getData()
+ */
+
+export function isValidAuthUserId(authUserId, data) {
+  if (findUserbyId(authUserId, data) === undefined) {
+    return createError('AuthUserId is not a valid user');
+  }
+  return null;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// QUIZ HELPER FUNCTIONS //////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 /**
- * Returns an array containing the quizzes of the user with the given authUserId
- * Otherwise, returns an empty array if no quizzes are found
- * 
- * @param {number} authUserId - the id of registered user
- * @param {object} data - the data object from getData()
- * @returns { Array<{object}> } - array containing the quizzes of the user
- */
-export function getUserQuizzes(authUserId, data) {
-  return data.quizzes.filter(quiz => quiz.authUserId === authUserId);
-};
-
-/**
  * Check if the quiz name is valid:
+ * 1. Name is not empty
+ * 2. Name is between 3 and 30 characters
+ * 3. Name contains only letters, numbers, and spaces
  * Returns null if the name is valid, otherwise returns an error object
  * 
  * @param {string} name - the name of the quiz
@@ -183,7 +211,8 @@ export function isValidQuizName(name) {
 }
 
 /**
- * Check if the quiz description is valid (less than 100 characters)
+ * Check if the quiz description is valid:
+ * 1. Less than or equal to 100 characters
  * Returns null if the description is valid, otherwise returns an error object
  * 
  * @param {string} description 
@@ -211,27 +240,14 @@ export function isQuizNameUsed(name, authUserId, data) {
     return createError('Name is already used by another quiz');
   }
   return null;
-};
-
-
-/**
- * Check if the authUserId is valid
- * Returns null if the authUserId is valid, otherwise returns an error object
- * 
- * @param {number} authUserId
- * @param {object} data - the data object from getData()
- */
-
-export function isValidAuthUserId(authUserId, data) {
-  if (findUserbyId(authUserId, data) === undefined) {
-    return createError('AuthUserId is not a valid user');
-  }
-  return null;
 }
     
 
 /**
- * Check if the quizId is valid for the given authUserId
+ * Check if the quizId is valid for the given authUserId:
+ * 1. authUserId is a valid user
+ * 2. quizId is a valid quiz
+ * 3. quizId is owned by the authUserId
  * Returns null if the quizId is valid, otherwise returns an error object
  * 
  * @param {number} authUserId
