@@ -4,6 +4,7 @@ import {
   findUserbyEmail,
   findUserbyId,
   isValidName,
+  isValidAuthUserId,
   isValidPassword,
   isValidEmail,
   getUserIndex,
@@ -109,9 +110,12 @@ export function adminAuthLogin(email, password) {
 export function adminUserDetails(authUserId) {
   const dataStore = getData();
   let foundUser = findUserbyId(authUserId, dataStore);
-  if (foundUser === undefined) {
-    return createError('AuthUserId is invalid');
+
+  let authUserIdError = isValidAuthUserId(authUserId, dataStore);
+  if (authUserIdError) {
+    return authUserIdError;
   }
+
   return { 
     user: {
         userId: foundUser.authUserId,
@@ -137,8 +141,10 @@ export function adminUserDetails(authUserId) {
 export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
   const dataStore = getData();
   let foundUser = findUserbyId(authUserId, dataStore);
-  if (foundUser === undefined) {
-    return createError('AuthUserId is invalid');
+
+  let authUserIdError = isValidAuthUserId(authUserId, dataStore);
+  if (authUserIdError) {
+    return authUserIdError;
   }
 
   let emailError = isValidEmail(email);
@@ -182,10 +188,12 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
 export function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
   const dataStore = getData();
   let foundUser = findUserbyId(authUserId, dataStore);
-  if (foundUser === undefined) {
-    return createError('AuthUserId is invalid');
-  }; 
 
+  let authUserIdError = isValidAuthUserId(authUserId, dataStore);
+  if (authUserIdError) {
+    return authUserIdError;
+  }
+  
   if(foundUser.password !== oldPassword) {
     return createError('Old password is incorrect');
   };
