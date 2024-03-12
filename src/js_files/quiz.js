@@ -10,7 +10,6 @@ import {
 
 import { getData, setData } from './dataStore.js';
 import timestamp from 'unix-timestamp';
-
 /**
   * Provide a list of all quizzes that are owned by the currently logged in user.
   * 
