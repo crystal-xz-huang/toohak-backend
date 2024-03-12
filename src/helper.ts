@@ -94,7 +94,7 @@ export function getQuizIndex(quizId: number, data: Data): number | null {
  *
  * @param { number } authUserId - the id of registered user
  * @param { object } data - the data object from getData()
- * @returns { Array<{object}> | [] } - array containing the quizzes of the user
+ * @returns { Array<Quiz> | [] } - array containing the quizzes of the user
  */
 export function getUserQuizzes(authUserId: number, data: Data): Array<Quiz> | [] {
   return data.quizzes.filter(quiz => quiz.authUserId === authUserId);
@@ -244,7 +244,7 @@ export function isValidQuizDescription(description: string): ErrorMessage | null
  * @returns { ErrorMessage | null } - error message if invalid, or null if valid
  */
 export function isQuizNameUsed(name: string, authUserId: number, data: Data): ErrorMessage | null {
-  const userQuizzes = getUserQuizzes(authUserId, data);
+  const userQuizzes: Array<Quiz> = getUserQuizzes(authUserId, data); 
   if (userQuizzes.some(quiz => quiz.name.toLowerCase() === name.toLowerCase())) {
     return createError('Name is already used by another quiz');
   }
