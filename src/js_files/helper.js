@@ -9,7 +9,7 @@ import {
   MAX_QUIZ_NAME_LENGTH,
   QUIZNAME_REGEX,
   MAX_QUIZ_DESCRIPTION_LENGTH,
-} from './types';
+} from '../types';
 
 
 /**

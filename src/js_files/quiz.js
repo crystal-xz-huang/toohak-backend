@@ -6,9 +6,9 @@ import {
   isQuizNameUsed,
   isValidQuizIdForUser,
   getQuizIndex,
-} from './helper.js';
+} from '../helper.js';
 
-import { getData, setData } from './dataStore.js';
+import { getData, setData } from '../dataStore.js';
 import timestamp from 'unix-timestamp';
 
 /**
