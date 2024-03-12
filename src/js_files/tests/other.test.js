@@ -1,4 +1,4 @@
-import { clear } from '../other';
+import { clear } from '../other.js';
 
 import {
   adminAuthRegister,
@@ -6,7 +6,7 @@ import {
   adminUserDetails,
   adminUserDetailsUpdate,
   adminUserPasswordUpdate,
-} from '../auth';
+} from '../auth.js';
 
 import {
   adminQuizCreate,
@@ -14,7 +14,7 @@ import {
   adminQuizInfo,
   adminQuizNameUpdate,
   adminQuizDescriptionUpdate,
-} from '../quiz';
+} from '../quiz.js';
 
 const ERROR = { error: expect.any(String) };
 
