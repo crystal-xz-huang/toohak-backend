@@ -244,7 +244,7 @@ export function isValidQuizDescription(description: string): ErrorMessage | null
  * @returns { ErrorMessage | null } - error message if invalid, or null if valid
  */
 export function isQuizNameUsed(name: string, authUserId: number, data: Data): ErrorMessage | null {
-  const userQuizzes: Array<Quiz> = getUserQuizzes(authUserId, data); 
+  const userQuizzes: Array<Quiz> = getUserQuizzes(authUserId, data);
   if (userQuizzes.some(quiz => quiz.name.toLowerCase() === name.toLowerCase())) {
     return createError('Name is already used by another quiz');
   }
