@@ -1,6 +1,6 @@
 import { clear } from '../other';
 
-import { 
+import {
   adminAuthRegister,
   adminAuthLogin,
   adminUserDetails,
@@ -11,7 +11,7 @@ import {
 import {
   adminQuizCreate,
   adminQuizList,
-  adminQuizInfo,  
+  adminQuizInfo,
   adminQuizNameUpdate,
   adminQuizDescriptionUpdate,
 } from '../quiz';
@@ -22,7 +22,7 @@ beforeEach(() => {
   clear();
 });
 
-afterEach(() => {  
+afterEach(() => {
   clear();
 });
 
@@ -31,14 +31,14 @@ const user = {
   password: 'hashed_passedword1',
   nameFirst: 'Jane',
   nameLast: 'Doe',
-}
+};
 
 const quiz = {
   name: 'Quiz 1',
   description: 'This is a quiz',
-}
+};
 
-describe ('testing clear', () => {
+describe('testing clear', () => {
   test('returns an empty object', () => {
     expect(clear()).toStrictEqual({});
   });
