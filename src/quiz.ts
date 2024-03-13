@@ -10,7 +10,6 @@ import {
 } from './helper';
 
 import { getData, setData } from './dataStore';
-import timestamp from 'unix-timestamp';
 
 /**
   * Provide a list of all quizzes that are owned by the currently logged in user.
@@ -51,8 +50,8 @@ export function adminQuizCreate (authUserId: number, name: string, description: 
     name: name,
     authUserId: authUserId,
     description: description,
-    timeCreated: timestamp.now(),
-    timeLastEdited: timestamp.now(),
+    timeCreated: Math.floor(Date.now() / 1000),
+    timeLastEdited: Math.floor(Date.now() / 1000),
   });
 
   setData(data);
@@ -138,7 +137,7 @@ export function adminQuizNameUpdate(authUserId: number, quizId: number, name: st
   if (error) return error;
 
   data.quizzes[getQuizIndex(quizId, data)].name = name;
-  data.quizzes[getQuizIndex(quizId, data)].timeLastEdited = timestamp.now();
+  data.quizzes[getQuizIndex(quizId, data)].timeLastEdited = Math.floor(Date.now() / 1000);
   setData(data);
 
   return {};
@@ -161,7 +160,7 @@ export function adminQuizNameUpdate(authUserId: number, quizId: number, name: st
   // }
 
   // quiz.name = name;
-  // quiz.timeLastEdited = timestamp.now();
+  // quiz.timeLastEdited = Math.floor(Date.now() / 1000);
   // data.quizzes[getQuizIndex(quizId, data)] = quiz;
   // setData(data);
 
@@ -185,7 +184,7 @@ export function adminQuizDescriptionUpdate(authUserId: number, quizId: number, d
   }
 
   data.quizzes[getQuizIndex(quizId, data)].description = description;
-  data.quizzes[getQuizIndex(quizId, data)].timeLastEdited = timestamp.now();
+  data.quizzes[getQuizIndex(quizId, data)].timeLastEdited = Math.floor(Date.now() / 1000);
   setData(data);
   return {};
 
@@ -202,7 +201,7 @@ export function adminQuizDescriptionUpdate(authUserId: number, quizId: number, d
   // }
 
   // quiz.description = description;
-  // quiz.timeLastEdited = timestamp.now();
+  // quiz.timeLastEdited = Math.floor(Date.now() / 1000);
   // data.quizzes[getQuizIndex(quizId, data)] = quiz;
   // setData(data);
 

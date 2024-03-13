@@ -15,7 +15,6 @@
         "rewire": "^6.0.0",
         "ts-node": "^10.7.0",
         "typescript": "^4.6.3",
-        "unix-timestamp": "^1.0.4",
         "validator": "^13.7.0"
     },
     "devDependencies": {
