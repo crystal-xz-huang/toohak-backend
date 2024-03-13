@@ -1,4 +1,4 @@
-import { QuizList, ErrorMessage, QuizId, QuizInfo } from './types';
+import { QuizList, ErrorMessage, QuizId, QuizInfo, EmptyObject } from './types';
 import {
   findQuizbyId,
   isValidAuthUserId,
@@ -86,7 +86,7 @@ export function adminQuizCreate (authUserId: number, name: string, description: 
   * @param { number } quizId - the id of the quiz
   * @returns { {} | ErrorMessage } - returns an empty object if successful
 */
-export function adminQuizRemove(authUserId: number, quizId: number): Record<string, never> | ErrorMessage {
+export function adminQuizRemove(authUserId: number, quizId: number): EmptyObject | ErrorMessage {
   const data = getData();
 
   const quizIdforUserError = isValidQuizIdForUser(authUserId, quizId, data);
@@ -132,7 +132,7 @@ export function adminQuizInfo(authUserId: number, quizId: number): QuizInfo | Er
   * @param { string } name - the name of quiz
   * @returns { {} | ErrorMessage } - returns an empty object if successful
 */
-export function adminQuizNameUpdate(authUserId: number, quizId: number, name: string): Record<string, never> | ErrorMessage {
+export function adminQuizNameUpdate(authUserId: number, quizId: number, name: string): EmptyObject | ErrorMessage {
   const data = getData();
   const error = isValidQuizIdForUser(authUserId, quizId, data) ?? isValidQuizName(name) ?? isQuizNameUsed(name, authUserId, data);
   if (error) return error;
@@ -177,7 +177,7 @@ export function adminQuizNameUpdate(authUserId: number, quizId: number, name: st
   *
   * @returns { {} | ErrorMessage } - returns an empty object if successful
 */
-export function adminQuizDescriptionUpdate(authUserId: number, quizId: number, description: string): Record<string, never> | ErrorMessage {
+export function adminQuizDescriptionUpdate(authUserId: number, quizId: number, description: string): EmptyObject | ErrorMessage {
   const data = getData();
   const error = isValidQuizIdForUser(authUserId, quizId, data) ?? isValidQuizDescription(description);
   if (error) {

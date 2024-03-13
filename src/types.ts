@@ -34,6 +34,8 @@ export type ErrorMessage = {
   error: string;
 }
 
+export type EmptyObject = Record<string, never>;
+
 // return type for adminAuthRegister
 export type UserId = {
   authUserId: number;

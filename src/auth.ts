@@ -1,5 +1,5 @@
 import { getData, setData } from './dataStore';
-import { UserDetails, ErrorMessage, UserId } from './types';
+import { UserDetails, ErrorMessage, UserId, EmptyObject } from './types';
 import {
   createError,
   findUserbyEmail,
@@ -25,9 +25,9 @@ export function adminAuthRegister(email: string, password: string, nameFirst: st
   const data = getData();
 
   const error = isValidEmail(email, data, true, false) ??
-              isValidPassword(password, 'Password') ??
-              isValidName(nameFirst, 'First') ??
-              isValidName(nameLast, 'Last');
+                isValidPassword(password, 'Password') ??
+                isValidName(nameFirst, 'First') ??
+                isValidName(nameLast, 'Last');
 
   if (error) return error;
 
@@ -132,12 +132,12 @@ export function adminUserDetails(authUserId: number): UserDetails | ErrorMessage
   * @param { string } nameLast - the last name of an admin user
   * @returns { {} | ErrorMessage } - returns nothing if successful
 */
-export function adminUserDetailsUpdate(authUserId: number, email: string, nameFirst: string, nameLast: string): Record<string, never> | ErrorMessage {
+export function adminUserDetailsUpdate(authUserId: number, email: string, nameFirst: string, nameLast: string): EmptyObject | ErrorMessage {
   const data = getData();
   const error = isValidAuthUserId(authUserId, data) ??
-              isValidEmail(email, data, false, false, authUserId) ??
-              isValidName(nameFirst, 'First') ??
-              isValidName(nameLast, 'Last');
+                isValidEmail(email, data, false, false, authUserId) ??
+                isValidName(nameFirst, 'First') ??
+                isValidName(nameLast, 'Last');
 
   if (error) return error;
 
@@ -191,7 +191,7 @@ export function adminUserDetailsUpdate(authUserId: number, email: string, nameFi
   * @param { string } newPassword - the new password of registered user
   * @returns { {} | ErrorMessage } - returns nothing
 */
-export function adminUserPasswordUpdate(authUserId: number, oldPassword: string, newPassword: string): Record<string, never> | ErrorMessage {
+export function adminUserPasswordUpdate(authUserId: number, oldPassword: string, newPassword: string): EmptyObject | ErrorMessage {
   const data = getData();
   const foundUser = findUserbyId(authUserId, data);
 
