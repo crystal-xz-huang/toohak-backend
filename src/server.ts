@@ -8,6 +8,7 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
+/* UNCOMMENT
 import {
   adminAuthRegister,
   adminAuthLogin,
@@ -15,7 +16,7 @@ import {
   adminUserDetailsUpdate,
   adminUserPasswordUpdate,
 } from './auth';
-
+*/
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
@@ -41,7 +42,6 @@ app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   return res.json(echo(data));
 });
-
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
