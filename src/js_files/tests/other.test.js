@@ -1,20 +1,20 @@
-import { clear } from '../other';
+import { clear } from '../other.js';
 
-import { 
+import {
   adminAuthRegister,
   adminAuthLogin,
   adminUserDetails,
   adminUserDetailsUpdate,
   adminUserPasswordUpdate,
-} from '../auth';
+} from '../auth.js';
 
 import {
   adminQuizCreate,
   adminQuizList,
-  adminQuizInfo,  
+  adminQuizInfo,
   adminQuizNameUpdate,
   adminQuizDescriptionUpdate,
-} from '../quiz';
+} from '../quiz.js';
 
 const ERROR = { error: expect.any(String) };
 
@@ -22,7 +22,7 @@ beforeEach(() => {
   clear();
 });
 
-afterEach(() => {  
+afterEach(() => {
   clear();
 });
 
@@ -31,14 +31,14 @@ const user = {
   password: 'hashed_passedword1',
   nameFirst: 'Jane',
   nameLast: 'Doe',
-}
+};
 
 const quiz = {
   name: 'Quiz 1',
   description: 'This is a quiz',
-}
+};
 
-describe ('testing clear', () => {
+describe('testing clear', () => {
   test('returns an empty object', () => {
     expect(clear()).toStrictEqual({});
   });

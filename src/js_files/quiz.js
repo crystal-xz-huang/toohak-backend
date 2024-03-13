@@ -10,54 +10,53 @@ import {
 
 import { getData, setData } from './dataStore.js';
 import timestamp from 'unix-timestamp';
-
 /**
   * Provide a list of all quizzes that are owned by the currently logged in user.
-  * 
+  *
   * @param {number} authUserId - the id of registered user
-  * 
+  *
   * @returns {quizzes: Array<{quizId: number, name: string}>} - an object containing an array of quizzes
 */
 export function adminQuizList(authUserId) {
   const dataStore = getData();
 
-  let authUserError = isValidAuthUserId(authUserId, dataStore);
+  const authUserError = isValidAuthUserId(authUserId, dataStore);
   if (authUserError) {
     return authUserError;
   }
 
-  const quiz_list = dataStore.quizzes.filter(quiz => quiz.authUserId === authUserId).map(quiz => ({ quizId: quiz.quizId, name: quiz.name }));
-  return { 'quizzes': quiz_list };
+  const quizList = dataStore.quizzes.filter(quiz => quiz.authUserId === authUserId).map(quiz => ({ quizId: quiz.quizId, name: quiz.name }));
+  return { quizzes: quizList };
 }
 
 /**
   * Given basic details about a new quiz, create one for the logged in user.
-  * 
+  *
   * @param {number} authUserId - the id of registered user
   * @param {string} name - the name of the quiz
   * @param {string} description - basic details about the quiz
-  * 
+  *
   * @returns { quizId: number } - object containing quizId of the user
 */
-export function adminQuizCreate ( authUserId, name, description ) {
+export function adminQuizCreate (authUserId, name, description) {
   const dataStore = getData();
-  
-  let authUserError = isValidAuthUserId(authUserId, dataStore);
+
+  const authUserError = isValidAuthUserId(authUserId, dataStore);
   if (authUserError) {
     return authUserError;
   }
 
-  let quizNameError = isValidQuizName(name);
+  const quizNameError = isValidQuizName(name);
   if (quizNameError) {
     return quizNameError;
   }
 
-  let nameUsedError = isQuizNameUsed(name, authUserId, dataStore);
+  const nameUsedError = isQuizNameUsed(name, authUserId, dataStore);
   if (nameUsedError) {
     return nameUsedError;
   }
 
-  let descriptionError = isValidQuizDescription(description);
+  const descriptionError = isValidQuizDescription(description);
   if (descriptionError) {
     return descriptionError;
   }
@@ -80,16 +79,16 @@ export function adminQuizCreate ( authUserId, name, description ) {
 
 /**
   * Given a particular quiz, permanently remove the quiz.
-  * 
+  *
   * @param {number} authUserId - the id of registered user
   * @param {number} quizId - the id of the quiz
-  * 
+  *
   * @returns { } - returns nothing
 */
 export function adminQuizRemove(authUserId, quizId) {
   const dataStore = getData();
 
-  let quizIdforUserError = isValidQuizIdForUser(authUserId, quizId, dataStore);
+  const quizIdforUserError = isValidQuizIdForUser(authUserId, quizId, dataStore);
   if (quizIdforUserError) {
     return quizIdforUserError;
   }
@@ -97,16 +96,16 @@ export function adminQuizRemove(authUserId, quizId) {
   const index = getQuizIndex(quizId, dataStore);
   dataStore.quizzes.splice(index, 1);
   setData(dataStore);
-  
+
   return {};
 }
 
 /**
   * Get all of the relevant information about the current quiz.
-  * 
+  *
   * @param {number} authUserId - the id of registered user
   * @param {number} quizId - the id of the quiz
-  * 
+  *
   * @returns  {object} - object containing the quiz details
   * @property { quizId: number } - object containing quizId of the user
   * @property { name: string } - object containing name of quiz
@@ -116,77 +115,77 @@ export function adminQuizRemove(authUserId, quizId) {
 */
 export function adminQuizInfo(authUserId, quizId) {
   const dataStore = getData();
-  let quiz = findQuizbyId(quizId, dataStore);
+  const quiz = findQuizbyId(quizId, dataStore);
 
-  let quizIdforUserError = isValidQuizIdForUser(authUserId, quizId, dataStore);
+  const quizIdforUserError = isValidQuizIdForUser(authUserId, quizId, dataStore);
   if (quizIdforUserError) {
     return quizIdforUserError;
   }
 
   return {
-    'quizId': quiz.quizId,
-    'name': quiz.name,
-    'timeCreated': quiz.timeCreated,
-    'timeLastEdited': quiz.timeLastEdited,
-    'description': quiz.description,
-  }
+    quizId: quiz.quizId,
+    name: quiz.name,
+    timeCreated: quiz.timeCreated,
+    timeLastEdited: quiz.timeLastEdited,
+    description: quiz.description,
+  };
 }
 
 /**
   * Update name of relevant quiz.
-  * 
+  *
   * @param {number} authUserId - the id of registered user
   * @param {number} quizId - the id of the quiz
   * @param {string} name - the name of quiz
-  * 
+  *
   * @returns { } - returns nothing
 */
 export function adminQuizNameUpdate(authUserId, quizId, name) {
   const dataStore = getData();
-  let quiz = findQuizbyId(quizId, dataStore);
+  const quiz = findQuizbyId(quizId, dataStore);
 
-  let quizIdforUserError = isValidQuizIdForUser(authUserId, quizId, dataStore);
+  const quizIdforUserError = isValidQuizIdForUser(authUserId, quizId, dataStore);
   if (quizIdforUserError) {
     return quizIdforUserError;
   }
 
-  let quizNameError = isValidQuizName(name);
+  const quizNameError = isValidQuizName(name);
   if (quizNameError) {
     return quizNameError;
   }
 
-  let nameUsedError = isQuizNameUsed(name, authUserId, dataStore);
+  const nameUsedError = isQuizNameUsed(name, authUserId, dataStore);
   if (nameUsedError) {
     return nameUsedError;
   }
- 
+
   quiz.name = name;
   quiz.timeLastEdited = timestamp.now();
   dataStore.quizzes[getQuizIndex(quizId, dataStore)] = quiz;
   setData(dataStore);
-  
+
   return {};
 }
 
 /**
   * Update the description of the relevant quiz.
-  * 
+  *
   * @param {number} authUserId - the id of registered user
   * @param {number} quizId - the id of the quiz
   * @param {string} description - the description of quiz
-  * 
+  *
   * @returns { } - returns nothing
 */
 export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
   const dataStore = getData();
-  let quiz = findQuizbyId(quizId, dataStore);  
+  const quiz = findQuizbyId(quizId, dataStore);
 
-  let quizIdforUserError = isValidQuizIdForUser(authUserId, quizId, dataStore);
+  const quizIdforUserError = isValidQuizIdForUser(authUserId, quizId, dataStore);
   if (quizIdforUserError) {
     return quizIdforUserError;
   }
 
-  let descriptionError = isValidQuizDescription(description);
+  const descriptionError = isValidQuizDescription(description);
   if (descriptionError) {
     return descriptionError;
   }
