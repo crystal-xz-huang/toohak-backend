@@ -8,6 +8,13 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
+import {
+  adminAuthRegister,
+  adminAuthLogin,
+  adminUserDetails,
+  adminUserDetailsUpdate,
+  adminUserPasswordUpdate,
+} from './auth';
 
 // Set up web app
 const app = express();
@@ -34,6 +41,7 @@ app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   return res.json(echo(data));
 });
+
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================

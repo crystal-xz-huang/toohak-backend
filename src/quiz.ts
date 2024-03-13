@@ -175,7 +175,7 @@ export function adminQuizNameUpdate(authUserId: number, quizId: number, name: st
   * @param { number } quizId - the id of the quiz
   * @param { string } description - the description of quiz
   *
-  * @returns { {} | ErrorMessage } - returns an empty object if successful
+  * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
 */
 export function adminQuizDescriptionUpdate(authUserId: number, quizId: number, description: string): EmptyObject | ErrorMessage {
   const data = getData();

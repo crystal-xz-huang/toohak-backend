@@ -4,9 +4,9 @@ import {
   adminUserDetails,
   adminUserDetailsUpdate,
   adminUserPasswordUpdate,
-} from '../auth.js';
+} from '../js_files/auth.js';
 
-import { clear } from '../other.js';
+import { clear } from '../js_files/other.js';
 
 const ERROR = { error: expect.any(String) };
 

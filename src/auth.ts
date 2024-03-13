@@ -130,7 +130,7 @@ export function adminUserDetails(authUserId: number): UserDetails | ErrorMessage
   * @param { string } email - the email of an admin user
   * @param { string } nameFirst - the first name of an admin user
   * @param { string } nameLast - the last name of an admin user
-  * @returns { {} | ErrorMessage } - returns nothing if successful
+  * @returns { EmptyObject | ErrorMessage } - returns nothing if successful
 */
 export function adminUserDetailsUpdate(authUserId: number, email: string, nameFirst: string, nameLast: string): EmptyObject | ErrorMessage {
   const data = getData();
@@ -189,7 +189,7 @@ export function adminUserDetailsUpdate(authUserId: number, email: string, nameFi
   * @param { number } authUserId - the id of registered user
   * @param { string } oldPassword - the old password of registered user
   * @param { string } newPassword - the new password of registered user
-  * @returns { {} | ErrorMessage } - returns nothing
+  * @returns { EmptyObject | ErrorMessage } - returns nothing
 */
 export function adminUserPasswordUpdate(authUserId: number, oldPassword: string, newPassword: string): EmptyObject | ErrorMessage {
   const data = getData();
