@@ -3,6 +3,7 @@
 // ====================================================================
 export const ERROR = { statusCode: 400, error: expect.any(String) };
 export const CLEAR_SUCCESS = { statusCode: 200, jsonBody: {} };
+export const TOKEN_SUCCESS = { statusCode: 200, jsonBody: { token: expect.any(String) } };
 
 // ====================================================================
 // USER CONSTANTS

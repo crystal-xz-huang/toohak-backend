@@ -8,44 +8,8 @@ import {
   clearV1,
 } from '../testHelpers';
 
-const ERROR = { statusCode: 400, error: expect.any(String) };
-const TOKEN_SUCCESS = { statusCode: 200, jsonBody: { token: expect.any(String) } };
-
-const user1 = {
-  email: 'johnsmith@gmail.com',
-  password: 'hashed_password1',
-  nameFirst: 'John',
-  nameLast: 'Smith',
-};
-
-const user2 = {
-  email: 'janedoe@gmail.com',
-  password: 'hashed_password2',
-  nameFirst: 'Jane',
-  nameLast: 'Doe',
-};
-
-const user3 = {
-  email: 'hayden.smith@unsw.edu.au',
-  password: 'haydensmith123',
-  nameFirst: 'Hayden',
-  nameLast: 'Smith',
-};
-
-const invalidEmails = [
-  { email: '' },
-  { email: 'example.com' },
-  { email: 'example@' },
-  { email: 'example@.com' },
-  { email: '@gmail.com' },
-  { email: 'hello@gmail@gmail.com' },
-  { email: 'email' },
-];
-
-const invalidPasswords = [
-  { password: '12345678' },
-  { password: 'abcdefgh' },
-];
+import { ERROR, TOKEN_SUCCESS } from '../testTypes';
+import { user1, user2, user3, invalidEmails, invalidPasswords } from '../testTypes';
 
 // ========================================================================================================================================
 beforeEach(() => {
