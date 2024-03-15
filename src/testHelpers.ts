@@ -1,7 +1,7 @@
 import request, { HttpVerb } from 'sync-request-curl';
-import { EmptyObject } from '../types';
+import { EmptyObject } from './types';
 
-import { port, url } from '../config.json';
+import { port, url } from './config.json';
 const SERVER_URL = `${url}:${port}`;
 
 // ========================================================================= //
@@ -12,7 +12,6 @@ interface RequestResponse {
   jsonBody?: EmptyObject;
   error?: string;
 }
-
 /**
  * Sends a given request to the given route and return its results as a RequestResponse object
  *
@@ -32,8 +31,8 @@ function requestHelper(
   path: string,
   payload: object = {}
 ): RequestResponse {
-  let qs = {};   
-  let json = {}; 
+  let qs = {};
+  let json = {};
 
   if (['GET', 'DELETE'].includes(method)) {
     // If the request is a GET or DELETE request, the payload is a query string
@@ -44,7 +43,7 @@ function requestHelper(
   }
 
   // Send the request to the server
-  const res = request(method, SERVER_URL + path, { qs, json, timeout: 20000 });
+  const res = request(method, SERVER_URL + path, { qs, json });
 
   const bodyString = res.body.toString();
   let bodyObject: RequestResponse;
@@ -54,11 +53,11 @@ function requestHelper(
       statusCode: res.statusCode,
       jsonBody: JSON.parse(bodyString),
     };
-  } catch (error: any) {
+  } catch (error) {
     // If JSON.parse fails, the server's response is not JSON so we return the response as a custom error message instead
     bodyObject = {
       statusCode: res.statusCode,
-      error: `Server returned an invalid JSON response: ${bodyString} with error: ${error.message}`,
+      error: `Server returned an invalid JSON response with error: ${error.message}`,
     };
   }
   return bodyObject;
@@ -111,5 +110,5 @@ export function quizDescriptionUpdateV1(quizId: number, token: string, descripti
 }
 
 export function clearV1(): RequestResponse {
-  return requestHelper('DELETE', '/clear', {});
+  return requestHelper('DELETE', '/v1/clear', {});
 }

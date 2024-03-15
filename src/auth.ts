@@ -1,15 +1,28 @@
 import { getData, setData } from './dataStore';
-import { UserDetails, ErrorMessage, UserId, EmptyObject } from './types';
+import HTTPError from 'http-errors';
 import {
-  createError,
-  findUserbyEmail,
-  findUserbyId,
+  ErrorMessage,
+  EmptyObject,
+  AdminAuthRegisterReturn,
+  AdminAuthLoginReturn,
+  AdminUserDetailsReturn,
+} from './types';
+
+import {
+  isValidRegisterEmail,
+  isValidLoginEmail,
+  isValidUserEmail,
+  isValidPassword,
   isValidName,
   isValidAuthUserId,
-  isValidPassword,
-  isValidEmail,
+  isValidToken,
+  findUserbyEmail,
+  findUserbyId,
   getUserIndex,
-} from './helper';
+  generateToken,
+  findUserbyToken,
+  findTokenforUser,
+} from './functionHelpers';
 
 /**
   * Register a user with an email, password, and first and last name.
@@ -19,106 +32,108 @@ import {
   * @param { string } password - the password of the user
   * @param { string } nameFirst - the first name of the user
   * @param { string } nameLast - the last name of the user
-  * @returns { UserId | ErrorMessage } - the authUserId of the user
+  * @returns { AdminAuthRegisterReturn | ErrorMessage } - the authUserId of the user
 */
-export function adminAuthRegister(email: string, password: string, nameFirst: string, nameLast: string): UserId | ErrorMessage {
+export function adminAuthRegister(
+  email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
+): AdminAuthRegisterReturn | ErrorMessage {
   const data = getData();
-
-  const error = isValidEmail(email, data, true, false) ??
+  const error = isValidRegisterEmail(email, data) ??
                 isValidPassword(password, 'Password') ??
                 isValidName(nameFirst, 'First') ??
                 isValidName(nameLast, 'Last');
+  if (error) {
+    throw HTTPError(400, error.error);
+  }
 
-  if (error) return error;
-
+  data.sessionId_counter = data.sessionId_counter + 1;
   data.userId_counter = data.userId_counter + 1;
+
+  const sessionId = data.sessionId_counter;
+  const userId = data.userId_counter;
+  const token = generateToken(sessionId);
+
+  // Create a new session for the user
+  data.sessions.push({
+    token: token,
+    sessionId: sessionId,
+    adminUserId: userId,
+    valid: true,
+  });
+
+  // Create a new user
   data.users.push({
-    authUserId: data.userId_counter,
+    authUserId: userId,
     email: email,
     password: password,
     nameFirst: nameFirst,
     nameLast: nameLast,
-    numSuccessfulLogins: 0,
+    numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
   });
 
   setData(data);
-  return { authUserId: data.userId_counter };
-
-  // let emailError = isValidEmail(email, data, true);
-  // if (emailError) {
-  //   return emailError;
-  // }
-
-  // let passwordError = isValidPassword(password, 'Password');
-  // if (passwordError) {
-  //   return passwordError;
-  // }
-
-  // let nameFirstError = isValidName(nameFirst, 'First');
-  // if (nameFirstError) {
-  //   return nameFirstError;
-  // }
-
-  // let nameLastError = isValidName(nameLast, 'Last');
-  // if (nameLastError) {
-  //   return nameLastError;
-  // }
+  return { token: token };
 }
 
 /**
-  * Given a registered user's email and password, returns their authUserId value
+  * Takes in information about an admin user to determine if they can log in to manage quizzes
   *
   * @param { string } email - the email of a registered user
   * @param { string } password - the password of a registered user
   * @returns { UserId | ErrorMessage } - object containing the authUserId of the user
 */
-export function adminAuthLogin(email: string, password: string): UserId | ErrorMessage {
+export function adminAuthLogin(email: string, password: string): AdminAuthLoginReturn | ErrorMessage {
   const data = getData();
 
-  const emailError = isValidEmail(email, data, false, true);
-  if (emailError) return emailError;
-
-  const user = findUserbyEmail(email, data);
-  // if (user === null) {
-  //   return createError('Email does not exist');
-  // }
-
-  let ret: UserId | ErrorMessage;
-  if (user.password !== password) {
-    user.numFailedPasswordsSinceLastLogin = user.numFailedPasswordsSinceLastLogin + 1;
-    ret = createError('Password is incorrect');
-  } else {
-    user.numFailedPasswordsSinceLastLogin = 0;
-    user.numSuccessfulLogins = user.numSuccessfulLogins + 1;
-    ret = { authUserId: user.authUserId };
+  const emailError = isValidLoginEmail(email, data);
+  if (emailError) {
+    throw HTTPError(400, emailError.error);
   }
 
+  const user = findUserbyEmail(email, data);
+  if (user.password !== password) {
+    user.numFailedPasswordsSinceLastLogin = user.numFailedPasswordsSinceLastLogin + 1;
+    data.users[getUserIndex(user.authUserId, data)] = user;
+    setData(data);
+    throw HTTPError(400, 'Password is incorrect for the given email');
+  }
+
+  user.numFailedPasswordsSinceLastLogin = 0;
+  user.numSuccessfulLogins = user.numSuccessfulLogins + 1;
   data.users[getUserIndex(user.authUserId, data)] = user;
   setData(data);
-  return ret;
+
+  // Return the token corresponding to the user
+  return findTokenforUser(user.authUserId, data);
 }
 
 /**
   * Given an admin user's authUserId, return the user's details.
   *
-  * @param { number } authUserId - a unique admin user identifier
-  * @returns { UserDetails | ErrorMessage } - an object containing the user's details on success
+  * @param { string } token - a unique admin user identifier
+  * @returns { AdminUserDetailsReturn | ErrorMessage } - an object containing the user's details on success
 */
-export function adminUserDetails(authUserId: number): UserDetails | ErrorMessage {
+export function adminUserDetails(token: string): AdminUserDetailsReturn | ErrorMessage {
   const data = getData();
 
-  const authUserIdError = isValidAuthUserId(authUserId, data);
-  if (authUserIdError) return authUserIdError;
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
 
-  const foundUser = findUserbyId(authUserId, data);
+  const user = findUserbyToken(token, data);
+
   return {
     user: {
-      userId: foundUser.authUserId,
-      name: `${foundUser.nameFirst} ${foundUser.nameLast}`,
-      email: foundUser.email,
-      numSuccessfulLogins: foundUser.numSuccessfulLogins,
-      numFailedPasswordsSinceLastLogin: foundUser.numFailedPasswordsSinceLastLogin,
+      userId: user.authUserId,
+      name: `${user.nameFirst} ${user.nameLast}`,
+      email: user.email,
+      numSuccessfulLogins: user.numSuccessfulLogins,
+      numFailedPasswordsSinceLastLogin: user.numFailedPasswordsSinceLastLogin,
     }
   };
 }
@@ -126,60 +141,33 @@ export function adminUserDetails(authUserId: number): UserDetails | ErrorMessage
 /**
   * Given an admin user's authUserId and a set of properties, update the properties of this logged in admin user.
   *
-  * @param { number } authUserId - the id of an admin user
+  * @param { token } string - a string that represents the token for the user session
   * @param { string } email - the email of an admin user
   * @param { string } nameFirst - the first name of an admin user
   * @param { string } nameLast - the last name of an admin user
   * @returns { EmptyObject | ErrorMessage } - returns nothing if successful
 */
-export function adminUserDetailsUpdate(authUserId: number, email: string, nameFirst: string, nameLast: string): EmptyObject | ErrorMessage {
+export function adminUserDetailsUpdate(token: string, email: string, nameFirst: string, nameLast: string): EmptyObject | ErrorMessage {
   const data = getData();
-  const error = isValidAuthUserId(authUserId, data) ??
-                isValidEmail(email, data, false, false, authUserId) ??
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const user = findUserbyToken(token, data);
+  const error = isValidUserEmail(email, data, user.authUserId) ??
                 isValidName(nameFirst, 'First') ??
                 isValidName(nameLast, 'Last');
 
-  if (error) return error;
+  if (error) {
+    throw HTTPError(400, error.error);
+  }
 
-  data.users[getUserIndex(authUserId, data)].email = email;
-  data.users[getUserIndex(authUserId, data)].nameFirst = nameFirst;
-  data.users[getUserIndex(authUserId, data)].nameLast = nameLast;
+  data.users[getUserIndex(user.authUserId, data)].email = email;
+  data.users[getUserIndex(user.authUserId, data)].nameFirst = nameFirst;
+  data.users[getUserIndex(user.authUserId, data)].nameLast = nameLast;
   setData(data);
   return {};
-
-  // let foundUser = findUserbyId(authUserId, data);
-
-  // let authUserIdError = isValidAuthUserId(authUserId, data);
-  // if (authUserIdError) {
-  //   return authUserIdError;
-  // }
-
-  // let emailError = isValidEmail(email);
-  // if (emailError) {
-  //   return emailError;
-  // }
-
-  // let foundUserbyEmail = findUserbyEmail(email, data);
-  // if (foundUserbyEmail !== undefined && foundUserbyEmail.authUserId !== authUserId) {
-  //   return createError('Email is currently used by another user');
-  // }
-
-  // let nameFirstError = isValidName(nameFirst, 'First');
-  // if (nameFirstError) {
-  //   return nameFirstError;
-  // }
-
-  // let nameLastError = isValidName(nameLast, 'Last');
-  // if (nameLastError) {
-  //   return nameLastError;
-  // }
-
-  // foundUser.email = email;
-  // foundUser.nameFirst = nameFirst;
-  // foundUser.nameLast = nameLast;
-  // data.users[getUserIndex(authUserId, data)] = foundUser;
-  // setData(data);
-  // return {};
 }
 
 /**
@@ -193,24 +181,24 @@ export function adminUserDetailsUpdate(authUserId: number, email: string, nameFi
 */
 export function adminUserPasswordUpdate(authUserId: number, oldPassword: string, newPassword: string): EmptyObject | ErrorMessage {
   const data = getData();
-  const foundUser = findUserbyId(authUserId, data);
 
   const authUserIdError = isValidAuthUserId(authUserId, data);
   if (authUserIdError) {
-    return authUserIdError;
+    throw HTTPError(400, authUserIdError.error);
   }
 
+  const foundUser = findUserbyId(authUserId, data);
   if (foundUser.password !== oldPassword) {
-    return createError('Old password is incorrect');
+    throw HTTPError(400, 'Old password is incorrect');
   }
 
   if (foundUser.password === newPassword) {
-    return createError('Old password and new password are the same');
+    throw HTTPError(400, 'Old password and new password are the same');
   }
 
   const passwordError = isValidPassword(newPassword, 'New password');
   if (passwordError) {
-    return passwordError;
+    throw HTTPError(400, passwordError.error);
   }
 
   data.users[getUserIndex(authUserId, data)].password = newPassword;

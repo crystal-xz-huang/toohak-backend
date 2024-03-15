@@ -5,8 +5,10 @@ import fs from 'fs';
 let data: Data = {
   users: [],
   quizzes: [],
+  sessions: [],
   userId_counter: 0,
   quizId_counter: 0,
+  sessionId_counter: 0,
 };
 
 // YOU SHOULD MODIFY THIS OBJECT ABOVE ONLY
@@ -30,12 +32,11 @@ Example usage
 // Use get() to access the data
 function getData(): Data {
   if (fs.existsSync('./database.json')) {
-    const file = fs.readFileSync('./database.json');
-    console.log(file); // Display the file content (for debugging purposes - to Remove)
+    const file = fs.readFileSync('./database.json', 'utf8');
     data = JSON.parse(file.toString());
   }
   return data;
-};
+}
 
 // Use set(newData) to pass in the entire data object, with modifications made
 function setData(newData: Data): void {
@@ -44,7 +45,7 @@ function setData(newData: Data): void {
     fs.writeFileSync('./database.json', JSON.stringify(data));
   } catch (error) {
     console.error(`Failed to save data to file: ${error}`);
-  }  
-};
+  }
+}
 
 export { getData, setData };
