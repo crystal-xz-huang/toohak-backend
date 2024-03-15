@@ -1,7 +1,7 @@
 import {
   clearV1,
-  authRegisterV1,
-  quizCreateV1,
+  // authRegisterV1,
+  // quizCreateV1,
   // authLoginV1,
   // userDetailsV1,
   // userDetailsUpdateV1,
@@ -12,7 +12,12 @@ import {
   // quizDescriptionUpdateV1,
 } from '../testHelpers';
 
-import { ERROR, CLEAR_SUCCESS, user1, quiz1 } from '../testTypes';
+import {
+  CLEAR_SUCCESS,
+  // ERROR,
+  // user1,
+  // quiz1
+} from '../testTypes';
 
 beforeEach(() => {
   clearV1();

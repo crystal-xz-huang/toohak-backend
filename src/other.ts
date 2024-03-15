@@ -4,8 +4,8 @@ import { EmptyObject } from './types';
 /**
   * Reset the state of the application back to the start
   *
-  * @param { void } 
-  * @returns { EmptyObject } 
+  * @param { void }
+  * @returns { EmptyObject }
 */
 export function clear(): EmptyObject {
   const data = getData();
