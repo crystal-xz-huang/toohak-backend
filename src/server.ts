@@ -8,15 +8,13 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-/* UNCOMMENT
-import {
-  adminAuthRegister,
-  adminAuthLogin,
-  adminUserDetails,
-  adminUserDetailsUpdate,
-  adminUserPasswordUpdate,
-} from './auth';
-*/
+
+/* UNCOMMENT THE FOLLOWING LINES WHEN YOU HAVE IMPLEMENTED THE FUNCTIONS */
+import { clear } from './other';
+import { getData, setData } from './dataStore';
+import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate } from './auth';
+import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate } from './quiz';
+
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
@@ -37,11 +35,76 @@ const HOST: string = process.env.IP || 'localhost';
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
 
+// DATA PERISTENCE (DO NOT UNCOMMENT)
+// // Load data from file
+// const load = () => {
+//   try {
+//     // Check if file exists, read the file and set the data
+//     if (fs.existsSync('./database.json')) {
+//       const file = fs.readFileSync('./database.json', 'utf8');
+//       console.log(file); // Display the file content (for debugging purposes - to Remove)
+//       setData(JSON.parse(file.toString()));
+//     }
+//   } catch (error) {
+//     console.error(`Failed to load data from file: ${error}`);
+//   }
+// };
+
+// // Save data to file
+// const save = () => {
+//   // Write the data to the file, if it fails, log the error
+//   try {
+//     fs.writeFileSync('./database.json', JSON.stringify(getData()));
+//   } catch (error) {
+//     console.error(`Failed to save data to file: ${error}`);
+//   }
+// };
+
+// // Call load() on server start
+// load();
+
+// // Set up a regular interval to save the data to the file
+// setInterval(save, 1000 * 60 * 5); // Save every 5 minutes
+
+// // Call save() on server shutdown (SIGINT and SIGTERM)
+// process.on('SIGINT', save);
+// process.on('SIGTERM', save);
+
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   return res.json(echo(data));
 });
+
+/***********************************************************************
+* Iteration 2 (Using Iteration 1)
+***********************************************************************/
+app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
+  const { email, password, nameFirst, nameLast } = req.body;
+  const response = adminAuthRegister(email, password, nameFirst, nameLast);
+  // console.log('Response from POST /v1/admin/auth/register:', response);
+  if ('error' in response) {
+    return res.status(400).json(response);
+  }
+  res.json(response);
+});
+
+// app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
+//   const { email, password } = req.body;
+//   const response = adminAuthLogin(email, password);
+//   if ('error' in response) {
+//     return res.status(400).json(response);
+//   }
+//   res.json(response);
+// });
+
+/***********************************************************************
+* Iteration 2 (NEW)
+***********************************************************************/
+
+
+
+
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
