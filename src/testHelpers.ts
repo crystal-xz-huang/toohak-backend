@@ -93,19 +93,19 @@ export function quizCreateV1(token: string, name: string, description: string): 
   return requestHelper('POST', '/v1/admin/quiz', { token, name, description });
 }
 
-export function quizRemoveV1(quizId: number, token: string): RequestResponse {
+export function quizRemoveV1(token: string, quizId: number): RequestResponse {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { token });
 }
 
-export function quizInfoV1(quizId: number, token: string): RequestResponse {
+export function quizInfoV1(token: string, quizId: number): RequestResponse {
   return requestHelper('GET', `/v1/admin/quiz/${quizId}`, { token });
 }
 
-export function quizNameUpdateV1(quizId: number, token: string, name: string): RequestResponse {
+export function quizNameUpdateV1(token: string, quizId: number, name: string): RequestResponse {
   return requestHelper('PUT', `/v1/admin/quiz/${quizId}`, { token, name });
 }
 
-export function quizDescriptionUpdateV1(quizId: number, token: string, description: string): RequestResponse {
+export function quizDescriptionUpdateV1(token: string, quizId: number, description: string): RequestResponse {
   return requestHelper('PUT', `/v1/admin/quiz/${quizId}/description`, { token, description });
 }
 

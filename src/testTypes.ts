@@ -63,10 +63,10 @@ export const quiz3 = {
 };
 
 export const invalidQuizNames = [
-  { name: '' },              // empty string
-  { name: 'Quiz 1&!' },      // contains invalid characters
-  { name: 'ab' },            // too short (less than 3 characters)
-  { name: 'a'.repeat(31) },  // too long  (more than 30 characters)
+  { name: '' }, // empty string
+  { name: 'Quiz 1&!' }, // contains invalid characters
+  { name: 'ab' }, // too short (less than 3 characters)
+  { name: 'a'.repeat(31) }, // too long  (more than 30 characters)
 ];
 
 export const invalidQuizDescriptions = 'a'.repeat(101); // more than 100 characters
