@@ -6,13 +6,13 @@ import {
   adminQuizInfo,
   adminQuizNameUpdate,
   adminQuizDescriptionUpdate,
-} from '../quiz.js';
+} from '../js_files/quiz.js';
 
 import {
   adminAuthRegister,
-} from '../auth.js';
+} from '../js_files/auth.js';
 
-import { clear } from '../other.js';
+import { clear } from '../js_files/other.js';
 
 const ERROR = { error: expect.any(String) };
 

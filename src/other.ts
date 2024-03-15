@@ -1,12 +1,13 @@
 import { getData, setData } from './dataStore';
+import { EmptyObject } from './types';
 
 /**
   * Reset the state of the application back to the start
   *
   * @param {} - no parameters
-  * @returns {} - returns nothing
+  * @returns {EmptyObject} - returns nothing
 */
-export function clear(): Record<string, never> {
+export function clear(): EmptyObject {
   const data = getData();
   data.users = [];
   data.quizzes = [];
