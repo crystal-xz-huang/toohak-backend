@@ -1,5 +1,6 @@
 // YOU SHOULD MODIFY THIS OBJECT BELOW ONLY
 import { Data } from './types';
+import fs from 'fs';
 
 let data: Data = {
   users: [],
@@ -28,12 +29,22 @@ Example usage
 
 // Use get() to access the data
 function getData(): Data {
+  if (fs.existsSync('./database.json')) {
+    const file = fs.readFileSync('./database.json');
+    console.log(file); // Display the file content (for debugging purposes - to Remove)
+    data = JSON.parse(file.toString());
+  }
   return data;
-}
+};
 
 // Use set(newData) to pass in the entire data object, with modifications made
 function setData(newData: Data): void {
   data = newData;
-}
+  try {
+    fs.writeFileSync('./database.json', JSON.stringify(data));
+  } catch (error) {
+    console.error(`Failed to save data to file: ${error}`);
+  }  
+};
 
 export { getData, setData };
