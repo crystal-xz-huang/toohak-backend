@@ -181,15 +181,15 @@ export function adminUserDetailsUpdate(token: string, email: string, nameFirst: 
   * @param { string } newPassword - the new password of registered user
   * @returns { EmptyObject | ErrorMessage } - returns nothing
 */
-export function adminUserPasswordUpdate(authUserId: number, oldPassword: string, newPassword: string): EmptyObject | ErrorMessage {
+export function adminUserPasswordUpdate(token: string, oldPassword: string, newPassword: string): EmptyObject | ErrorMessage {
   const data = getData();
 
-  const authUserIdError = isValidAuthUserId(authUserId, data);
-  if (authUserIdError) {
-    throw HTTPError(400, authUserIdError.error);
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
   }
 
-  const foundUser = findUserbyId(authUserId, data);
+  const foundUser = findUserbyToken(token, data);
   if (foundUser.password !== oldPassword) {
     throw HTTPError(400, 'Old password is incorrect');
   }

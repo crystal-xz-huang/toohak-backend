@@ -1,14 +1,14 @@
 
 import {
   authRegisterV1,
-  // authLoginV1,
+  authLoginV1,
   userDetailsV1,
   userDetailsUpdateV1,
-  // userPasswordUpdateV1,
+  userPasswordUpdateV1,
   clearV1,
 } from '../testHelpers';
 
-import { BAD_REQUEST_ERROR, TOKEN_SUCCESS } from '../testTypes';
+import { BAD_REQUEST_ERROR, TOKEN_SUCCESS, UNAUTHORISED_ERROR } from '../testTypes';
 import { user1, user2, user3, invalidEmails, invalidPasswords } from '../testTypes';
 
 // ========================================================================================================================================//
@@ -322,48 +322,49 @@ describe('Testing PUT /v1/admin/user/details', () => {
   // });
 });
 
-/*
+
 describe('Testing PUT /v1/admin/user/password', () => {
-  let result;
+  let token: string;
   beforeEach(() => {
-    result = authRegisterV1(user.email, user.password, user.nameFirst, user.nameLast);
+    const result = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    token = result.token;
   });
 
   const newpassword = 'hey_mee3';
 
-  test('returns an empty object on success', () => {
-    expect(userPasswordUpdateV1(result.authUserId, user.password, newpassword)).toStrictEqual({});
-  });
+  // test('returns an empty object on success', () => {
+  //   expect(userPasswordUpdateV1(token, user1.password, newpassword)).toStrictEqual({});
+  // });
 
-  test('password is updated on success', () => {
-    userPasswordUpdateV1(result.authUserId, user.password, newpassword);
-    expect(authLoginV1(user.email, newpassword)).toStrictEqual({ authUserId: result.authUserId });
-  });
+  // test('password is updated on success', () => {
+  //   userPasswordUpdateV1(token, user1.password, newpassword);
+  //   expect(authLoginV1(user1.email, newpassword)).toStrictEqual(TOKEN_SUCCESS);
+  // });
 
   test('returns BAD_REQUEST_ERROR when authUserId is not a valid user', () => {
-    expect(userPasswordUpdateV1(result.authUserId + 1, user.password, newpassword)).toStrictEqual(BAD_REQUEST_ERROR);
+    expect(userPasswordUpdateV1(token + 1, user1.password, newpassword)).toStrictEqual(UNAUTHORISED_ERROR);
   });
 
   test('returns BAD_REQUEST_ERROR when old password is not correct', () => {
-    expect(userPasswordUpdateV1(result.authUserId, 'hashed_password3', newpassword)).toStrictEqual(BAD_REQUEST_ERROR);
+    expect(userPasswordUpdateV1(token, 'hashed_password3', newpassword)).toStrictEqual(BAD_REQUEST_ERROR);
   });
 
   test('returns BAD_REQUEST_ERROR when old password and new password match exactly', () => {
-    expect(userPasswordUpdateV1(result.authUserId, user.password, user.password)).toStrictEqual(BAD_REQUEST_ERROR);
+    expect(userPasswordUpdateV1(token, user1.password, user1.password)).toStrictEqual(BAD_REQUEST_ERROR);
   });
 
   describe('returns BAD_REQUEST_ERROR with an invalid new password', () => {
     test('test new password is less than 8 characters', () => {
-      expect(userPasswordUpdateV1(result.authUserId, user.password, 'abc4567')).toStrictEqual(BAD_REQUEST_ERROR);
+      expect(userPasswordUpdateV1(token, user1.password, 'abc4567')).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('test new password is empty', () => {
-      expect(userPasswordUpdateV1(result.authUserId, user.password, '')).toStrictEqual(BAD_REQUEST_ERROR);
+      expect(userPasswordUpdateV1(token, user1.password, '')).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test.each(invalidPasswords)('test new password does not contain at least one number and one letter', ({ password }) => {
-      expect(userPasswordUpdateV1(result.authUserId, user.password, password)).toStrictEqual(BAD_REQUEST_ERROR);
+      expect(userPasswordUpdateV1(token, user1.password, password)).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 });
-*/
+
