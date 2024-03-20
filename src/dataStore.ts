@@ -1,5 +1,5 @@
 // YOU SHOULD MODIFY THIS OBJECT BELOW ONLY
-import { Data } from './types';
+import { Data } from './dataTypes';
 import fs from 'fs';
 
 let data: Data = {

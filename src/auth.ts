@@ -6,7 +6,7 @@ import {
   AdminAuthRegisterReturn,
   AdminAuthLoginReturn,
   AdminUserDetailsReturn,
-} from './types';
+} from './dataTypes';
 
 import {
   isValidRegisterEmail,

@@ -1,5 +1,5 @@
 import validator from 'validator';
-import { Data, User, Quiz, Session, ErrorMessage, Token } from './types';
+import { Data, User, Quiz, Session, ErrorMessage, Token } from './dataTypes';
 import {
   MIN_USER_NAME_LENGTH,
   MAX_USER_NAME_LENGTH,
@@ -10,7 +10,7 @@ import {
   MAX_QUIZ_NAME_LENGTH,
   QUIZNAME_REGEX,
   MAX_QUIZ_DESCRIPTION_LENGTH,
-} from './types';
+} from './dataTypes';
 
 // ====================================================================
 // TOKENS & SESSIONS
