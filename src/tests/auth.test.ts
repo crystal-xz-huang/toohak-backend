@@ -2,8 +2,8 @@
 import {
   authRegisterV1,
   authLoginV1,
-  userDetailsV1,
-  userDetailsUpdateV1,
+  // userDetailsV1,
+  // userDetailsUpdateV1,
   userPasswordUpdateV1,
   clearV1,
 } from '../testHelpers';
@@ -142,6 +142,7 @@ describe('Testing POST /v1/admin/auth/register', () => {
 //   });
 // });
 /*
+
 describe('Testing GET /v1/admin/user/details', () => {
   let token: string;
   beforeEach(() => {
@@ -206,7 +207,6 @@ describe('Testing GET /v1/admin/user/details', () => {
     });
   });
 });
-*/
 
 describe('Testing PUT /v1/admin/user/details', () => {
   const emailUpdate = 'janedoe@gmail.com';
@@ -321,8 +321,7 @@ describe('Testing PUT /v1/admin/user/details', () => {
   //   });
   // });
 });
-
-
+*/
 describe('Testing PUT /v1/admin/user/password', () => {
   let token: string;
   beforeEach(() => {
@@ -332,33 +331,36 @@ describe('Testing PUT /v1/admin/user/password', () => {
 
   const newpassword = 'hey_mee3';
 
-  // test('returns an empty object on success', () => {
-  //   expect(userPasswordUpdateV1(token, user1.password, newpassword)).toStrictEqual({});
-  // });
+  test('Correct status code and return value on success', () => {
+    const result = userPasswordUpdateV1(token, user1.password, newpassword);
+    expect(result.statusCode).toStrictEqual(200);
+    expect(result.jsonBody).toStrictEqual({});
+  });
 
-  // test('password is updated on success', () => {
-  //   userPasswordUpdateV1(token, user1.password, newpassword);
-  //   expect(authLoginV1(user1.email, newpassword)).toStrictEqual(TOKEN_SUCCESS);
-  // });
+  test('Password is updated on success', () => {
+    userPasswordUpdateV1(token, user1.password, newpassword);
+    expect(authLoginV1(user1.email, newpassword).statusCode).toStrictEqual(200);
+    expect(authLoginV1(user1.email, user1.password).statusCode).toStrictEqual(400);
+  });
 
-  test('returns BAD_REQUEST_ERROR when authUserId is not a valid user', () => {
+  test('Bad request error when authUserId is not a valid user', () => {
     expect(userPasswordUpdateV1(token + 1, user1.password, newpassword)).toStrictEqual(UNAUTHORISED_ERROR);
   });
 
-  test('returns BAD_REQUEST_ERROR when old password is not correct', () => {
+  test('Bad request error when old password is not correct', () => {
     expect(userPasswordUpdateV1(token, 'hashed_password3', newpassword)).toStrictEqual(BAD_REQUEST_ERROR);
   });
 
-  test('returns BAD_REQUEST_ERROR when old password and new password match exactly', () => {
+  test('Bad request error when old password and new password match exactly', () => {
     expect(userPasswordUpdateV1(token, user1.password, user1.password)).toStrictEqual(BAD_REQUEST_ERROR);
   });
 
-  describe('returns BAD_REQUEST_ERROR with an invalid new password', () => {
-    test('test new password is less than 8 characters', () => {
+  describe('Bad request error with an invalid new password', () => {
+    test('New password is less than 8 characters', () => {
       expect(userPasswordUpdateV1(token, user1.password, 'abc4567')).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test('test new password is empty', () => {
+    test('New password is empty', () => {
       expect(userPasswordUpdateV1(token, user1.password, '')).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
@@ -367,4 +369,3 @@ describe('Testing PUT /v1/admin/user/password', () => {
     });
   });
 });
-
