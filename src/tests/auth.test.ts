@@ -2,7 +2,7 @@
 import {
   authRegisterV1,
   // authLoginV1,
-  // userDetailsV1,
+  userDetailsV1,
   userDetailsUpdateV1,
   // userPasswordUpdateV1,
   clearV1,
@@ -225,31 +225,25 @@ describe('Testing PUT /v1/admin/user/details', () => {
     expect(result.jsonBody).toStrictEqual({});
   });
 
-  // describe('User details are updated on success', () => {
-  //   test('authUserId is not changed', () => {
-  //     userDetailsUpdateV1(token, emailUpdate, nameFirstUpdate, nameLastUpdate);
-  //     const result = userDetailsV1(token).jsonBody;
-  //     expect(result.user.userId).toStrictEqual(token);
-  //   });
+  describe('User details are updated on success', () => {
+    test('email is updated', () => {
+      userDetailsUpdateV1(token, emailUpdate, user1.nameFirst, user1.nameLast);
+      const result = userDetailsV1(token).jsonBody;
+      expect(result.user.email).toStrictEqual(emailUpdate);
+    });
 
-  //   test('email is updated', () => {
-  //     userDetailsUpdateV1(token, emailUpdate, user1.nameFirst, user1.nameLast);
-  //     const result = userDetailsV1(token).jsonBody;
-  //     expect(result.user.email).toStrictEqual(emailUpdate);
-  //   });
+    test('first name is updated', () => {
+      userDetailsUpdateV1(token, user1.email, nameFirstUpdate, user1.nameLast);
+      const result = userDetailsV1(token).jsonBody;
+      expect(result.user.name).toStrictEqual(`${nameFirstUpdate} ${user1.nameLast}`);
+    });
 
-  //   test('first name is updated', () => {
-  //     userDetailsUpdateV1(token, user1.email, nameFirstUpdate, user1.nameLast);
-  //     const result = userDetailsV1(token).jsonBody;
-  //     expect(result.user.name).toStrictEqual(`${nameFirstUpdate} ${user1.nameLast}`);
-  //   });
-
-  //   test('last name is updated', () => {
-  //     userDetailsUpdateV1(token, user1.email, user1.nameFirst, nameLastUpdate);
-  //     const result = userDetailsV1(token).jsonBody;
-  //     expect(result.user.name).toStrictEqual(`${user1.nameFirst} ${nameLastUpdate}`);
-  //   });
-  // });
+    test('last name is updated', () => {
+      userDetailsUpdateV1(token, user1.email, user1.nameFirst, nameLastUpdate);
+      const result = userDetailsV1(token).jsonBody;
+      expect(result.user.name).toStrictEqual(`${user1.nameFirst} ${nameLastUpdate}`);
+    });
+  });
 
   // describe('user details are updated on success', () => {
   //   test('test authUserId is not changed', () => {
