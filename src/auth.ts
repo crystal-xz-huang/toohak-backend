@@ -163,9 +163,11 @@ export function adminUserDetailsUpdate(token: string, email: string, nameFirst: 
     throw HTTPError(400, error.error);
   }
 
-  data.users[getUserIndex(user.authUserId, data)].email = email;
-  data.users[getUserIndex(user.authUserId, data)].nameFirst = nameFirst;
-  data.users[getUserIndex(user.authUserId, data)].nameLast = nameLast;
+  const userIndex = getUserIndex(user.authUserId, data);
+  data.users[userIndex].email = email;
+  data.users[userIndex].nameFirst = nameFirst;
+  data.users[userIndex].nameLast = nameLast;
+  console.log(data.users[userIndex]);
   setData(data);
   return {};
 }

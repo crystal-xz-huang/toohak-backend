@@ -1,6 +1,4 @@
 import request, { HttpVerb } from 'sync-request-curl';
-import { EmptyObject } from './dataTypes';
-
 import { port, url } from './config.json';
 const SERVER_URL = `${url}:${port}`;
 
@@ -9,7 +7,7 @@ const SERVER_URL = `${url}:${port}`;
 // This is the return type of the requestHelper function
 interface RequestResponse {
   statusCode: number;
-  jsonBody?: EmptyObject;
+  jsonBody?: Record<string, any>;
   error?: string;
 }
 

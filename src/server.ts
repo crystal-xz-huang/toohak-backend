@@ -108,8 +108,11 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
 });
 
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
-  const { token, email, nameFirst, nameLast } = req.body;
-  const response = adminUserDetailsUpdate(token, nameFirst, nameLast, email);
+  const token = req.body.token as string;
+  const email = req.body.email as string;
+  const nameFirst = req.body.nameFirst as string;
+  const nameLast = req.body.nameLast as string;
+  const response = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
   res.json(response);
 });
 
