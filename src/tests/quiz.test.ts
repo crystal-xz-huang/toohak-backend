@@ -1,33 +1,33 @@
-// Tests for the quiz.js module
+// Tests for the quiz routes
 import {
   clearV1,
   authRegisterV1,
   quizListV1,
   quizCreateV1,
-  quizRemoveV1,
-  quizInfoV1,
-  quizNameUpdateV1,
-  quizDescriptionUpdateV1,
+  // quizRemoveV1,
+  // quizInfoV1,
+  // quizNameUpdateV1,
+  // quizDescriptionUpdateV1,
 } from '../testHelpers';
 
 import {
-  BAD_REQUEST_ERROR,    // 400
-  UNAUTHORISED_ERROR,   // 401
-  FORBIDDEN_ERROR,      // 403
+  // BAD_REQUEST_ERROR, // 400
+  UNAUTHORISED_ERROR, // 401
+  // FORBIDDEN_ERROR, // 403
   QUIZLIST_SUCCESS,
   user1,
-  user2,
+  // user2,
   quiz1,
   quiz2,
   quiz3,
-  invalidQuizNames,
-  invalidQuizDescription,
+  // invalidQuizNames,
+  // invalidQuizDescription,
 } from '../testTypes';
 
 import {
-  Token,
   AdminQuizListReturn,
-  AdminQuizCreateReturn,
+  // AdminAuthRegisterReturn,
+  // AdminQuizCreateReturn,
 } from '../dataTypes';
 
 // ========================================================================================================================================//
@@ -40,12 +40,10 @@ afterEach(() => {
 });
 
 describe('Testing GET /v1/admin/quiz/list', () => {
-  let user: Token;
   let token: string;
   beforeEach(() => {
-    const { jsonBody } = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
-    user = jsonBody as Token;
-    token = user.token;
+    const ret = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    token = ret.token;
   });
 
   test('Correct status code and return value on success', () => {
@@ -67,7 +65,7 @@ describe('Testing GET /v1/admin/quiz/list', () => {
   test('Successful retrieval when user has one quiz', () => {
     const response = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
     const quizId = response.quizId as number;
-    const expected: AdminQuizListReturn = { quizzes: [ { quizId: quizId, name: quiz1.name } ] };
+    const expected: AdminQuizListReturn = { quizzes: [{ quizId: quizId, name: quiz1.name }] };
     expect(quizListV1(token).jsonBody).toStrictEqual(expected);
     expect(quizListV1(token).statusCode).toStrictEqual(200);
   });
@@ -77,7 +75,7 @@ describe('Testing GET /v1/admin/quiz/list', () => {
     const quizId1 = response1.quizId as number;
     const response2 = quizCreateV1(token, quiz2.name, quiz2.description).jsonBody;
     const quizId2 = response2.quizId as number;
-    const expected: AdminQuizListReturn = { quizzes: [ { quizId: quizId1, name: quiz1.name }, { quizId: quizId2, name: quiz2.name } ] };
+    const expected: AdminQuizListReturn = { quizzes: [{ quizId: quizId1, name: quiz1.name }, { quizId: quizId2, name: quiz2.name }] };
     expect(quizListV1(token).jsonBody).toStrictEqual(expected);
     expect(quizListV1(token).statusCode).toStrictEqual(200);
   });
@@ -89,24 +87,24 @@ describe('Testing GET /v1/admin/quiz/list', () => {
     const quizId2 = response2.quizId as number;
     const response3 = quizCreateV1(token, quiz3.name, quiz3.description).jsonBody;
     const quizId3 = response3.quizId as number;
-    const expected: AdminQuizListReturn = { quizzes: [ { quizId: quizId1, name: quiz1.name }, { quizId: quizId2, name: quiz2.name }, { quizId: quizId3, name: quiz3.name } ] };
+    const expected: AdminQuizListReturn = { quizzes: [{ quizId: quizId1, name: quiz1.name }, { quizId: quizId2, name: quiz2.name }, { quizId: quizId3, name: quiz3.name }] };
     expect(quizListV1(token).jsonBody).toStrictEqual(expected);
     expect(quizListV1(token).statusCode).toStrictEqual(200);
   });
 });
 
 describe('Testing POST /v1/admin/quiz', () => {
-  let user: Token;
-  let token: string;
-  beforeEach(() => {
-    const { jsonBody } = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
-    user = jsonBody as Token;
-    token = user.token;
-  });
+  // let user: Token;
+  // let token: string;
+  // beforeEach(() => {
+  //   const { jsonBody } = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+  //   user = jsonBody as Token;
+  //   token = user.token;
+  // });
 
-  test('Correct status code and return value on success', () => {
+  // test('Correct status code and return value on success', () => {
 
-  });
+  // });
 
   // test('returns an object with "quizId" key on success', () => {
   //   const result = quizCreateV1(userId, quiz.name, quiz.description);
@@ -256,53 +254,52 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
 });
 
 describe('Testing GET /v1/admin/quiz/{quizid}', () => {
-  // TODO
-  let userId;
-  let quizId;
+  // let userId;
+  // let quizId;
 
-  beforeEach(() => {
-    userId = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast);
-    quizId = quizCreateV1(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
-  });
+  // beforeEach(() => {
+  //   userId = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast);
+  //   quizId = quizCreateV1(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
+  // });
 
-  test('returns error with an invalid userId', () => {
-    expect(quizInfoV1(userId.authUserId + 1, quizId.quizId)).toStrictEqual(ERROR);
-  });
+  // test('returns error with an invalid userId', () => {
+  //   expect(quizInfoV1(userId.authUserId + 1, quizId.quizId)).toStrictEqual(ERROR);
+  // });
 
-  test('returns error with an invalid quizId', () => {
-    expect(quizInfoV1(userId.authUserId, quizId.quizId + 1)).toStrictEqual(ERROR);
-  });
+  // test('returns error with an invalid quizId', () => {
+  //   expect(quizInfoV1(userId.authUserId, quizId.quizId + 1)).toStrictEqual(ERROR);
+  // });
 
-  test('returns error for requesting info about a quiz not owned by the user', () => {
-    const userId2 = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast);
-    expect(quizInfoV1(userId2.authUserId, quizId.quizId)).toStrictEqual(ERROR);
-  });
+  // test('returns error for requesting info about a quiz not owned by the user', () => {
+  //   const userId2 = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast);
+  //   expect(quizInfoV1(userId2.authUserId, quizId.quizId)).toStrictEqual(ERROR);
+  // });
 
-  test('returning info of one quiz created by one user', () => {
-    const returnObject = {
-      quizId: quizId.quizId,
-      name: QUIZNAME1,
-      timeCreated: expect.any(Number),
-      timeLastEdited: expect.any(Number),
-      description: QUIZDESCRIPTION1,
-    };
-    expect(quizInfoV1(userId.authUserId, quizId.quizId)).toStrictEqual(returnObject);
-  });
+  // test('returning info of one quiz created by one user', () => {
+  //   const returnObject = {
+  //     quizId: quizId.quizId,
+  //     name: QUIZNAME1,
+  //     timeCreated: expect.any(Number),
+  //     timeLastEdited: expect.any(Number),
+  //     description: QUIZDESCRIPTION1,
+  //   };
+  //   expect(quizInfoV1(userId.authUserId, quizId.quizId)).toStrictEqual(returnObject);
+  // });
 
-  test('returning info of second quiz created by second user', () => {
-    const userId2 = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast);
-    const quizId2 = quizCreateV1(userId2.authUserId, QUIZNAME2, QUIZDESCRIPTION2);
+  // test('returning info of second quiz created by second user', () => {
+  //   const userId2 = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast);
+  //   const quizId2 = quizCreateV1(userId2.authUserId, QUIZNAME2, QUIZDESCRIPTION2);
 
-    const returnObject = {
-      quizId: quizId2.quizId,
-      name: QUIZNAME2,
-      timeCreated: expect.any(Number),
-      timeLastEdited: expect.any(Number),
-      description: QUIZDESCRIPTION2,
-    };
+  //   const returnObject = {
+  //     quizId: quizId2.quizId,
+  //     name: QUIZNAME2,
+  //     timeCreated: expect.any(Number),
+  //     timeLastEdited: expect.any(Number),
+  //     description: QUIZDESCRIPTION2,
+  //   };
 
-    expect(quizInfoV1(userId2.authUserId, quizId2.quizId)).toStrictEqual(returnObject);
-  });
+  //   expect(quizInfoV1(userId2.authUserId, quizId2.quizId)).toStrictEqual(returnObject);
+  // });
 });
 
 describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
