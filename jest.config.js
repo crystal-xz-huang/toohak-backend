@@ -4,6 +4,8 @@ module.exports = {
   maxWorkers: 1,
 
   transform: {
-    '^.+\\.(ts|tsx|js)$': 'ts-jest'
+    '^.+\\.(ts|tsx|js)$': 'ts-jest' 
   },
+
+  testMatch: ['**/tests/**/*.test.(ts)'], // only run tests in the tests folder
 };
