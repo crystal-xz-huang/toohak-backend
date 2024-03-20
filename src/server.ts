@@ -9,7 +9,6 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 
-/* UNCOMMENT THE FOLLOWING LINES WHEN YOU HAVE IMPLEMENTED THE FUNCTIONS */
 import { clear } from './other';
 import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate } from './auth';
 import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate } from './quiz';

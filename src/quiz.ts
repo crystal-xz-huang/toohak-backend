@@ -1,4 +1,4 @@
-import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn } from './types';
+import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn } from './dataTypes';
 import {
   isValidToken,
   findUserbyToken,
