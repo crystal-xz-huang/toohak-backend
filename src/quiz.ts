@@ -17,7 +17,7 @@ import { getData, setData } from './dataStore';
 // !! IMPORTANT !!
 // Errors must be thrown in the following order: 401, then 403, then 400
 // Use throw HTTPError(status code, 'error message') to throw a specific HTTP error
-// Use getCurrentTime() to get the UNIX timestamp
+// Use getCurrentTime() to get the UNIX timestamp 
 // ====================================================================================
 
 /**

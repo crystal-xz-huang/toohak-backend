@@ -146,6 +146,31 @@ describe('Testing POST /v1/admin/quiz', () => {
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
+
+  describe('Errors are returned in the correct order', () => {
+    const invalidToken = token + 'random';
+    const emptyToken = '';
+    const alreadyUsedName = quiz1.name;
+    const longName = 'Q'.repeat(31);
+    const shortName = 'Q';
+    const longDescription = 'Q'.repeat(101);
+
+    test('Unauthorised status code 401 first', () => {
+      const response1 = quizCreateV1(invalidToken, alreadyUsedName, longDescription);
+      expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
+      const response2 = quizCreateV1(emptyToken, alreadyUsedName, longDescription);
+      expect(response2).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Bad request status code 403 last', () => {
+      const response1 = quizCreateV1(token, alreadyUsedName, longDescription);
+      expect(response1).toStrictEqual(BAD_REQUEST_ERROR);
+      const response2 = quizCreateV1(token, longName, quiz1.description);
+      expect(response2).toStrictEqual(BAD_REQUEST_ERROR);
+      const response3 = quizCreateV1(token, shortName, quiz1.description);
+      expect(response3).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
 });
 
 describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
