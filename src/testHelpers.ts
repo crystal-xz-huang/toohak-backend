@@ -1,5 +1,5 @@
 import request, { HttpVerb } from 'sync-request-curl';
-import { EmptyObject } from './types';
+import { EmptyObject } from './dataTypes';
 
 import { port, url } from './config.json';
 const SERVER_URL = `${url}:${port}`;
@@ -12,6 +12,7 @@ interface RequestResponse {
   jsonBody?: EmptyObject;
   error?: string;
 }
+
 /**
  * Sends a given request to the given route and return its results as a RequestResponse object
  *
