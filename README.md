@@ -1267,14 +1267,25 @@ We will not mark commits pushed to master after the final submission time for a 
 
 If the deadline is approaching and you have features that are either untested or failing their tests, **DO NOT MERGE IN THOSE MERGE REQUESTS**. In some rare cases, your tutor will look at unmerged branches and may allocate some reduced marks for incomplete functionality, but `master` should only contain working code.
 
-Minor isolated fixes after the due date are allowed but carry a penalty to the automark, if the automark after re-running the autotests is greater than your initial automark. This penalty can be up to 30% of the automarking component for that iteration, depending on the number and nature of your fixes. Note that if the re-run automark after penalty is lower than your initial mark, we will keep your initial mark, meaning your automark cannot decrease after a re-run. E.g. imagine that your initial automark is 50%, on re-run you get a raw automark of 70%, and your fixes attract a 30% penalty: since the 30% penalty will reduce the mark of 70% to 49%, your final **automark** will still be 50% (i.e. your initial mark).
+Minor isolated fixes after the due date are allowed but may carry a penalty to the automark. If the isolated fixes result in a higher automark result (minus the penalty), then we will update your mark. E.g. imagine that your initial automark is 20%, on re-run you get a raw automark of 86%, and your fixes attract a 30% penalty: since the 30% penalty will reduce the mark of 86% to 60%, your final **automark** will still be 60%.
+
+If the re-run automark after penalty is lower than your initial mark, we will keep your initial mark. E.g. imagine that your initial automark is 50%, on re-run you get a raw automark of 70%, and your fixes attract a 30% penalty: since the 30% penalty will reduce the mark of 70% to 49%, your final **automark** will still be 50% (i.e. your initial mark).
 
 #### How to request a re-run
 
 * Create a branch, e.g. `iter[X]-fix`, based off the submission commit.
 * Make the minimal number of necessary changes (i.e. only fix the trivial bugs that cost you many automarks).
-* Push the changes to GitLab on a new branch, and take note of the latest commit hash on that branch.
-* Submit your commit hash for remark for a particular iteration [on this page](https://cgi.cse.unsw.edu.au/~cs1531/NOW/content/project/runs)
+* Create a merge request for this branch, and take note of merge request ID in the URL
+  * It is the number at the end of the URL
+  * "https://nw-syd-gitlab.cseunsw.tech/COMP1531/24T1/groups/H17B_CRUNCHIE/project-backend/-/merge_requests/**67**"
+* Log onto the [project runs page](https://cgi.cse.unsw.edu.au/~cs1531/NOW/content/project/runs) and submit that merge request ID (e.g. 67) for rerun
+* Once you submit it, it will take up to 24 hours for you to receive the results of the rerun.
+  * The results will appear in status "reviewing", which means an admin still needs to review the penalty.
+  * **Please note: The results of the rerun is your RAW automark BEFORE ANY penalties have been applied.**
+* Once your MR has been reviewed (this can take up to 72 hours), the status will change to "Complete" and the result will be updated to the mark after penalty
+* If the mark after penalty is higher than your current mark, this will then be updated in the grade system, and take 48 hours to propagate to you.
+
+Please note: The current limit on reruns is one every 24 hours. You can submit multiple re-runs before waiting for manual review or mark propagation, as long as they are 24 hours apart.
 
 ### 🌸 6.2. Demonstration
 
