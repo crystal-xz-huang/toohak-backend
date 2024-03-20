@@ -30,22 +30,17 @@ Example usage
 */
 
 // Use get() to access the data
-function getData(): Data {
+export function getData(): Data {
   if (fs.existsSync('./database.json')) {
-    const file = fs.readFileSync('./database.json', 'utf8');
+    const file = fs.readFileSync('./database.json', { flag: 'r' });
     data = JSON.parse(file.toString());
   }
   return data;
 }
 
 // Use set(newData) to pass in the entire data object, with modifications made
-function setData(newData: Data): void {
+export function setData(newData: Data): void {
   data = newData;
-  try {
-    fs.writeFileSync('./database.json', JSON.stringify(data));
-  } catch (error) {
-    console.error(`Failed to save data to file: ${error}`);
-  }
+  const dataStr = JSON.stringify(data, null, 2);
+  fs.writeFileSync('./database.json', dataStr, { flag: 'w' });
 }
-
-export { getData, setData };

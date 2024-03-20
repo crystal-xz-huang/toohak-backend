@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 
+import { getData, setData } from './dataStore';
 import { clear } from './other';
 import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate } from './auth';
 import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate } from './quiz';
@@ -34,40 +35,40 @@ const HOST: string = process.env.IP || '127.0.0.1';
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
 
-// DATA PERISTENCE (DO NOT UNCOMMENT)
-// // Load data from file
-// const load = () => {
-//   try {
-//     // Check if file exists, read the file and set the data
-//     if (fs.existsSync('./database.json')) {
-//       const file = fs.readFileSync('./database.json', 'utf8');
-//       console.log(file); // Display the file content (for debugging purposes - to Remove)
-//       setData(JSON.parse(file.toString()));
-//     }
-//   } catch (error) {
-//     console.error(`Failed to load data from file: ${error}`);
-//   }
-// };
+// DATA PERISTENCE
+// Load data from file
+const load = () => {
+  try {
+    // Check if file exists, read the file and set the data
+    if (fs.existsSync('./database.json')) {
+      const file = fs.readFileSync('./database.json', 'utf8');
+      console.log(file); // Display the file content (for debugging purposes - to Remove)
+      setData(JSON.parse(file.toString()));
+    }
+  } catch (error) {
+    console.error(`Failed to load data from file: ${error}`);
+  }
+};
 
-// // Save data to file
-// const save = () => {
-//   // Write the data to the file, if it fails, log the error
-//   try {
-//     fs.writeFileSync('./database.json', JSON.stringify(getData()));
-//   } catch (error) {
-//     console.error(`Failed to save data to file: ${error}`);
-//   }
-// };
+// Save data to file
+const save = () => {
+  // Write the data to the file, if it fails, log the error
+  try {
+    fs.writeFileSync('./database.json', JSON.stringify(getData()));
+  } catch (error) {
+    console.error(`Failed to save data to file: ${error}`);
+  }
+};
 
-// // Call load() on server start
-// load();
+// Call load() on server start
+load();
 
-// // Set up a regular interval to save the data to the file
-// setInterval(save, 1000 * 60 * 5); // Save every 5 minutes
+// Set up a regular interval to save the data to the file
+setInterval(save, 1000 * 60 * 5); // Save every 5 minutes
 
-// // Call save() on server shutdown (SIGINT and SIGTERM)
-// process.on('SIGINT', save);
-// process.on('SIGTERM', save);
+// Call save() on server shutdown (SIGINT and SIGTERM)
+process.on('SIGINT', save);
+process.on('SIGTERM', save);
 
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
@@ -108,8 +109,11 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
 });
 
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
-  const { token, email, nameFirst, nameLast } = req.body;
-  const response = adminUserDetailsUpdate(token, nameFirst, nameLast, email);
+  const token = req.body.token as string;
+  const email = req.body.email as string;
+  const nameFirst = req.body.nameFirst as string;
+  const nameLast = req.body.nameLast as string;
+  const response = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
   res.json(response);
 });
 

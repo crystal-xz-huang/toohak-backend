@@ -155,18 +155,20 @@ export function adminUserDetailsUpdate(token: string, email: string, nameFirst: 
   }
 
   const user = findUserbyToken(token, data);
-  const error = isValidUserEmail(email, data, user.authUserId) ??
+  const authUserId = user.authUserId;
+  const error = isValidUserEmail(email, data, authUserId) ??
                 isValidName(nameFirst, 'First') ??
                 isValidName(nameLast, 'Last');
-
   if (error) {
     throw HTTPError(400, error.error);
   }
 
-  data.users[getUserIndex(user.authUserId, data)].email = email;
-  data.users[getUserIndex(user.authUserId, data)].nameFirst = nameFirst;
-  data.users[getUserIndex(user.authUserId, data)].nameLast = nameLast;
+  const index = data.users.findIndex((user) => user.authUserId === authUserId);
+  data.users[index].email = email;
+  data.users[index].nameFirst = nameFirst;
+  data.users[index].nameLast = nameLast;
   setData(data);
+
   return {};
 }
 
