@@ -79,5 +79,4 @@ export const badRequestErrorQuizNames = [
   { name: 'a'.repeat(31) },
 ];
 
-
 export const invalidQuizDescription = 'a'.repeat(101); // more than 100 characters
