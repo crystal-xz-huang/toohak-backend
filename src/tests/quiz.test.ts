@@ -11,23 +11,20 @@ import {
 } from '../testHelpers';
 
 import {
-  // BAD_REQUEST_ERROR, // 400
-  UNAUTHORISED_ERROR, // 401
-  // FORBIDDEN_ERROR, // 403
-  QUIZLIST_SUCCESS,
+  BAD_REQUEST_ERROR,
+  UNAUTHORISED_ERROR,
+  // FORBIDDEN_ERROR,
   user1,
   // user2,
   quiz1,
   quiz2,
   quiz3,
-  // invalidQuizNames,
-  // invalidQuizDescription,
+  // badRequestErrorQuizNames,
+  // shortQuizNames,
 } from '../testTypes';
 
 import {
   AdminQuizListReturn,
-  // AdminAuthRegisterReturn,
-  // AdminQuizCreateReturn,
 } from '../dataTypes';
 
 // ========================================================================================================================================//
@@ -48,7 +45,8 @@ describe('Testing GET /v1/admin/quiz/list', () => {
 
   test('Correct status code and return value on success', () => {
     const response = quizListV1(token);
-    expect(response).toStrictEqual(QUIZLIST_SUCCESS);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({ quizzes: expect.any(Array) });
   });
 
   test('Unauthorised error with an invalid or empty token', () => {
@@ -94,315 +92,403 @@ describe('Testing GET /v1/admin/quiz/list', () => {
 });
 
 describe('Testing POST /v1/admin/quiz', () => {
-  // let user: Token;
-  // let token: string;
-  // beforeEach(() => {
-  //   const { jsonBody } = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
-  //   user = jsonBody as Token;
-  //   token = user.token;
-  // });
+  let token: string;
+  beforeEach(() => {
+    const ret = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    token = ret.token;
+  });
 
-  // test('Correct status code and return value on success', () => {
+  test('Correct status code and return value on success', () => {
+    const response = quizCreateV1(token, quiz1.name, quiz1.description);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({ quizId: expect.any(Number) });
+  });
 
-  // });
+  test('QuizId is unique for two different quizzes', () => {
+    const response1 = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+    const quizId1 = response1.quizId as number;
+    const response2 = quizCreateV1(token, quiz2.name, quiz2.description).jsonBody;
+    const quizId2 = response2.quizId as number;
+    expect(quizId1).not.toStrictEqual(quizId2);
+  });
 
-  // test('returns an object with "quizId" key on success', () => {
-  //   const result = quizCreateV1(userId, quiz.name, quiz.description);
-  //   expect(result).toStrictEqual({ quizId: expect.any(Number) });
-  // });
+  test('Unauthorised error with an invalid or empty token', () => {
+    expect(quizCreateV1(token + 'random', quiz1.name, quiz1.description)).toStrictEqual(UNAUTHORISED_ERROR);
+    expect(quizCreateV1('', quiz1.name, quiz1.description)).toStrictEqual(UNAUTHORISED_ERROR);
+  });
 
-  // test('does not return the same quizId for two different quizzes', () => {
-  //   const result1 = quizCreateV1(userId, quiz.name, quiz.description);
-  //   const result2 = quizCreateV1(userId, 'Quiz 2', 'This is another quiz');
-  //   expect(result1.quizId).not.toStrictEqual(result2.quizId);
-  // });
+  describe('Bad request error with invalid input', () => {
+    test('Empty name', () => {
+      const response = quizCreateV1(token, '', quiz1.description);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
 
-  // test('returns error with an invalid userId', () => {
-  //   const result = quizCreateV1(userId + 1, quiz.name, quiz.description);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+    test('Name less than 3 characters', () => {
+      const response = quizCreateV1(token, 'Q', quiz1.description);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
 
-  // test('returns error when name contains invalid characters', () => {
-  //   const result = quizCreateV1(userId, 'Quiz 1&!', quiz.description);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+    test('Name more than 30 characters', () => {
+      const longName = 'Q'.repeat(31);
+      const response = quizCreateV1(token, longName, quiz1.description);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
 
-  // test('returns error when name is empty', () => {
-  //   const result = quizCreateV1(userId, '', quiz.description);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+    test('Name already used for another quiz', () => {
+      quizCreateV1(token, quiz1.name, quiz1.description);
+      const response = quizCreateV1(token, quiz1.name, quiz1.description);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
 
-  // test('returns error when name is less than 3 characters', () => {
-  //   const result = quizCreateV1(userId, 'Q', quiz.description);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+    test('Description more than 100 characters', () => {
+      const longDescription = 'Q'.repeat(101);
+      const response = quizCreateV1(token, quiz1.name, longDescription);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
 
-  // test('returns error when name is more than 30 characters', () => {
-  //   const longName = 'Q'.repeat(31);
-  //   const result = quizCreateV1(userId, longName, quiz.description);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+  describe('Errors are returned in the correct order', () => {
+    const invalidToken = token + 'random';
+    const emptyToken = '';
+    const alreadyUsedName = quiz1.name;
+    const longName = 'Q'.repeat(31);
+    const shortName = 'Q';
+    const longDescription = 'Q'.repeat(101);
 
-  // test('returns error when name is already used for another quiz', () => {
-  //   quizCreateV1(userId, quiz.name, quiz.description);
-  //   const result = quizCreateV1(userId, quiz.name, quiz.description);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+    test('Unauthorised status code 401 first', () => {
+      const response1 = quizCreateV1(invalidToken, alreadyUsedName, longDescription);
+      expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
+      const response2 = quizCreateV1(emptyToken, alreadyUsedName, longDescription);
+      expect(response2).toStrictEqual(UNAUTHORISED_ERROR);
+    });
 
-  // test('returns error when description is more than 100 characters', () => {
-  //   const longDescription = 'Q'.repeat(101);
-  //   const result = quizCreateV1(userId, quiz.name, longDescription);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+    test('Bad request status code 403 last', () => {
+      const response1 = quizCreateV1(token, alreadyUsedName, longDescription);
+      expect(response1).toStrictEqual(BAD_REQUEST_ERROR);
+      const response2 = quizCreateV1(token, longName, quiz1.description);
+      expect(response2).toStrictEqual(BAD_REQUEST_ERROR);
+      const response3 = quizCreateV1(token, shortName, quiz1.description);
+      expect(response3).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
 });
 
 describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
-  // let userId;
-  // let quizId;
-
+  // let token: string;
+  // let quizId: number;
   // beforeEach(() => {
-  //   userId = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast);
-  //   quizId = quizCreateV1(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
+  //   const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+  //   token = user.token;
+  //   const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+  //   quizId = quiz.quizId as number;
   // });
 
-  // test('returns error with an invalid userId', () => {
-  //   expect(quizRemoveV1(userId.authUserId + 1, quizId.quizId)).toStrictEqual(ERROR);
+  // test('Correct status code and return value on success', () => {
+  //   const response = quizRemoveV1(token, quizId);
+  //   expect(response.statusCode).toStrictEqual(200);
+  //   expect(response.jsonBody).toStrictEqual({});
   // });
 
-  // test('returns error with an invalid quizId', () => {
-  //   expect(quizRemoveV1(userId.authUserId, quizId.quizId + 1)).toStrictEqual(ERROR);
+  // test('Unauthorised error with an invalid or empty token', () => {
+  //   expect(quizRemoveV1(token + 'random', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
+  //   expect(quizRemoveV1('', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
   // });
 
-  // test('returns error for requesting info about a quiz not owned by the user', () => {
-  //   const userId2 = authRegisterV1('johnsmith@gmail.com', 'hashed_password2', 'John', 'Smith');
-  //   expect(quizRemoveV1(userId2.authUserId, quizId.quizId)).toStrictEqual(ERROR);
+  // test('Forbidden error with valid token but invalid quizId', () => {
+  //   const response = quizRemoveV1(token, quizId + 1);
+  //   expect(response).toStrictEqual(FORBIDDEN_ERROR);
   // });
 
-  // test('owner of one quiz removes their quiz, and creates their quiz again', () => {
-  //   const emptyResult = {
-  //     quizzes: []
-  //   };
-
-  //   const result = {
-  //     quizzes: [
-  //       {
-  //         quizId: expect.any(Number),
-  //         name: QUIZNAME1
-  //       }
-  //     ]
-  //   };
-
-  //   quizRemoveV1(userId.authUserId, quizId.quizId);
-  //   expect(quizListV1(userId.authUserId)).toStrictEqual(emptyResult);
-  //   quizCreateV1(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
-  //   expect(quizListV1(userId.authUserId)).toStrictEqual(result);
+  // test('Forbidden error with valid token but quizId not owned by user', () => {
+  //   const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+  //   const token2 = invalidUser.token as string;
+  //   const response = quizRemoveV1(token2, quizId);
+  //   expect(response).toStrictEqual(FORBIDDEN_ERROR);
   // });
 
-  // test('owner of one quiz removes their quiz, and second user recreates their quiz for themselves', () => {
-  //   const userId2 = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast);
+  // describe('Errors are returned in the correct order', () => {
+  //   const invalidToken = token + 'random';
+  //   const emptyToken = '';
+  //   const invalidQuizId = quizId + 1;
+  //   let notOwnerToken: string;
 
-  //   const emptyResult = {
-  //     quizzes: []
-  //   };
-
-  //   const result = {
-  //     quizzes: [
-  //       {
-  //         quizId: expect.any(Number),
-  //         name: QUIZNAME1
-  //       }
-  //     ]
-  //   };
-  //   expect(quizListV1(userId.authUserId)).toStrictEqual(result);
-  //   quizRemoveV1(userId.authUserId, quizId.quizId);
-  //   expect(quizListV1(userId.authUserId)).toStrictEqual(emptyResult);
-  //   quizCreateV1(userId2.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
-  //   expect(quizListV1(userId2.authUserId)).toStrictEqual(result);
-  // });
-
-  // test('two owners of two quizzes each remove one of each of their quizzes',
-  //   () => {
-  //     const userId2 = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast);
-  //     const quizId2 = quizCreateV1(userId.authUserId, QUIZNAME2, QUIZDESCRIPTION2);
-  //     const quizId3 = quizCreateV1(userId2.authUserId, QUIZNAME3, QUIZDESCRIPTION3);
-  //     const quizId4 = quizCreateV1(userId2.authUserId, QUIZNAME4, QUIZDESCRIPTION4);
-
-  //     const result1 = {
-  //       quizzes: [
-  //         {
-  //           quizId: quizId2.quizId,
-  //           name: QUIZNAME2
-  //         }
-  //       ]
-  //     };
-
-  //     const result2 = {
-  //       quizzes: [
-  //         {
-  //           quizId: quizId4.quizId,
-  //           name: QUIZNAME4
-  //         }
-  //       ]
-  //     };
-
-  //     quizRemoveV1(userId.authUserId, quizId.quizId);
-  //     quizRemoveV1(userId2.authUserId, quizId3.quizId);
-
-  //     expect(quizListV1(userId.authUserId)).toStrictEqual(result1);
-  //     expect(quizListV1(userId2.authUserId)).toStrictEqual(result2);
+  //   beforeEach(() => {
+  //     const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+  //     notOwnerToken = invalidUser.token as string;
   //   });
+
+  //   test('Unauthorised status code 401 first', () => {
+  //     const response = quizRemoveV1(invalidToken, invalidQuizId);
+  //     expect(response).toStrictEqual(UNAUTHORISED_ERROR);
+  //   });
+
+  //   test('Forbidden status code 403 last', () => {
+  //     const response1 = quizRemoveV1(invalidToken, invalidQuizId);
+  //     expect(response1).toStrictEqual(FORBIDDEN_ERROR);
+
+  //     const response2 = quizRemoveV1(emptyToken, invalidQuizId);
+  //     expect(response2).toStrictEqual(UNAUTHORISED_ERROR);
+  //   });
+  // });
+
+  // test('Successful removal of one quiz', () => {
+  //   quizRemoveV1(token, quizId);
+  //   const response = quizListV1(token).jsonBody;
+  //   expect(response).toStrictEqual({ quizzes: [] });
+  // });
+
+  // test('Successful removal of one quiz, and creation of a new quiz with the same name', () => {
+  //   quizRemoveV1(token, quizId);
+  //   quizCreateV1(token, quiz1.name, quiz1.description);
+  //   const response = quizListV1(token).jsonBody;
+  //   expect(response).toStrictEqual({ quizzes: [{ quizId: expect.any(Number), name: quiz1.name }] });
+  // });
+
+  // test('Successful removal of one quiz, and creation of a new quiz with a different name', () => {
+  //   quizRemoveV1(token, quizId);
+  //   quizCreateV1(token, quiz2.name, quiz2.description);
+  //   const response = quizListV1(token).jsonBody;
+  //   expect(response).toStrictEqual({ quizzes: [{ quizId: expect.any(Number), name: quiz2.name }] });
+  // });
+
+  // test('Successful removal of one quiz, and creation of two new quizzes', () => {
+  //   quizRemoveV1(token, quizId);
+  //   quizCreateV1(token, quiz2.name, quiz2.description);
+  //   quizCreateV1(token, quiz3.name, quiz3.description);
+  //   const response = quizListV1(token).jsonBody;
+  //   expect(response).toStrictEqual({ quizzes: [{ quizId: expect.any(Number), name: quiz2.name }, { quizId: expect.any(Number), name: quiz3.name }] });
+  // });
 });
 
 describe('Testing GET /v1/admin/quiz/{quizid}', () => {
-  // let userId;
-  // let quizId;
-
+  // let token: string;
+  // let quizId: number;
   // beforeEach(() => {
-  //   userId = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast);
-  //   quizId = quizCreateV1(userId.authUserId, QUIZNAME1, QUIZDESCRIPTION1);
+  //   const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+  //   token = user.token;
+  //   const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+  //   quizId = quiz.quizId as number;
   // });
 
-  // test('returns error with an invalid userId', () => {
-  //   expect(quizInfoV1(userId.authUserId + 1, quizId.quizId)).toStrictEqual(ERROR);
-  // });
-
-  // test('returns error with an invalid quizId', () => {
-  //   expect(quizInfoV1(userId.authUserId, quizId.quizId + 1)).toStrictEqual(ERROR);
-  // });
-
-  // test('returns error for requesting info about a quiz not owned by the user', () => {
-  //   const userId2 = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast);
-  //   expect(quizInfoV1(userId2.authUserId, quizId.quizId)).toStrictEqual(ERROR);
-  // });
-
-  // test('returning info of one quiz created by one user', () => {
-  //   const returnObject = {
-  //     quizId: quizId.quizId,
-  //     name: QUIZNAME1,
+  // test('Correct status code and return value on success', () => {
+  //   const response = quizInfoV1(token, quizId);
+  //   expect(response.statusCode).toStrictEqual(200);
+  //   expect(response.jsonBody).toStrictEqual({
+  //     quizId: quizId,
+  //     name: quiz1.name,
   //     timeCreated: expect.any(Number),
   //     timeLastEdited: expect.any(Number),
-  //     description: QUIZDESCRIPTION1,
-  //   };
-  //   expect(quizInfoV1(userId.authUserId, quizId.quizId)).toStrictEqual(returnObject);
+  //     description: quiz1.description,
+  //     numQuestions: expect.any(Number),
+  //     questions: expect.any(Array),
+  //     duration: expect.any(Number),
+  //   });
   // });
 
-  // test('returning info of second quiz created by second user', () => {
-  //   const userId2 = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast);
-  //   const quizId2 = quizCreateV1(userId2.authUserId, QUIZNAME2, QUIZDESCRIPTION2);
+  // test('Unauthorised error with an invalid or empty token', () => {
+  //   expect(quizInfoV1(token + 'random', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
+  //   expect(quizInfoV1('', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
+  // });
 
-  //   const returnObject = {
-  //     quizId: quizId2.quizId,
-  //     name: QUIZNAME2,
+  // describe('Forbidden error with invalid input', () => {
+  //   test('Valid token but invalid quizId', () => {
+  //     const response = quizInfoV1(token, quizId + 1);
+  //     expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  //   });
+
+  //   test('Valid token but quizId not owned by user', () => {
+  //     const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+  //     const token2 = invalidUser.token as string;
+  //     const response = quizInfoV1(token2, quizId);
+  //     expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  //   });
+  // });
+
+  // test('Successful retrieval of one quiz', () => {
+  //   let expected: AdminQuizInfoReturn;
+  //   const response = quizInfoV1(token, quizId).jsonBody;
+  //   expected = {
+  //     quizId: quizId,
+  //     name: quiz1.name,
   //     timeCreated: expect.any(Number),
   //     timeLastEdited: expect.any(Number),
-  //     description: QUIZDESCRIPTION2,
+  //     description: quiz1.description,
+  //     numQuestions: 0,
+  //     questions: [],
+  //     duration: 0,
   //   };
+  //   expect(response).toStrictEqual(expected);
+  // });
 
-  //   expect(quizInfoV1(userId2.authUserId, quizId2.quizId)).toStrictEqual(returnObject);
+  // test('Timestamps are within a 1 second range of the current time', () => {
+  //   // Capture the current time
+  //   const expectedTime = Math.floor(Date.now() / 1000);
+  //   // Send a request to create a new quiz and get the timeCreated and timeLastEdited of the quiz with quizInfo
+  //   const response = quizInfoV1(token, quizId).jsonBody;
+  //   const timeCreated = response.timeCreated as number;
+  //   const timeLastEdited = response.timeLastEdited as number;
+
+  //   // Check if the timeCreated and timeLastEdited are within a 1 second range of the current time
+  //   expect(timeCreated).toBeGreaterThanOrEqual(expectedTime);
+  //   expect(timeCreated).toBeLessThanOrEqual(expectedTime + 1);
+  //   expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
+  //   expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
   // });
 });
 
 describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
-  // let userId;
-  // let quizId;
+  // let token: string;
+  // let quizId: number;
   // beforeEach(() => {
-  //   const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast);
-  //   userId = user.authUserId;
-  //   const quiz = quizCreateV1(userId, QUIZNAME1, QUIZDESCRIPTION1);
-  //   quizId = quiz.quizId;
+  //   const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+  //   token = user.token;
+  //   const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+  //   quizId = quiz.quizId as number;
   // });
 
-  // test('returns an object with the updated name on success', () => {
-  //   quizNameUpdateV1(userId, quizId, QUIZNAME2);
-  //   const result = quizInfoV1(userId, quizId);
-  //   expect(result.name).toStrictEqual(QUIZNAME2);
+  // test('Correct status code and return value on success', () => {
+  //   const response = quizNameUpdateV1(token, quizId, quiz2.name);
+  //   expect(response.statusCode).toStrictEqual(200);
+  //   expect(response.jsonBody).toStrictEqual({ name: quiz2.name });
   // });
 
-  // test('returns error with an invalid userId', () => {
-  //   const result = quizNameUpdateV1(userId + 1, quizId, QUIZNAME2);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+  //   test('Unauthorised error with an invalid or empty token', () => {
+  //     expect(quizNameUpdateV1(token + 'random', quizId, quiz2.name)).toStrictEqual(UNAUTHORISED_ERROR);
+  //     expect(quizNameUpdateV1('', quizId, quiz2.name)).toStrictEqual(UNAUTHORISED_ERROR);
+  //   });
 
-  // test('returns error with an invalid quizId', () => {
-  //   const result = quizNameUpdateV1(userId, quizId + 1, QUIZNAME2);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+  //   test('Forbidden error with valid token but invalid quizId', () => {
+  //     const response = quizNameUpdateV1(token, quizId + 1, quiz2.name);
+  //     expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  //   });
 
-  // test('returns error with a quizId not owned by user', () => {
-  //   const user2 = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast);
-  //   const userId2 = user2.authUserId;
-  //   const quiz2 = quizCreateV1(userId2, QUIZNAME1, QUIZDESCRIPTION1);
-  //   const quizId2 = quiz2.quizId;
-  //   const result = quizNameUpdateV1(userId, quizId2, QUIZNAME2);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+  //   test('Forbidden error with valid token but quizId not owned by user', () => {
+  //     const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+  //     const token2 = invalidUser.token as string;
+  //     const response = quizNameUpdateV1(token2, quizId, quiz2.name);
+  //     expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  //   });
 
-  // test('returns error when name contains invalid characters', () => {
-  //   const result = quizNameUpdateV1(userId, quizId, INVALIDQUIZNAME1);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+  //   describe('Bad request error with invalid input', () => {
+  //     test('Name contains invalid characters', () => {
+  //       const response = quizNameUpdateV1(token, quizId, 'Quiz 1&!');
+  //       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  //     });
 
-  // test('returns error when name is empty', () => {
-  //   const result = quizNameUpdateV1(userId, quizId, '');
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+  //     test.each(shortQuizNames)('Name less than 3 characters="$name"', ({ name }) => {
+  //       const response = quizNameUpdateV1(token, quizId, name);
+  //       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  //     });
 
-  // test('returns error when name is less than 3 characters', () => {
-  //   const result = quizNameUpdateV1(userId, quizId, 'Q');
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+  //     test('Name more than 30 characters', () => {
+  //       const longName = 'Q'.repeat(31);
+  //       const response = quizNameUpdateV1(token, quizId, longName);
+  //       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  //     });
 
-  // test('returns error when name is more than 30 characters', () => {
-  //   const longName = 'Q'.repeat(31);
-  //   const result = quizNameUpdateV1(userId, quizId, longName);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+  //     test('Name already used for another quiz', () => {
+  //       quizCreateV1(token, quiz2.name, quiz2.description);
+  //       const response = quizNameUpdateV1(token, quizId, quiz2.name);
+  //       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  //     });
+  //   });
 
-  // test('returns error when name is already used for another quiz', () => {
-  //   quizCreateV1(userId, QUIZNAME2, QUIZDESCRIPTION1);
-  //   const result = quizNameUpdateV1(userId, quizId, QUIZNAME2);
-  //   expect(result).toStrictEqual(ERROR);
-  // });
+  //   describe('Errors are returned in the correct order', () => {
+  //     const invalidToken = token + 'random';
+  //     const emptyToken = '';
+  //     const invalidQuizId = quizId + 1;
+  //     const invalidQuizName = 'Quiz 1&!';
+  //     let notOwnerToken: string;
+  //     beforeEach(() => {
+  //       const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+  //       notOwnerToken = invalidUser.token as string;
+  //     });
+
+  //     test('Unauthorised status code 401 first', () => {
+  //       const response1 = quizNameUpdateV1(invalidToken, invalidQuizId, invalidQuizName);
+  //       expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
+
+  //       const response2 = quizNameUpdateV1(emptyToken, invalidQuizId, invalidQuizName);
+  //       expect(response2).toStrictEqual(UNAUTHORISED_ERROR);
+  //     });
+
+  //     test('Forbidden status code 403 second', () => {
+  //       const response = quizNameUpdateV1(notOwnerToken, invalidQuizId, invalidQuizName);
+  //       expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  //     });
+
+  //     test.each(badRequestErrorQuizNames)('Bad request status code 400 last', ({ name }) => {
+  //       const response = quizNameUpdateV1(token, quizId, name);
+  //       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  //     });
+  //   });
+
+  //   test('Successful update of one quiz name', () => {
+  //     quizNameUpdateV1(token, quizId, quiz2.name);
+  //     const response = quizInfoV1(token, quizId).jsonBody;
+  //     expect(response.name).toStrictEqual(quiz2.name);
+  //   });
+
+//   test('Successful update of one quiz name, and creation of a new quiz with the old name', () => {
+//     quizNameUpdateV1(token, quizId, quiz2.name);
+//     quizCreateV1(token, quiz1.name, quiz1.description);
+//     const response = quizListV1(token).jsonBody;
+//     expect(response).toStrictEqual({ quizzes: [{ quizId: expect.any(Number), name: quiz1.name }, { quizId: quizId, name: quiz2.name }] });
+//   });
 });
 
 describe('Testing PUT /v1/admin/quiz/{quizid}/description', () => {
-  // let userId;
-  // let quizId;
+  // let token: string;
+  // let quizId: number;
   // beforeEach(() => {
-  //   const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast);
-  //   userId = user.authUserId;
-  //   const quiz = quizCreateV1(userId, QUIZNAME1, QUIZDESCRIPTION1);
-  //   quizId = quiz.quizId;
+  //   const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+  //   token = user.token;
+  //   const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+  //   quizId = quiz.quizId as number;
   // });
 
-  // test('returns an object with the updated description on success', () => {
-  //   quizDescriptionUpdateV1(userId, quizId, QUIZDESCRIPTION2);
-  //   const result = quizInfoV1(userId, quizId);
-  //   expect(result.description).toStrictEqual(QUIZDESCRIPTION2);
+  // test('Correct status code and return value on success', () => {
+  //   const response = quizDescriptionUpdateV1(token, quizId, quiz2.description);
+  //   expect(response.statusCode).toStrictEqual(200);
+  //   expect(response.jsonBody).toStrictEqual({ description: quiz2.description });
   // });
 
-  // test('returns error with an invalid userId', () => {
-  //   const result = quizDescriptionUpdateV1(userId + 1, quizId, QUIZDESCRIPTION2);
-  //   expect(result).toStrictEqual(ERROR);
+  // test('Unauthorised error with an invalid or empty token', () => {
+  //   expect(quizDescriptionUpdateV1(token + 'random', quizId, quiz2.description)).toStrictEqual(UNAUTHORISED_ERROR);
+  //   expect(quizDescriptionUpdateV1('', quizId, quiz2.description)).toStrictEqual(UNAUTHORISED_ERROR);
   // });
 
-  // test('returns error with an invalid quizId', () => {
-  //   const result = quizDescriptionUpdateV1(userId, quizId + 1, QUIZDESCRIPTION2);
-  //   expect(result).toStrictEqual(ERROR);
+  // test('Forbidden error with valid token but invalid quizId', () => {
+  //   const response = quizDescriptionUpdateV1(token, quizId + 1, quiz2.description);
+  //   expect(response).toStrictEqual(FORBIDDEN_ERROR);
   // });
 
-  // test('returns error with a quizId not owned by user', () => {
-  //   const user2 = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast);
-  //   const userId2 = user2.authUserId;
-  //   const quiz2 = quizCreateV1(userId2, QUIZNAME1, QUIZDESCRIPTION1);
-  //   const quizId2 = quiz2.quizId;
-  //   const result = quizDescriptionUpdateV1(userId, quizId2, QUIZDESCRIPTION2);
-  //   expect(result).toStrictEqual(ERROR);
+  // test('Forbidden error with valid token but quizId not owned by user', () => {
+  //   const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+  //   const token2 = invalidUser.token as string;
+  //   const response = quizDescriptionUpdateV1(token2, quizId, quiz2.description);
+  //   expect(response).toStrictEqual(FORBIDDEN_ERROR);
   // });
 
-  // test('returns error when description is more than 100 characters', () => {
+  // test('Bad request error with description more than 100 characters', () => {
   //   const longDescription = 'Q'.repeat(101);
-  //   const result = quizDescriptionUpdateV1(userId, quizId, longDescription);
-  //   expect(result).toStrictEqual(ERROR);
+  //   const response = quizDescriptionUpdateV1(token, quizId, longDescription);
+  //   expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  // });
+
+  // test('Successful update of one quiz description', () => {
+  //   quizDescriptionUpdateV1(token, quizId, quiz2.description);
+  //   const response = quizInfoV1(token, quizId).jsonBody;
+  //   expect(response.description).toStrictEqual(quiz2.description);
+  // });
+
+  // test('Successful update of one quiz description, and creation of a new quiz with the old description', () => {
+  //   quizDescriptionUpdateV1(token, quizId, quiz2.description);
+  //   const response1 = quizInfoV1(token, quizId).jsonBody;
+  //   expect(response1.description).toStrictEqual(quiz2.description);
+
+  //   const quizId2 = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody.quizId as number;
+  //   const response2 = quizInfoV1(token, quizId2).jsonBody;
+  //   expect(response2.description).toStrictEqual(quiz1.description);
   // });
 });
