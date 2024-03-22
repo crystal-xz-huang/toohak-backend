@@ -69,6 +69,7 @@ export type Quiz = {
   numQuestions: number;
   questions: Question[];
   duration: number;
+  valid: boolean; // false if the quiz has been moved to the trash
 }
 
 export type Session = {
@@ -77,6 +78,8 @@ export type Session = {
   adminUserId: number; // the user id of the admin user
   valid: boolean; // true if the session is logged in
 }
+
+
 
 // ====================================================================
 // GLOBAL TYPES
