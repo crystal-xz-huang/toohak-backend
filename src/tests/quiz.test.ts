@@ -289,7 +289,7 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
     expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
     expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
   });
-});
+}); 
 
 
 describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
