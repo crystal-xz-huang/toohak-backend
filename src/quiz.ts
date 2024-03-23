@@ -156,6 +156,7 @@ export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoRetur
 */
 export function adminQuizNameUpdate(token: string, quizId: number, name: string): EmptyObject | ErrorMessage {
   const data = getData();
+
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     throw HTTPError(401, tokenError.error);
@@ -172,11 +173,12 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
     throw HTTPError(400, quizNameError.error);
   }
 
-  const quizIndex = getQuizIndex(quizId, data);
+  // const quizIndex = getQuizIndex(quizId, data);
+  const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
   data.quizzes[quizIndex].name = name;
   data.quizzes[quizIndex].timeLastEdited = getCurrentTime();
-
   setData(data);
+
   return {};
 }
 
