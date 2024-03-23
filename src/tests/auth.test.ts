@@ -1,10 +1,11 @@
 import {
+  clearV1,
   authRegisterV1,
   authLoginV1,
   userDetailsV1,
   userDetailsUpdateV1,
   userPasswordUpdateV1,
-  clearV1,
+  authLogoutV1,
 } from '../testHelpers';
 
 import { BAD_REQUEST_ERROR, TOKEN_SUCCESS, UNAUTHORISED_ERROR } from '../testTypes';
@@ -382,8 +383,14 @@ describe('Testing POST /v1/admin/auth/logout', () => {
     expect(authLogoutV1('')).toStrictEqual(UNAUTHORISED_ERROR);
   });
 
-  test('Successfully logs out a user and invalidates the token', () => {
+  test('Successfully logs out a user after registering', () => {
     authLogoutV1(token);
     expect(userDetailsV1(token)).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Successfully logs out a user after logging in', () => {
+    const token1 = authLoginV1(user1.email, user1.password).jsonBody.token;
+    authLogoutV1(token1);
+    expect(userDetailsV1(token1)).toStrictEqual(UNAUTHORISED_ERROR);
   });
 });
