@@ -6,7 +6,7 @@ import {
   quizCreateV1,
   quizRemoveV1,
   quizInfoV1,
-  // quizNameUpdateV1,
+  quizNameUpdateV1,
   // quizDescriptionUpdateV1,
 } from '../testHelpers';
 
@@ -301,9 +301,10 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
   });
 
   test('Correct status code and return value on success', () => {
-    const response = quizNameUpdateV1(token, quizId, quiz2.name);
-    expect(response.statusCode).toStrictEqual(200);
-  expect(response.jsonBody).toStrictEqual({ name: quiz2.name });
+    const update = quizNameUpdateV1(token, quizId, quiz2.name);
+    const response = quizInfoV1(token, quizId).jsonBody;
+    expect(update.statusCode).toStrictEqual(200);
+    expect(response.name).toStrictEqual(quiz2.name);
   });
 
     test('Unauthorised error with an invalid or empty token', () => {
@@ -387,7 +388,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
     quizNameUpdateV1(token, quizId, quiz2.name);
     quizCreateV1(token, quiz1.name, quiz1.description);
     const response = quizListV1(token).jsonBody;
-    expect(response).toStrictEqual({ quizzes: [{ quizId: expect.any(Number), name: quiz1.name }, { quizId: quizId, name: quiz2.name }] });
+    expect(response).toStrictEqual({ quizzes: [{ quizId: quizId, name: quiz2.name }, { quizId: expect.any(Number), name: quiz1.name }] });
   });
 });
 
