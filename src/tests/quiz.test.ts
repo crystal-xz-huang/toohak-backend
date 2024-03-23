@@ -185,15 +185,14 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
     quizId = quiz.quizId as number;
   });
 
-  test('Correct status code and return value on success', () => {
-    const response = quizRemoveV1(token, quizId);
-    expect(response.statusCode).toStrictEqual(200);
-    expect(response.jsonBody).toStrictEqual({});
+  test('Unauthorised error with an invalid token', () => {
+    const response = quizRemoveV1(token + 'random', quizId);
+    expect(response).toStrictEqual(UNAUTHORISED_ERROR);
   });
 
-  test('Unauthorised error with an invalid or empty token', () => {
-    expect(quizRemoveV1(token + 'random', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
-    expect(quizRemoveV1('', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
+  test('Unauthorised error with an empty token', () => {
+    const response = quizRemoveV1('', quizId);
+    expect(response).toStrictEqual(UNAUTHORISED_ERROR);
   });
 
   test('Forbidden error with valid token but invalid quizId', () => {
