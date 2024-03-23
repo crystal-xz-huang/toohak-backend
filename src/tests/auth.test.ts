@@ -1,14 +1,13 @@
-
 import {
   authRegisterV1,
-  // authLoginV1,
+  authLoginV1,
   userDetailsV1,
   userDetailsUpdateV1,
-  // userPasswordUpdateV1,
+  userPasswordUpdateV1,
   clearV1,
 } from '../testHelpers';
 
-import { BAD_REQUEST_ERROR, TOKEN_SUCCESS } from '../testTypes';
+import { BAD_REQUEST_ERROR, TOKEN_SUCCESS, UNAUTHORISED_ERROR } from '../testTypes';
 import { user1, user2, user3, invalidEmails, invalidPasswords } from '../testTypes';
 
 // ========================================================================================================================================//
@@ -109,39 +108,39 @@ describe('Testing POST /v1/admin/auth/register', () => {
     });
   });
 });
-
-// describe('Testing POST /v1/admin/auth/login', () => {
-//   let result;
-//   beforeEach(() => {
-//     result = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).
-//   });
-
-//   test('Correct status code and return value', () => {
-//     expect(authLoginV1(user1.email, user1.password)).toStrictEqual(TOKEN_SUCCESS);
-//   });
-
-//   test('Login in a user with the correct details', () => {
-//     const token = authLoginV1(user1.email, user1.password).jsonBody.token;
-//     expect(userDetailsV1(token)).toStrictEqual({
-//       user: {
-//         userId: token,
-//         name: `${user1.nameFirst} ${user1.nameLast}`,
-//         email: user1.email,
-//         numSuccessfulLogins: 1,
-//         numFailedPasswordsSinceLastLogin: 0,
-//       }
-//     });
-//   });
-
-//   test('BAD_REQUEST_ERROR when email does not exist', () => {
-//     expect(authLoginV1('unregistered@gmail.com', user1.password)).toStrictEqual(BAD_REQUEST_ERROR);
-//   });
-
-//   test('BAD_REQUEST_ERROR when password is not correct', () => {
-//     expect(authLoginV1(user1.email, 'incorrect_password')).toStrictEqual(BAD_REQUEST_ERROR);
-//   });
-// });
 /*
+describe('Testing POST /v1/admin/auth/login', () => {
+  let result;
+  beforeEach(() => {
+    result = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).
+  });
+
+  test('Correct status code and return value', () => {
+    expect(authLoginV1(user1.email, user1.password)).toStrictEqual(TOKEN_SUCCESS);
+  });
+
+  test('Login in a user with the correct details', () => {
+    const token = authLoginV1(user1.email, user1.password).jsonBody.token;
+    expect(userDetailsV1(token)).toStrictEqual({
+      user: {
+        userId: token,
+        name: `${user1.nameFirst} ${user1.nameLast}`,
+        email: user1.email,
+        numSuccessfulLogins: 1,
+        numFailedPasswordsSinceLastLogin: 0,
+      }
+    });
+  });
+
+  test('BAD_REQUEST_ERROR when email does not exist', () => {
+    expect(authLoginV1('unregistered@gmail.com', user1.password)).toStrictEqual(BAD_REQUEST_ERROR);
+  });
+
+  test('BAD_REQUEST_ERROR when password is not correct', () => {
+    expect(authLoginV1(user1.email, 'incorrect_password')).toStrictEqual(BAD_REQUEST_ERROR);
+  });
+});
+
 describe('Testing GET /v1/admin/user/details', () => {
   let token: string;
   beforeEach(() => {
@@ -207,7 +206,6 @@ describe('Testing GET /v1/admin/user/details', () => {
   });
 });
 */
-
 describe('Testing PUT /v1/admin/user/details', () => {
   const emailUpdate = 'janedoe@gmail.com';
   const nameFirstUpdate = 'Jane';
@@ -219,151 +217,146 @@ describe('Testing PUT /v1/admin/user/details', () => {
     token = user.token;
   });
 
-  test('Returns an empty object on success', () => {
+  test('Correct status code and return value on success', () => {
     const result = userDetailsUpdateV1(token, emailUpdate, nameFirstUpdate, nameLastUpdate);
     expect(result.statusCode).toStrictEqual(200);
     expect(result.jsonBody).toStrictEqual({});
   });
 
   describe('User details are updated on success', () => {
-    test('email is updated', () => {
+    test('Email is updated', () => {
       userDetailsUpdateV1(token, emailUpdate, user1.nameFirst, user1.nameLast);
       const result = userDetailsV1(token).jsonBody;
       expect(result.user.email).toStrictEqual(emailUpdate);
     });
 
-    test('first name is updated', () => {
+    test('First name is updated', () => {
       userDetailsUpdateV1(token, user1.email, nameFirstUpdate, user1.nameLast);
       const result = userDetailsV1(token).jsonBody;
       expect(result.user.name).toStrictEqual(`${nameFirstUpdate} ${user1.nameLast}`);
     });
 
-    test('last name is updated', () => {
+    test('Last name is updated', () => {
       userDetailsUpdateV1(token, user1.email, user1.nameFirst, nameLastUpdate);
       const result = userDetailsV1(token).jsonBody;
       expect(result.user.name).toStrictEqual(`${user1.nameFirst} ${nameLastUpdate}`);
     });
   });
 
-  // describe('user details are updated on success', () => {
-  //   test('test authUserId is not changed', () => {
-  //     const result = userDetailsUpdateV1(id, emailUpdate, nameFirstUpdate, nameLastUpdate);
-  //     expect(result).toStrictEqual({});
-  //     expect(userDetailsV1(id).user.userId).toStrictEqual(id);
-  //   });
+  test('Unauthorised error with an invalid or empty token', () => {
+    expect(userDetailsUpdateV1('', emailUpdate, nameFirstUpdate, nameLastUpdate)).toStrictEqual(UNAUTHORISED_ERROR);
+    expect(userDetailsUpdateV1(token + 'random', emailUpdate, nameFirstUpdate, nameLastUpdate)).toStrictEqual(UNAUTHORISED_ERROR);
+  });
 
-  //   test('test email is updated', () => {
-  //     const result = userDetailsUpdateV1(id, emailUpdate, user.nameFirst, user.nameLast);
-  //     expect(result).toStrictEqual({});
-  //     expect(userDetailsV1(id).user.email).toStrictEqual(emailUpdate);
-  //   });
+  describe('Bad request error with an invalid email', () => {
+    test.each(invalidEmails)("invalid email '$#': '$email'", ({ email }) => {
+      expect(userDetailsUpdateV1(token, email, nameFirstUpdate, nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
 
-  //   test('test first name is updated', () => {
-  //     const result = userDetailsUpdateV1(id, emailUpdate, nameFirstUpdate, user.nameLast);
-  //     expect(result).toStrictEqual({});
-  //     expect(userDetailsV1(id).user.name).toStrictEqual(`${nameFirstUpdate} ${user.nameLast}`);
-  //   });
+    test('Email is currently used by another user', () => {
+      authRegisterV1('janesmith@gmail.com', 'password2', 'Jane', 'Smith');
+      expect(userDetailsUpdateV1(token, 'janesmith@gmail.com', nameFirstUpdate, nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
 
-  //   test('test last name is updated', () => {
-  //     const result = userDetailsUpdateV1(id, user.email, user.nameFirst, nameLastUpdate);
-  //     expect(result).toStrictEqual({});
-  //     expect(userDetailsV1(id).user.name).toStrictEqual(`${user.nameFirst} ${nameLastUpdate}`);
-  //   });
-  // });
+  describe('Bad request error with an invalid first name', () => {
+    test('First name contains invalid characters', () => {
+      expect(userDetailsUpdateV1(token, emailUpdate, 'Jane@.#7123', nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
 
-  // test('returns BAD_REQUEST_ERROR when authUserId is not a valid user.', () => {
-  //   expect(userDetailsUpdateV1(id + 1, emailUpdate, nameFirstUpdate, nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
-  // });
+    test('First name is less than 2 characters', () => {
+      expect(userDetailsUpdateV1(token, emailUpdate, 'J', nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
 
-  // describe('returns BAD_REQUEST_ERROR with an invalid email', () => {
-  //   test.each(invalidEmails)("test invalid email '$#': '$email'", ({ email }) => {
-  //     expect(userDetailsUpdateV1(id, email, nameFirstUpdate, nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
-  //   });
+    test('First name is empty', () => {
+      expect(userDetailsUpdateV1(token, emailUpdate, '', nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
 
-  //   test('test email is currently used by another user', () => {
-  //     authRegisterV1('janesmith@gmail.com', 'password2', 'Jane', 'Smith');
-  //     expect(userDetailsUpdateV1(id, 'janesmith@gmail.com', nameFirstUpdate, nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
-  //   });
-  // });
+    test('First name is more than 20 characters', () => {
+      expect(userDetailsUpdateV1(token, emailUpdate, 'JaneJaneJaneJaneJaneJ', nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
 
-  // describe('returns BAD_REQUEST_ERROR with an invalid first name', () => {
-  //   test('test first name contains invalid characters', () => {
-  //     expect(userDetailsUpdateV1(id, emailUpdate, 'Jane@.#7123', nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
-  //   });
+    describe('Bad request error with an invalid last name', () => {
+      test('Last name contains invalid characters', () => {
+        expect(userDetailsUpdateV1(token, emailUpdate, nameFirstUpdate, 'Doe12*&^')).toStrictEqual(BAD_REQUEST_ERROR);
+      });
 
-  //   test('test first name is less than 2 characters', () => {
-  //     expect(userDetailsUpdateV1(id, emailUpdate, 'J', nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
-  //   });
+      test('Last name is less than 2 characters', () => {
+        expect(userDetailsUpdateV1(token, emailUpdate, nameFirstUpdate, 'D')).toStrictEqual(BAD_REQUEST_ERROR);
+      });
 
-  //   test('test first name is empty', () => {
-  //     expect(userDetailsUpdateV1(id, emailUpdate, '', nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
-  //   });
+      test('Last name is empty', () => {
+        expect(userDetailsUpdateV1(token, emailUpdate, nameFirstUpdate, '')).toStrictEqual(BAD_REQUEST_ERROR);
+      });
 
-  //   test('test first name is more than 20 characters', () => {
-  //     expect(userDetailsUpdateV1(id, emailUpdate, 'JaneJaneJaneJaneJaneJ', nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
-  //   });
+      test('Last name is more than 20 characters', () => {
+        expect(userDetailsUpdateV1(token, emailUpdate, nameFirstUpdate, 'JaneJaneJaneJaneJaneJ')).toStrictEqual(BAD_REQUEST_ERROR);
+      });
+    });
+  });
 
-  // describe('returns BAD_REQUEST_ERROR with an invalid last name', () => {
-  //   test('test last name contains invalid characters', () => {
-  //     expect(userDetailsUpdateV1(id, emailUpdate, nameFirstUpdate, 'Doe12*&^')).toStrictEqual(BAD_REQUEST_ERROR);
-  //   });
+  describe('Errors are returned in the correct order', () => {
+    const invalidToken = token + 'random';
+    const invalidEmail = 'invalid_email';
+    const invalidNameFirst = 'invalid_name_first!!';
+    const invalidNameLast = 'invalid_name_last!!';
 
-  //   test('test last name is less than 2 characters', () => {
-  //     expect(userDetailsUpdateV1(id, emailUpdate, nameFirstUpdate, 'D')).toStrictEqual(BAD_REQUEST_ERROR);
-  //   });
+    test('Unauthorised status code 401 first', () => {
+      expect(userDetailsUpdateV1(invalidToken, invalidEmail, invalidNameFirst, invalidNameLast)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
 
-  //   test('test last name is empty', () => {
-  //     expect(userDetailsUpdateV1(id, emailUpdate, nameFirstUpdate, '')).toStrictEqual(BAD_REQUEST_ERROR);
-  //   });
-
-  //   test('test last name is more than 20 characters', () => {
-  //     expect(userDetailsUpdateV1(id, emailUpdate, nameFirstUpdate, 'JaneJaneJaneJaneJaneJ')).toStrictEqual(BAD_REQUEST_ERROR);
-  //   });
-  // });
+    test('Bad request status code 400 last', () => {
+      expect(userDetailsUpdateV1(token, invalidEmail, nameFirstUpdate, nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
+      expect(userDetailsUpdateV1(token, emailUpdate, invalidNameFirst, nameLastUpdate)).toStrictEqual(BAD_REQUEST_ERROR);
+      expect(userDetailsUpdateV1(token, emailUpdate, nameFirstUpdate, invalidNameLast)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
 });
 
-/*
 describe('Testing PUT /v1/admin/user/password', () => {
-  let result;
+  let token: string;
   beforeEach(() => {
-    result = authRegisterV1(user.email, user.password, user.nameFirst, user.nameLast);
+    const result = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    token = result.token;
   });
 
   const newpassword = 'hey_mee3';
 
-  test('returns an empty object on success', () => {
-    expect(userPasswordUpdateV1(result.authUserId, user.password, newpassword)).toStrictEqual({});
+  test('Correct status code and return value on success', () => {
+    const result = userPasswordUpdateV1(token, user1.password, newpassword);
+    expect(result.statusCode).toStrictEqual(200);
+    expect(result.jsonBody).toStrictEqual({});
   });
 
-  test('password is updated on success', () => {
-    userPasswordUpdateV1(result.authUserId, user.password, newpassword);
-    expect(authLoginV1(user.email, newpassword)).toStrictEqual({ authUserId: result.authUserId });
+  test('Password is updated on success', () => {
+    userPasswordUpdateV1(token, user1.password, newpassword);
+    expect(authLoginV1(user1.email, newpassword).statusCode).toStrictEqual(200);
+    expect(authLoginV1(user1.email, user1.password).statusCode).toStrictEqual(400);
   });
 
-  test('returns BAD_REQUEST_ERROR when authUserId is not a valid user', () => {
-    expect(userPasswordUpdateV1(result.authUserId + 1, user.password, newpassword)).toStrictEqual(BAD_REQUEST_ERROR);
+  test('Bad request error when authUserId is not a valid user', () => {
+    expect(userPasswordUpdateV1(token + 1, user1.password, newpassword)).toStrictEqual(UNAUTHORISED_ERROR);
   });
 
-  test('returns BAD_REQUEST_ERROR when old password is not correct', () => {
-    expect(userPasswordUpdateV1(result.authUserId, 'hashed_password3', newpassword)).toStrictEqual(BAD_REQUEST_ERROR);
+  test('Bad request error when old password is not correct', () => {
+    expect(userPasswordUpdateV1(token, 'hashed_password3', newpassword)).toStrictEqual(BAD_REQUEST_ERROR);
   });
 
-  test('returns BAD_REQUEST_ERROR when old password and new password match exactly', () => {
-    expect(userPasswordUpdateV1(result.authUserId, user.password, user.password)).toStrictEqual(BAD_REQUEST_ERROR);
+  test('Bad request error when old password and new password match exactly', () => {
+    expect(userPasswordUpdateV1(token, user1.password, user1.password)).toStrictEqual(BAD_REQUEST_ERROR);
   });
 
-  describe('returns BAD_REQUEST_ERROR with an invalid new password', () => {
-    test('test new password is less than 8 characters', () => {
-      expect(userPasswordUpdateV1(result.authUserId, user.password, 'abc4567')).toStrictEqual(BAD_REQUEST_ERROR);
+  describe('Bad request error with an invalid new password', () => {
+    test('New password is less than 8 characters', () => {
+      expect(userPasswordUpdateV1(token, user1.password, 'abc4567')).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test('test new password is empty', () => {
-      expect(userPasswordUpdateV1(result.authUserId, user.password, '')).toStrictEqual(BAD_REQUEST_ERROR);
+    test('New password is empty', () => {
+      expect(userPasswordUpdateV1(token, user1.password, '')).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test.each(invalidPasswords)('test new password does not contain at least one number and one letter', ({ password }) => {
-      expect(userPasswordUpdateV1(result.authUserId, user.password, password)).toStrictEqual(BAD_REQUEST_ERROR);
+    test.each(invalidPasswords)('New password does not contain at least one number and one letter', ({ password }) => {
+      expect(userPasswordUpdateV1(token, user1.password, password)).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 });
-*/
