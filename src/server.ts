@@ -11,7 +11,7 @@ import process from 'process';
 
 import { getData, setData } from './dataStore';
 import { clear } from './other';
-import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate } from './auth';
+import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate, adminAuthLogout } from './auth';
 import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate } from './quiz';
 
 // Set up web app
@@ -42,7 +42,6 @@ const load = () => {
     // Check if file exists, read the file and set the data
     if (fs.existsSync('./database.json')) {
       const file = fs.readFileSync('./database.json', 'utf8');
-      console.log(file); // Display the file content (for debugging purposes - to Remove)
       setData(JSON.parse(file.toString()));
     }
   } catch (error) {
@@ -166,6 +165,11 @@ app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
 /***********************************************************************
 * Iteration 2 (NEW)
 ***********************************************************************/
+app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
+  const token = req.body.token as string;
+  const response = adminAuthLogout(token);
+  res.json(response);
+});
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
