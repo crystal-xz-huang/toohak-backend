@@ -8,6 +8,16 @@ import {
   quizInfoV1,
   // quizNameUpdateV1,
   // quizDescriptionUpdateV1,
+  quizTrashViewV1,
+  authLogoutV1,
+  // quizRestoreV1,
+  // quizTrashEmptyV1,
+  // quizTransferV1,
+  // quizQuestionCreateV1,
+  // quizQuestionUpdateV1,
+  // quizQuestionRemoveV1,
+  // quizQuestionMoveV1,
+  // quizQuestionDuplicateV1,
 } from '../testHelpers';
 
 import {
@@ -28,6 +38,7 @@ import {
   AdminQuizListReturn,
   AdminQuizInfoReturn,
 } from '../dataTypes';
+import { adminAuthLogout } from '../auth';
 
 // ========================================================================================================================================//
 beforeEach(() => {
@@ -445,4 +456,68 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/description', () => {
   //   const response2 = quizInfoV1(token, quizId2).jsonBody;
   //   expect(response2.description).toStrictEqual(quiz1.description);
   // });
+});
+
+describe('Testing GET /v1/admin/quiz/trash', () => {
+  let token: string;
+  let quizId1: number;
+  let quizId2: number;
+  let quizId3: number;
+  beforeEach(() => {
+    const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    token = user.token as string;
+    const q1 = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+    quizId1 = q1.quizId as number;
+    const q2 = quizCreateV1(token, quiz2.name, quiz2.description).jsonBody;
+    const quizId2 = q2.quizId as number;
+    const q3 = quizCreateV1(token, quiz3.name, quiz3.description).jsonBody;
+    const quizId3 = q3.quizId as number;
+  });
+
+  test('Correct status code and return value on success', () => {
+    const response = quizTrashViewV1(token);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({ quizzes: [] });
+  });
+
+  test('Unauthorised error with an empty token', () => {
+    expect(quizTrashViewV1('')).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Unauthorised error with an invalid token', () => {
+    expect(quizTrashViewV1(token + 'random')).toStrictEqual(UNAUTHORISED_ERROR);
+    authLogoutV1(token);
+    expect(quizTrashViewV1(token)).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Successful retrieval when user has three quizzes, none in the trash', () => {
+    const response = quizTrashViewV1(token).jsonBody;
+    const expected = { quizzes: [] } as { quizzes: { quizId: number, name: string }[] };
+    expect(response).toStrictEqual(expected);
+  });
+
+  test('Successful retrieval when user has three quizzes, one in the trash', () => {
+    quizRemoveV1(token, quizId1);
+    quizRemoveV1(token, quizId2);
+    const response = quizTrashViewV1(token).jsonBody;
+    const expected = { quizzes: [{ quizId: quizId1, name: quiz1.name }, { quizId: quizId2, name: quiz2.name }] };
+    expect(response).toStrictEqual(expected);
+  });
+  
+  test('Successful retrieval when user has three quizzes, two in the trash', () => {
+    quizRemoveV1(token, quizId1);
+    const response = quizTrashViewV1(token).jsonBody;
+    const expected = { quizzes: [{ quizId: quizId1, name: quiz1.name }] };
+    expect(response).toStrictEqual(expected);
+  });
+
+  test('Successful retrieval when user has three quizzes, all in the trash', () => {
+    quizRemoveV1(token, quizId1);
+    quizRemoveV1(token, quizId2);
+    quizRemoveV1(token, quizId3);
+    const response = quizTrashViewV1(token).jsonBody;
+    const expected = { quizzes: [{ quizId: quizId1, name: quiz1.name }, { quizId: quizId2, name: quiz2.name }, { quizId: quizId3, name: quiz3.name }] };
+    expect(response).toStrictEqual(expected);
+  });
+
 });
