@@ -14,7 +14,7 @@ import {
   BAD_REQUEST_ERROR,
   UNAUTHORISED_ERROR,
   FORBIDDEN_ERROR,
-  CLEAR_SUCCESS,
+  // CLEAR_SUCCESS,
   user1,
   user2,
   quiz1,
@@ -260,9 +260,7 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
   });
 
   test('Successful retrieval of one quiz', () => {
-    let expected: AdminQuizInfoReturn;
-    const response = quizInfoV1(token, quizId).jsonBody;
-    expected = {
+    const expected: AdminQuizInfoReturn = {
       quizId: quizId,
       name: quiz1.name,
       timeCreated: expect.any(Number),
@@ -272,6 +270,7 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
       questions: [],
       duration: 0,
     };
+    const response = quizInfoV1(token, quizId).jsonBody;
     expect(response).toStrictEqual(expected);
   });
 
@@ -290,7 +289,6 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
     expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
   });
 }); 
-
 
 describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
   // let token: string;
