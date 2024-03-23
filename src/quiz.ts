@@ -78,6 +78,7 @@ export function adminQuizCreate(token: string, name: string, description: string
     numQuestions: 0,
     questions: [],
     duration: 0,
+    valid: true
   });
 
   setData(data);
@@ -108,7 +109,7 @@ export function adminQuizRemove(token: string, quizId: number): EmptyObject | Er
   const quiz = findQuizbyId(quizId, data);
   if (quiz) {
     quiz.valid = false;
-    quiz.timeLastEdited = getCurrentTime;
+    quiz.timeLastEdited = Math.floor(Date.now() / 1000);
   }
   setData(data);
 
