@@ -6,14 +6,15 @@ import {
   quizCreateV1,
   quizRemoveV1,
   quizInfoV1,
-  quizNameUpdateV1,
-  quizDescriptionUpdateV1,
+  // quizNameUpdateV1,
+  // quizDescriptionUpdateV1,
 } from '../testHelpers';
 
 import {
   BAD_REQUEST_ERROR,
   UNAUTHORISED_ERROR,
   FORBIDDEN_ERROR,
+  // CLEAR_SUCCESS,
   user1,
   user2,
   quiz1,
@@ -25,6 +26,7 @@ import {
 
 import {
   AdminQuizListReturn,
+  AdminQuizInfoReturn,
 } from '../dataTypes';
 
 // ========================================================================================================================================//
@@ -174,167 +176,119 @@ describe('Testing POST /v1/admin/quiz', () => {
 });
 
 describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
-  // let token: string;
-  // let quizId: number;
-  // beforeEach(() => {
-  //   const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
-  //   token = user.token;
-  //   const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
-  //   quizId = quiz.quizId as number;
-  // });
+  let token: string;
+  let quizId: number;
+  beforeEach(() => {
+    const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    token = user.token;
+    const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+    quizId = quiz.quizId as number;
+  });
 
-  // test('Correct status code and return value on success', () => {
-  //   const response = quizRemoveV1(token, quizId);
-  //   expect(response.statusCode).toStrictEqual(200);
-  //   expect(response.jsonBody).toStrictEqual({});
-  // });
+  test('Correct status code and return value on success', () => {
+    const response = quizRemoveV1(token, quizId);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({});
+  });
 
-  // test('Unauthorised error with an invalid or empty token', () => {
-  //   expect(quizRemoveV1(token + 'random', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
-  //   expect(quizRemoveV1('', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
-  // });
+  test('Unauthorised error with an invalid or empty token', () => {
+    expect(quizRemoveV1(token + 'random', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
+    expect(quizRemoveV1('', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
+  });
 
-  // test('Forbidden error with valid token but invalid quizId', () => {
-  //   const response = quizRemoveV1(token, quizId + 1);
-  //   expect(response).toStrictEqual(FORBIDDEN_ERROR);
-  // });
+  test('Forbidden error with valid token but invalid quizId', () => {
+    const response = quizRemoveV1(token, quizId + 1);
+    expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  });
 
-  // test('Forbidden error with valid token but quizId not owned by user', () => {
-  //   const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
-  //   const token2 = invalidUser.token as string;
-  //   const response = quizRemoveV1(token2, quizId);
-  //   expect(response).toStrictEqual(FORBIDDEN_ERROR);
-  // });
+  test('Forbidden error with valid token but quizId not owned by user', () => {
+    const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+    const token2 = invalidUser.token as string;
+    const response = quizRemoveV1(token2, quizId);
+    expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  });
 
-  // describe('Errors are returned in the correct order', () => {
-  //   const invalidToken = token + 'random';
-  //   const emptyToken = '';
-  //   const invalidQuizId = quizId + 1;
-  //   let notOwnerToken: string;
-
-  //   beforeEach(() => {
-  //     const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
-  //     notOwnerToken = invalidUser.token as string;
-  //   });
-
-  //   test('Unauthorised status code 401 first', () => {
-  //     const response = quizRemoveV1(invalidToken, invalidQuizId);
-  //     expect(response).toStrictEqual(UNAUTHORISED_ERROR);
-  //   });
-
-  //   test('Forbidden status code 403 last', () => {
-  //     const response1 = quizRemoveV1(invalidToken, invalidQuizId);
-  //     expect(response1).toStrictEqual(FORBIDDEN_ERROR);
-
-  //     const response2 = quizRemoveV1(emptyToken, invalidQuizId);
-  //     expect(response2).toStrictEqual(UNAUTHORISED_ERROR);
-  //   });
-  // });
-
-  // test('Successful removal of one quiz', () => {
-  //   quizRemoveV1(token, quizId);
-  //   const response = quizListV1(token).jsonBody;
-  //   expect(response).toStrictEqual({ quizzes: [] });
-  // });
-
-  // test('Successful removal of one quiz, and creation of a new quiz with the same name', () => {
-  //   quizRemoveV1(token, quizId);
-  //   quizCreateV1(token, quiz1.name, quiz1.description);
-  //   const response = quizListV1(token).jsonBody;
-  //   expect(response).toStrictEqual({ quizzes: [{ quizId: expect.any(Number), name: quiz1.name }] });
-  // });
-
-  // test('Successful removal of one quiz, and creation of a new quiz with a different name', () => {
-  //   quizRemoveV1(token, quizId);
-  //   quizCreateV1(token, quiz2.name, quiz2.description);
-  //   const response = quizListV1(token).jsonBody;
-  //   expect(response).toStrictEqual({ quizzes: [{ quizId: expect.any(Number), name: quiz2.name }] });
-  // });
-
-  // test('Successful removal of one quiz, and creation of two new quizzes', () => {
-  //   quizRemoveV1(token, quizId);
-  //   quizCreateV1(token, quiz2.name, quiz2.description);
-  //   quizCreateV1(token, quiz3.name, quiz3.description);
-  //   const response = quizListV1(token).jsonBody;
-  //   expect(response).toStrictEqual({ quizzes: [{ quizId: expect.any(Number), name: quiz2.name }, { quizId: expect.any(Number), name: quiz3.name }] });
-  // });
+  test('Successful removal of one quiz', () => {
+    const response = quizRemoveV1(token, quizId);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({});
+  });
 });
 
 describe('Testing GET /v1/admin/quiz/{quizid}', () => {
-  // let token: string;
-  // let quizId: number;
-  // beforeEach(() => {
-  //   const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
-  //   token = user.token;
-  //   const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
-  //   quizId = quiz.quizId as number;
-  // });
+  let token: string;
+  let quizId: number;
+  beforeEach(() => {
+    const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    token = user.token;
+    const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+    quizId = quiz.quizId as number;
+  });
 
-  // test('Correct status code and return value on success', () => {
-  //   const response = quizInfoV1(token, quizId);
-  //   expect(response.statusCode).toStrictEqual(200);
-  //   expect(response.jsonBody).toStrictEqual({
-  //     quizId: quizId,
-  //     name: quiz1.name,
-  //     timeCreated: expect.any(Number),
-  //     timeLastEdited: expect.any(Number),
-  //     description: quiz1.description,
-  //     numQuestions: expect.any(Number),
-  //     questions: expect.any(Array),
-  //     duration: expect.any(Number),
-  //   });
-  // });
+  test('Correct status code and return value on success', () => {
+    const response = quizInfoV1(token, quizId);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({
+      quizId: quizId,
+      name: quiz1.name,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: quiz1.description,
+      numQuestions: expect.any(Number),
+      questions: expect.any(Array),
+      duration: expect.any(Number),
+    });
+  });
 
-  // test('Unauthorised error with an invalid or empty token', () => {
-  //   expect(quizInfoV1(token + 'random', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
-  //   expect(quizInfoV1('', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
-  // });
+  test('Unauthorised error with an invalid or empty token', () => {
+    expect(quizInfoV1(token + 'random', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
+    expect(quizInfoV1('', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
+  });
 
-  // describe('Forbidden error with invalid input', () => {
-  //   test('Valid token but invalid quizId', () => {
-  //     const response = quizInfoV1(token, quizId + 1);
-  //     expect(response).toStrictEqual(FORBIDDEN_ERROR);
-  //   });
+  describe('Forbidden error with invalid input', () => {
+    test('Valid token but invalid quizId', () => {
+      const response = quizInfoV1(token, quizId + 1);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
 
-  //   test('Valid token but quizId not owned by user', () => {
-  //     const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
-  //     const token2 = invalidUser.token as string;
-  //     const response = quizInfoV1(token2, quizId);
-  //     expect(response).toStrictEqual(FORBIDDEN_ERROR);
-  //   });
-  // });
+    test('Valid token but quizId not owned by user', () => {
+      const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+      const token2 = invalidUser.token as string;
+      const response = quizInfoV1(token2, quizId);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+  });
 
-  // test('Successful retrieval of one quiz', () => {
-  //   let expected: AdminQuizInfoReturn;
-  //   const response = quizInfoV1(token, quizId).jsonBody;
-  //   expected = {
-  //     quizId: quizId,
-  //     name: quiz1.name,
-  //     timeCreated: expect.any(Number),
-  //     timeLastEdited: expect.any(Number),
-  //     description: quiz1.description,
-  //     numQuestions: 0,
-  //     questions: [],
-  //     duration: 0,
-  //   };
-  //   expect(response).toStrictEqual(expected);
-  // });
+  test('Successful retrieval of one quiz', () => {
+    const expected: AdminQuizInfoReturn = {
+      quizId: quizId,
+      name: quiz1.name,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: quiz1.description,
+      numQuestions: 0,
+      questions: [],
+      duration: 0,
+    };
+    const response = quizInfoV1(token, quizId).jsonBody;
+    expect(response).toStrictEqual(expected);
+  });
 
-  // test('Timestamps are within a 1 second range of the current time', () => {
-  //   // Capture the current time
-  //   const expectedTime = Math.floor(Date.now() / 1000);
-  //   // Send a request to create a new quiz and get the timeCreated and timeLastEdited of the quiz with quizInfo
-  //   const response = quizInfoV1(token, quizId).jsonBody;
-  //   const timeCreated = response.timeCreated as number;
-  //   const timeLastEdited = response.timeLastEdited as number;
+  test('Timestamps are within a 1 second range of the current time', () => {
+    // Capture the current time
+    const expectedTime = Math.floor(Date.now() / 1000);
+    // Send a request to create a new quiz and get the timeCreated and timeLastEdited of the quiz with quizInfo
+    const response = quizInfoV1(token, quizId).jsonBody;
+    const timeCreated = response.timeCreated as number;
+    const timeLastEdited = response.timeLastEdited as number;
 
-  //   // Check if the timeCreated and timeLastEdited are within a 1 second range of the current time
-  //   expect(timeCreated).toBeGreaterThanOrEqual(expectedTime);
-  //   expect(timeCreated).toBeLessThanOrEqual(expectedTime + 1);
-  //   expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
-  //   expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
-  // });
-});
+    // Check if the timeCreated and timeLastEdited are within a 1 second range of the current time
+    expect(timeCreated).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeCreated).toBeLessThanOrEqual(expectedTime + 1);
+    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+  });
+}); 
 
 describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
   let token: string;

@@ -78,6 +78,7 @@ export function adminQuizCreate(token: string, name: string, description: string
     numQuestions: 0,
     questions: [],
     duration: 0,
+    valid: true
   });
 
   setData(data);
@@ -105,8 +106,11 @@ export function adminQuizRemove(token: string, quizId: number): EmptyObject | Er
     throw HTTPError(403, userError.error);
   }
 
-  const index = getQuizIndex(quizId, data);
-  data.quizzes.splice(index, 1);
+  const quiz = findQuizbyId(quizId, data);
+  if (quiz) {
+    quiz.valid = false;
+    quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+  }
   setData(data);
 
   return {};
@@ -177,8 +181,8 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
   data.quizzes[quizIndex].name = name;
   data.quizzes[quizIndex].timeLastEdited = getCurrentTime();
-  setData(data);
 
+  setData(data); 
   return {};
 }
 

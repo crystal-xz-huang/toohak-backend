@@ -390,7 +390,7 @@ export function isQuizNameUsed(name: string, authUserId: number, data: Data): Er
 export function isValidQuizIdForUser(authUserId: number, quizId: number, data: Data): ErrorMessage | null {
   if (findUserbyId(authUserId, data) === undefined) {
     return createError('User is not valid');
-  } else if (findQuizbyId(quizId, data) === undefined) {
+  } else if (!findQuizbyId(quizId, data)) {
     return createError('QuizId is not a valid quiz');
   } else if (authUserId !== findQuizbyId(quizId, data).authUserId) {
     return createError('User is not an owner of this quiz');
