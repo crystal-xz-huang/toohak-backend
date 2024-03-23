@@ -124,7 +124,6 @@ export function adminUserDetails(token: string): AdminUserDetailsReturn | ErrorM
   }
 
   const user = findUserbyToken(token, data);
-
   return {
     user: {
       userId: user.authUserId,
@@ -204,6 +203,26 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
   const authUserId = foundUser.authUserId;
   const index = data.users.findIndex((user) => user.authUserId === authUserId);
   data.users[index].password = newPassword;
+  setData(data);
+  return {};
+}
+
+/**
+ * Given a token, logs out an admin user who has an active quiz session
+ * Should be called with a token that is returned after either a login or register has been made
+ *
+ * @param { string } token - the token that corresponds to a user session
+ * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
+ */
+export function adminAuthLogout(token: string): EmptyObject | ErrorMessage {
+  const data = getData();
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const index = data.sessions.findIndex((session) => session.token === token);
+  data.sessions[index].valid = false;
   setData(data);
   return {};
 }
