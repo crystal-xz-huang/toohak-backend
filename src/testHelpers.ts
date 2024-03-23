@@ -101,7 +101,7 @@ export function quizInfoV1(token: string, quizId: number): RequestResponse {
 }
 
 export function quizNameUpdateV1(token: string, quizId: number, name: string): RequestResponse {
-  return requestHelper('PUT', `/v1/admin/quiz/${quizId}`, { token, name });
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/name`, { token, name });
 }
 
 export function quizDescriptionUpdateV1(token: string, quizId: number, description: string): RequestResponse {

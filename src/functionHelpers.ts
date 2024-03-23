@@ -172,6 +172,7 @@ export function getQuizIndex(quizId: number, data: Data): number | null {
   if (index === -1) {
     return null;
   }
+  return index;
 }
 
 /**
@@ -393,6 +394,7 @@ export function isValidQuizIdForUser(authUserId: number, quizId: number, data: D
     return createError('QuizId is not a valid quiz');
   } else if (authUserId !== findQuizbyId(quizId, data).authUserId) {
     return createError('User is not an owner of this quiz');
+  } else {
+    return null;
   }
-  return null;
 }
