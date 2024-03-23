@@ -220,7 +220,7 @@ export function adminQuizDescriptionUpdate(token: string, quizId: number, descri
 
 /**
  * View the quizzes that are currently in the trash for the logged in user
- * 
+ *
  * @param { string } token - the token that corresponds to a user session
  * @returns { AdminQuizTrashViewReturn | ErrorMessage } - an object containing an array of quizzes
  */

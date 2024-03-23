@@ -49,7 +49,6 @@ afterEach(() => {
   clearV1();
 });
 
-
 describe('Testing GET /v1/admin/quiz/list', () => {
   let token: string;
   beforeEach(() => {
@@ -461,24 +460,24 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/description', () => {
 
 describe('Testing GET /v1/admin/quiz/trash', () => {
   let token: string;
-  let quizId1: number;
-  let quizId2: number;
-  let quizId3: number;
+  // let quizId1: number;
+  // let quizId2: number;
+  // let quizId3: number;
   beforeEach(() => {
     const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
     token = user.token as string;
-    const q1 = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
-    quizId1 = q1.quizId as number;
-    const q2 = quizCreateV1(token, quiz2.name, quiz2.description).jsonBody;
-    quizId2 = q2.quizId as number;
-    const q3 = quizCreateV1(token, quiz3.name, quiz3.description).jsonBody;
-    quizId3 = q3.quizId as number;
+    // const q1 = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+    // quizId1 = q1.quizId as number;
+    // const q2 = quizCreateV1(token, quiz2.name, quiz2.description).jsonBody;
+    // quizId2 = q2.quizId as number;
+    // const q3 = quizCreateV1(token, quiz3.name, quiz3.description).jsonBody;
+    // quizId3 = q3.quizId as number;
   });
 
   test('Correct status code and return value on success', () => {
     const response = quizTrashViewV1(token);
     expect(response.statusCode).toStrictEqual(200);
-    expect(response.jsonBody).toStrictEqual( { quizzes: expect.any(Array) });
+    expect(response.jsonBody).toStrictEqual({ quizzes: expect.any(Array) });
   });
 
   test('Unauthorised error with an empty token', () => {
@@ -504,7 +503,7 @@ describe('Testing GET /v1/admin/quiz/trash', () => {
   //   const expected = { quizzes: [{ quizId: quizId1, name: quiz1.name }, { quizId: quizId2, name: quiz2.name }] };
   //   expect(response).toStrictEqual(expected);
   // });
-  
+
   // test('Successful retrieval when user has three quizzes, two in the trash', () => {
   //   quizRemoveV1(token, quizId1);
   //   const response = quizTrashViewV1(token).jsonBody;
@@ -520,5 +519,4 @@ describe('Testing GET /v1/admin/quiz/trash', () => {
   //   const expected = { quizzes: [{ quizId: quizId1, name: quiz1.name }, { quizId: quizId2, name: quiz2.name }, { quizId: quizId3, name: quiz3.name }] };
   //   expect(response).toStrictEqual(expected);
   // });
-
 });

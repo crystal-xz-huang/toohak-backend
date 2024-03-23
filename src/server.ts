@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 
-import { getData, setData } from './dataStore';
+// import { getData, setData } from './dataStore';
 import { clear } from './other';
 import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate, adminAuthLogout } from './auth';
 import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView } from './quiz';
@@ -142,13 +142,12 @@ app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
 });
 
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
-  console.log('Get /v1/admin/quiz/trash')
+  console.log('Get /v1/admin/quiz/trash');
   const token = req.query.token as string;
   const response = adminQuizTrashView(token);
-  console.log(response)
+  console.log(response);
   res.json(response);
 });
-
 
 app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
@@ -179,7 +178,6 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   const response = adminAuthLogout(token);
   res.json(response);
 });
-
 
 // app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
 //   const quizId = parseInt(req.params.quizid);
