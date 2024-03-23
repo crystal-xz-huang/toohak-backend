@@ -360,3 +360,30 @@ describe('Testing PUT /v1/admin/user/password', () => {
     });
   });
 });
+
+describe('Testing POST /v1/admin/auth/logout', () => {
+  let token: string;
+  beforeEach(() => {
+    const result = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    token = result.token;
+  });
+
+  test('Correct status code and return value on success', () => {
+    const result = authLogoutV1(token);
+    expect(result.statusCode).toStrictEqual(200);
+    expect(result.jsonBody).toStrictEqual({});
+  });
+
+  test('Unauthorised error when token is invalid', () => {
+    expect(authLogoutV1(token + 'random')).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Unauthorised error when token is empty', () => {
+    expect(authLogoutV1('')).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Successfully logs out a user and invalidates the token', () => {
+    authLogoutV1(token);
+    expect(userDetailsV1(token)).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+});
