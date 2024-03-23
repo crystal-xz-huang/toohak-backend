@@ -210,7 +210,7 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
 /**
  * Given a token, logs out an admin user who has an active quiz session
  * Should be called with a token that is returned after either a login or register has been made
- *
+ * 
  * @param { string } token - the token that corresponds to a user session
  * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
  */
@@ -226,3 +226,4 @@ export function adminAuthLogout(token: string): EmptyObject | ErrorMessage {
   setData(data);
   return {};
 }
+
