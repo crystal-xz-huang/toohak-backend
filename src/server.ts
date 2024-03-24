@@ -142,10 +142,8 @@ app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
 });
 
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
-  console.log('Get /v1/admin/quiz/trash');
   const token = req.query.token as string;
   const response = adminQuizTrashView(token);
-  console.log(response);
   res.json(response);
 });
 
