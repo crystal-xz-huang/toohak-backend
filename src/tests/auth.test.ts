@@ -1,10 +1,11 @@
 import {
+  clearV1,
   authRegisterV1,
   authLoginV1,
   userDetailsV1,
   userDetailsUpdateV1,
   userPasswordUpdateV1,
-  clearV1,
+  authLogoutV1,
 } from '../testHelpers';
 
 import { BAD_REQUEST_ERROR, TOKEN_SUCCESS, UNAUTHORISED_ERROR } from '../testTypes';
@@ -358,5 +359,38 @@ describe('Testing PUT /v1/admin/user/password', () => {
     test.each(invalidPasswords)('New password does not contain at least one number and one letter', ({ password }) => {
       expect(userPasswordUpdateV1(token, user1.password, password)).toStrictEqual(BAD_REQUEST_ERROR);
     });
+  });
+});
+
+describe('Testing POST /v1/admin/auth/logout', () => {
+  let token: string;
+  beforeEach(() => {
+    const result = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    token = result.token;
+  });
+
+  test('Correct status code and return value on success', () => {
+    const result = authLogoutV1(token);
+    expect(result.statusCode).toStrictEqual(200);
+    expect(result.jsonBody).toStrictEqual({});
+  });
+
+  test('Unauthorised error when token is invalid', () => {
+    expect(authLogoutV1(token + 'random')).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Unauthorised error when token is empty', () => {
+    expect(authLogoutV1('')).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Successfully logs out a user after registering', () => {
+    authLogoutV1(token);
+    expect(userDetailsV1(token)).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Successfully logs out a user after logging in', () => {
+    const token1 = authLoginV1(user1.email, user1.password).jsonBody.token;
+    authLogoutV1(token1);
+    expect(userDetailsV1(token1)).toStrictEqual(UNAUTHORISED_ERROR);
   });
 });

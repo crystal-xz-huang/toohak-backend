@@ -180,7 +180,7 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
   data.quizzes[quizIndex].name = name;
   data.quizzes[quizIndex].timeLastEdited = getCurrentTime();
 
-  setData(data); 
+  setData(data);
   return {};
 }
 

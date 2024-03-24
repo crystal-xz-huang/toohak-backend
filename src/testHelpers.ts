@@ -111,3 +111,7 @@ export function quizDescriptionUpdateV1(token: string, quizId: number, descripti
 export function clearV1(): RequestResponse {
   return requestHelper('DELETE', '/v1/clear', {});
 }
+
+export function authLogoutV1(token: string): RequestResponse {
+  return requestHelper('POST', '/v1/admin/auth/logout', { token });
+}
