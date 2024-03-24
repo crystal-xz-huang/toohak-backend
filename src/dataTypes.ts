@@ -139,6 +139,10 @@ export type AdminQuizInfoReturn = {
   duration: number;
 }
 
+export type AdminQuizTrashViewReturn = {
+  quizzes: QuizDetails[];
+}
+
 // ====================================================================
 // CONSTANTS
 // ====================================================================

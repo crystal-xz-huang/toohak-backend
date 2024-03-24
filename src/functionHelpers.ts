@@ -78,7 +78,7 @@ export function findSessionbyToken(token: string, data: Data): Session | null {
  */
 export function findUserbyToken(token: string, data: Data): User | null {
   const session = findSessionbyToken(token, data);
-  if (session === null) {
+  if (session === null || session.valid === false) {
     return null;
   }
   return findUserbyId(session.adminUserId, data);
@@ -172,6 +172,7 @@ export function getQuizIndex(quizId: number, data: Data): number | null {
   if (index === -1) {
     return null;
   }
+  return index;
 }
 
 /**
@@ -207,8 +208,10 @@ export function isValidToken(token: string, data: Data): ErrorMessage | null {
   if (token === '') {
     return createError('Token is empty');
   }
-  const session = findSessionbyToken(token, data);
-  if (session === null) {
+  const session = data.sessions.find(session => session.token === token);
+  if (session === undefined) {
+    return createError('Invalid token');
+  } else if (session.valid === false) {
     return createError('Invalid token');
   }
   return null;
@@ -393,6 +396,7 @@ export function isValidQuizIdForUser(authUserId: number, quizId: number, data: D
     return createError('QuizId is not a valid quiz');
   } else if (authUserId !== findQuizbyId(quizId, data).authUserId) {
     return createError('User is not an owner of this quiz');
+  } else {
+    return null;
   }
-  return null;
 }
