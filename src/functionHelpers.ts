@@ -172,7 +172,6 @@ export function getQuizIndex(quizId: number, data: Data): number | null {
   if (index === -1) {
     return null;
   }
-  return index;
 }
 
 /**
