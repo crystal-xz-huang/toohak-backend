@@ -1,4 +1,4 @@
-import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn } from './dataTypes';
+import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn } from './dataTypes';
 import {
   isValidToken,
   findUserbyToken,
@@ -216,4 +216,26 @@ export function adminQuizDescriptionUpdate(token: string, quizId: number, descri
   data.quizzes[getQuizIndex(quizId, data)].timeLastEdited = Math.floor(Date.now() / 1000);
   setData(data);
   return {};
+}
+
+/**
+ * View the quizzes that are currently in the trash for the logged in user
+ *
+ * @param { string } token - the token that corresponds to a user session
+ * @returns { AdminQuizTrashViewReturn | ErrorMessage } - an object containing an array of quizzes
+ */
+export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | ErrorMessage {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const authUserId = data.sessions.find(session => session.token === token).adminUserId;
+  const quizDetails = data.quizzes
+    .filter(quiz => quiz.authUserId === authUserId && !quiz.valid)
+    .map(quiz => ({ quizId: quiz.quizId, name: quiz.name }));
+
+  return { quizzes: quizDetails };
 }
