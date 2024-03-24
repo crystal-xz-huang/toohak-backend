@@ -177,7 +177,6 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
     throw HTTPError(400, quizNameError.error);
   }
 
-  // const quizIndex = getQuizIndex(quizId, data);
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
   data.quizzes[quizIndex].name = name;
   data.quizzes[quizIndex].timeLastEdited = getCurrentTime();
@@ -214,8 +213,10 @@ export function adminQuizDescriptionUpdate(token: string, quizId: number, descri
     throw HTTPError(400, descriptionError.error);
   }
 
-  data.quizzes[getQuizIndex(quizId, data)].description = description;
-  data.quizzes[getQuizIndex(quizId, data)].timeLastEdited = Math.floor(Date.now() / 1000);
+  const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
+  data.quizzes[quizIndex].description = description;
+  data.quizzes[quizIndex].timeLastEdited = getCurrentTime();
+  
   setData(data);
   return {};
 }
