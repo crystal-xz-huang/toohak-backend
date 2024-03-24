@@ -8,7 +8,7 @@ import {
   quizRemoveV1,
   quizInfoV1,
   quizNameUpdateV1,
-  // quizDescriptionUpdateV1,
+  quizDescriptionUpdateV1,
   quizTrashViewV1,
   authLogoutV1,
   // quizRestoreV1,
@@ -403,59 +403,60 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
 });
 
 describe('Testing PUT /v1/admin/quiz/{quizid}/description', () => {
-  // let token: string;
-  // let quizId: number;
-  // beforeEach(() => {
-  //   const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
-  //   token = user.token;
-  //   const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
-  //   quizId = quiz.quizId as number;
-  // });
+  let token: string;
+  let quizId: number;
+  beforeEach(() => {
+    const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    token = user.token;
+    const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+    quizId = quiz.quizId as number;
+  });
 
-  // test('Correct status code and return value on success', () => {
-  //   const response = quizDescriptionUpdateV1(token, quizId, quiz2.description);
-  //   expect(response.statusCode).toStrictEqual(200);
-  //   expect(response.jsonBody).toStrictEqual({ description: quiz2.description });
-  // });
+  test('Correct status code and return value on success', () => {
+    const update = quizDescriptionUpdateV1(token, quizId, quiz2.description);
+    const response = quizInfoV1(token, quizId).jsonBody;
+    expect(update.statusCode).toStrictEqual(200);
+    expect(response.description).toStrictEqual(quiz2.description);
+  });
 
-  // test('Unauthorised error with an invalid or empty token', () => {
-  //   expect(quizDescriptionUpdateV1(token + 'random', quizId, quiz2.description)).toStrictEqual(UNAUTHORISED_ERROR);
-  //   expect(quizDescriptionUpdateV1('', quizId, quiz2.description)).toStrictEqual(UNAUTHORISED_ERROR);
-  // });
+  test('Unauthorised error with an invalid or empty token', () => {
+    expect(quizDescriptionUpdateV1(token + 'random', quizId, quiz2.description)).toStrictEqual(UNAUTHORISED_ERROR);
+    expect(quizDescriptionUpdateV1('', quizId, quiz2.description)).toStrictEqual(UNAUTHORISED_ERROR);
+  });
 
-  // test('Forbidden error with valid token but invalid quizId', () => {
-  //   const response = quizDescriptionUpdateV1(token, quizId + 1, quiz2.description);
-  //   expect(response).toStrictEqual(FORBIDDEN_ERROR);
-  // });
+  test('Forbidden error with valid token but invalid quizId', () => {
+    const response = quizDescriptionUpdateV1(token, quizId + 1, quiz2.description);
+    expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  });
 
-  // test('Forbidden error with valid token but quizId not owned by user', () => {
-  //   const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
-  //   const token2 = invalidUser.token as string;
-  //   const response = quizDescriptionUpdateV1(token2, quizId, quiz2.description);
-  //   expect(response).toStrictEqual(FORBIDDEN_ERROR);
-  // });
+  test('Forbidden error with valid token but quizId not owned by user', () => {
+    const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+    const token2 = invalidUser.token as string;
+    const response = quizDescriptionUpdateV1(token2, quizId, quiz2.description);
+    expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  });
 
-  // test('Bad request error with description more than 100 characters', () => {
-  //   const longDescription = 'Q'.repeat(101);
-  //   const response = quizDescriptionUpdateV1(token, quizId, longDescription);
-  //   expect(response).toStrictEqual(BAD_REQUEST_ERROR);
-  // });
+  test('Bad request error with description more than 100 characters', () => {
+    const longDescription = 'Q'.repeat(101);
+    const response = quizDescriptionUpdateV1(token, quizId, longDescription);
+    expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  });
 
-  // test('Successful update of one quiz description', () => {
-  //   quizDescriptionUpdateV1(token, quizId, quiz2.description);
-  //   const response = quizInfoV1(token, quizId).jsonBody;
-  //   expect(response.description).toStrictEqual(quiz2.description);
-  // });
+  test('Successful update of one quiz description', () => {
+    quizDescriptionUpdateV1(token, quizId, quiz2.description);
+    const response = quizInfoV1(token, quizId).jsonBody;
+    expect(response.description).toStrictEqual(quiz2.description);
+  });
 
-  // test('Successful update of one quiz description, and creation of a new quiz with the old description', () => {
-  //   quizDescriptionUpdateV1(token, quizId, quiz2.description);
-  //   const response1 = quizInfoV1(token, quizId).jsonBody;
-  //   expect(response1.description).toStrictEqual(quiz2.description);
+  test('Successful update of one quiz description, and creation of a new quiz with the old description', () => {
+    quizDescriptionUpdateV1(token, quizId, quiz2.description);
+    const response1 = quizInfoV1(token, quizId).jsonBody;
+    expect(response1.description).toStrictEqual(quiz2.description);
 
-  //   const quizId2 = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody.quizId as number;
-  //   const response2 = quizInfoV1(token, quizId2).jsonBody;
-  //   expect(response2.description).toStrictEqual(quiz1.description);
-  // });
+    const quizId2 = quizCreateV1(token, quiz2.name, quiz1.description).jsonBody.quizId as number;
+    const response2 = quizInfoV1(token, quizId2).jsonBody.description as string;
+    expect(response2).toStrictEqual(quiz1.description);
+  });
 });
 
 describe('Testing GET /v1/admin/quiz/trash', () => {
