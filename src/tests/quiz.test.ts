@@ -11,7 +11,7 @@ import {
   quizDescriptionUpdateV1,
   quizTrashViewV1,
   authLogoutV1,
-  // quizRestoreV1,
+  quizRestoreV1,
   // quizTrashEmptyV1,
   // quizTransferV1,
   // quizQuestionCreateV1,
@@ -519,5 +519,66 @@ describe('Testing GET /v1/admin/quiz/trash', () => {
     const response = quizTrashViewV1(token).jsonBody;
     const expected = { quizzes: [{ quizId: quizId1, name: quiz1.name }, { quizId: quizId2, name: quiz2.name }, { quizId: quizId3, name: quiz3.name }] };
     expect(response).toStrictEqual(expected);
+  });
+});
+
+describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
+  let tokenUser1: string;
+  let tokenUser2: string;
+  let quizId1: number;
+
+  const user1Details = { email: 'user1@example.com', password: 'password1', nameFirst: 'User', nameLast: 'One' };
+  const user2Details = { email: 'user2@example.com', password: 'password2', nameFirst: 'User', nameLast: 'Two' };
+
+  beforeEach(() => {
+    clearV1();
+
+    const user1 = authRegisterV1(user1Details.email, user1Details.password, user1Details.nameFirst, user1Details.nameLast).jsonBody;
+    tokenUser1 = user1.token as string;
+
+    const quiz1 = quizCreateV1(tokenUser1, 'Quiz 1', 'Description for Quiz 1').jsonBody;
+    quizId1 = quiz1.quizId as number;
+    quizRemoveV1(tokenUser1, quizId1);
+
+    const user2 = authRegisterV1(user2Details.email, user2Details.password, user2Details.nameFirst, user2Details.nameLast).jsonBody;
+    tokenUser2 = user2.token as string;
+  });
+
+  test('Successful quiz restoration', () => {
+    const response = quizRestoreV1(tokenUser1, quizId1).jsonBody;
+    expect(response).toStrictEqual({});
+  });
+
+  test('Error when the quiz is not in the trash', () => {
+    quizRestoreV1(tokenUser1, quizId1);
+    const response = quizRestoreV1(tokenUser1, quizId1);
+    expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  });
+
+  test('Error when attempting to restore a quiz with a name that already exists', () => {
+    quizCreateV1(tokenUser2, 'Quiz 1', 'Description for Quiz 2');
+    const response = quizRestoreV1(tokenUser1, quizId1);
+    expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  });
+
+  test('Error with an empty token', () => {
+    const response = quizRestoreV1('', quizId1);
+    expect(response).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Error with an invalid token', () => {
+    const response = quizRestoreV1(tokenUser1 + 'random', quizId1);
+    expect(response).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Error when the user does not own the quiz', () => {
+    const response = quizRestoreV1(tokenUser2, quizId1); // Using tokenUser2 to attempt to restore quizId1
+    expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  });
+
+  test('Error when the quiz ID is invalid', () => {
+    const invalidQuizId = -1;
+    const response = quizRestoreV1(tokenUser1, invalidQuizId);
+    expect(response).toStrictEqual(FORBIDDEN_ERROR);
   });
 });
