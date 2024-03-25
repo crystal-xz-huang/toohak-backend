@@ -12,7 +12,7 @@ import process from 'process';
 // import { getData, setData } from './dataStore';
 import { clear } from './other';
 import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate, adminAuthLogout } from './auth';
-import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView } from './quiz';
+import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView, adminQuizRestore } from './quiz';
 
 // Set up web app
 const app = express();
@@ -177,12 +177,12 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   res.json(response);
 });
 
-// app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
-//   const quizId = parseInt(req.params.quizid);
-//   const token = req.body.token as string;
-//   const response = adminQuizRestore(token, quizId);
-//   res.json(response);
-// });
+app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid);
+  const token = req.body.token as string;
+  const response = adminQuizRestore(token, quizId);
+  res.json(response);
+});
 
 // app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
 //   const token = req.query.token as string;
