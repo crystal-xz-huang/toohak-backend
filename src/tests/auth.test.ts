@@ -9,7 +9,7 @@ import {
   authLogoutV1,
 } from '../testHelpers';
 
-import { BAD_REQUEST_ERROR, TOKEN_SUCCESS, UNAUTHORISED_ERROR } from '../testTypes';
+import { BAD_REQUEST_ERROR, TOKEN_SUCCESS, UNAUTHORISED_ERROR, incorrectEmails, incorrectPasswords } from '../testTypes';
 import { user1, user2, user3, invalidEmails, invalidPasswords } from '../testTypes';
 
 // ========================================================================================================================================//
@@ -169,12 +169,14 @@ describe('Testing POST /v1/admin/auth/login', () => {
     expect(result3.token).not.toStrictEqual(result1.token);
   });
 
-  test('Bad request error when email does not exist', () => {
-    expect(authLoginV1('unregistered@gmail.com', user1.password)).toStrictEqual(BAD_REQUEST_ERROR);
-  });
+  describe('Bad request errors', () => {
+    test.each(incorrectEmails)("Bad request error when email is incorrect  '$#': '$email'", ({ email }) => {
+      expect(authLoginV1(email, user1.password)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
 
-  test('Bad request error when password is not correct', () => {
-    expect(authLoginV1(user1.email, 'incorrect_password')).toStrictEqual(BAD_REQUEST_ERROR);
+    test.each(incorrectPasswords)("Bad request error when password is incorrrect '$#': '$password'", ({ password }) => {
+      expect(authLoginV1(user1.email, password)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
   });
 
   // test('Correctly updates unsuccessful logins when password is not correct', () => {
