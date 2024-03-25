@@ -1,3 +1,4 @@
+import { token } from 'morgan';
 import {
   clearV1,
   authRegisterV1,
@@ -109,39 +110,91 @@ describe('Testing POST /v1/admin/auth/register', () => {
     });
   });
 });
-/*
+
 describe('Testing POST /v1/admin/auth/login', () => {
-  let result;
   beforeEach(() => {
-    result = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).
+    authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast);
   });
 
   test('Correct status code and return value', () => {
     expect(authLoginV1(user1.email, user1.password)).toStrictEqual(TOKEN_SUCCESS);
   });
 
-  test('Login in a user with the correct details', () => {
-    const token = authLoginV1(user1.email, user1.password).jsonBody.token;
-    expect(userDetailsV1(token)).toStrictEqual({
-      user: {
-        userId: token,
-        name: `${user1.nameFirst} ${user1.nameLast}`,
-        email: user1.email,
-        numSuccessfulLogins: 1,
-        numFailedPasswordsSinceLastLogin: 0,
-      }
-    });
+  // test('Correct display information for logged in user', () => {
+  //   const token = authLoginV1(user1.email, user1.password).jsonBody.token;
+  //   expect(userDetailsV1(token)).toStrictEqual({
+  //     user: {
+  //       userId: expect.any(Number),
+  //       name: `${user1.nameFirst} ${user1.nameLast}`,
+  //       email: user1.email,
+  //       numSuccessfulLogins: 2,
+  //       numFailedPasswordsSinceLastLogin: 0,
+  //     }
+  //   });
+  // });
+
+  // test('Correct display information for seperate tokens of same user', () => {
+  //   const token1 = authLoginV1(user1.email, user1.password).jsonBody.token;
+  //   const token2 = authLoginV1(user1.email, user1.password).jsonBody.token;
+  //   expect(userDetailsV1(token1)).toStrictEqual({
+  //     user: {
+  //       userId: expect.any(Number),
+  //       name: `${user1.nameFirst} ${user1.nameLast}`,
+  //       email: user1.email,
+  //       numSuccessfulLogins: 2,
+  //       numFailedPasswordsSinceLastLogin: 0,
+  //     }
+  //   });
+
+  //   expect(userDetailsV1(token2)).toStrictEqual({
+  //     user: {
+  //       userId: expect.any(Number),
+  //       name: `${user1.nameFirst} ${user1.nameLast}`,
+  //       email: user1.email,
+  //       numSuccessfulLogins: 3,
+  //       numFailedPasswordsSinceLastLogin: 0,
+  //     }
+  //   });
+
+  //   expect(userDetailsV1(token1).jsonBody.user.userId).toStrictEqual(userDetailsV1(token2).jsonBody.user.userId);
+  // });
+
+  test('Each seperate login into same user has different tokens', () => {
+    const result1 = authLoginV1(user1.email, user1.password).jsonBody;
+    const result2 = authLoginV1(user1.email, user1.password).jsonBody;
+    const result3 = authLoginV1(user1.email, user1.password).jsonBody;
+
+    expect(result1.token).not.toStrictEqual(result2.token);
+    expect(result2.token).not.toStrictEqual(result3.token);
+    expect(result3.token).not.toStrictEqual(result1.token);
   });
 
-  test('BAD_REQUEST_ERROR when email does not exist', () => {
+  test('Bad request error when email does not exist', () => {
     expect(authLoginV1('unregistered@gmail.com', user1.password)).toStrictEqual(BAD_REQUEST_ERROR);
   });
 
-  test('BAD_REQUEST_ERROR when password is not correct', () => {
+  test('Bad request error when password is not correct', () => {
     expect(authLoginV1(user1.email, 'incorrect_password')).toStrictEqual(BAD_REQUEST_ERROR);
   });
+
+  // test('Correctly updates unsuccessful logins when password is not correct', () => {
+  //   const token1 = authLoginV1(user1.email, user1.password).jsonBody.token;
+  //   authLoginV1(user1.email, 'incorrect_password');
+  //   authLoginV1(user1.email, 'incorrect_password');
+
+  //   expect(userDetailsV1(token1)).toStrictEqual({
+  //     user: {
+  //       userId: expect.any(Number),
+  //       name: `${user1.nameFirst} ${user1.nameLast}`,
+  //       email: user1.email,
+  //       numSuccessfulLogins: 2,
+  //       numFailedPasswordsSinceLastLogin: 2,
+  //     }
+  //   })
+  // });
 });
 
+/*
 describe('Testing GET /v1/admin/user/details', () => {
   let token: string;
   beforeEach(() => {
@@ -154,11 +207,11 @@ describe('Testing GET /v1/admin/user/details', () => {
 
   describe('returns an object with correct key-values when authUserId is valid', () => {
     test('test numSuccessfulLogins is 1 when user is registered with authRegisterV1', () => {
-      expect(userDetailsV1(id.authUserId)).toStrictEqual({
+      expect(userDetailsV1(token)).toStrictEqual({
         user: {
-          userId: id.authUserId,
-          name: `${user.nameFirst} ${user.nameLast}`,
-          email: user.email,
+          userId: token,
+          name: `${user1.nameFirst} ${user1.nameLast}`,
+          email: user1.email,
           numSuccessfulLogins: 1,
           numFailedPasswordsSinceLastLogin: 0,
         }
@@ -166,12 +219,12 @@ describe('Testing GET /v1/admin/user/details', () => {
     });
 
     test('test numSuccessfulLogins is 2 when user successfully logs in with adminAuthLogin', () => {
-      authLoginV1(user.email, user.password);
-      expect(userDetailsV1(id.authUserId)).toStrictEqual({
+      authLoginV1(user1.email, user1.password);
+      expect(userDetailsV1(token)).toStrictEqual({
         user: {
-          userId: id.authUserId,
-          name: `${user.nameFirst} ${user.nameLast}`,
-          email: user.email,
+          userId: token,
+          name: `${user1.nameFirst} ${user1.nameLast}`,
+          email: user1.email,
           numSuccessfulLogins: 2,
           numFailedPasswordsSinceLastLogin: 0,
         }
@@ -179,12 +232,12 @@ describe('Testing GET /v1/admin/user/details', () => {
     });
 
     test('test numFailedPasswordsSinceLastLogin is 1 when user fails to log in with an invalid password', () => {
-      authLoginV1(user.email, 'invalid_password1');
-      expect(userDetailsV1(id.authUserId)).toStrictEqual({
+      authLoginV1(user1.email, 'invalid_password1');
+      expect(userDetailsV1(token)).toStrictEqual({
         user: {
-          userId: id.authUserId,
-          name: `${user.nameFirst} ${user.nameLast}`,
-          email: user.email,
+          userId: token,
+          name: `${user1.nameFirst} ${user1.nameLast}`,
+          email: user1.email,
           numSuccessfulLogins: 1,
           numFailedPasswordsSinceLastLogin: 1,
         }
@@ -192,13 +245,13 @@ describe('Testing GET /v1/admin/user/details', () => {
     });
 
     test('test numFailedPasswordsSinceLastLogin is reset with a successful login', () => {
-      authLoginV1(user.email, 'invalid_password1');
-      authLoginV1(user.email, user.password);
-      expect(userDetailsV1(id.authUserId)).toStrictEqual({
+      authLoginV1(user1.email, 'invalid_password1');
+      authLoginV1(user1.email, user1.password);
+      expect(userDetailsV1(token)).toStrictEqual({
         user: {
-          userId: id.authUserId,
-          name: `${user.nameFirst} ${user.nameLast}`,
-          email: user.email,
+          userId: token,
+          name: `${user1.nameFirst} ${user1.nameLast}`,
+          email: user1.email,
           numSuccessfulLogins: 2,
           numFailedPasswordsSinceLastLogin: 0,
         }
@@ -207,6 +260,7 @@ describe('Testing GET /v1/admin/user/details', () => {
   });
 });
 */
+
 describe('Testing PUT /v1/admin/user/details', () => {
   const emailUpdate = 'janedoe@gmail.com';
   const nameFirstUpdate = 'Jane';
