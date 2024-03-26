@@ -16,7 +16,7 @@ import {
   isValidName,
   isValidToken,
   findUserbyEmail,
-  getUserIndex,
+  // getUserIndex,
   generateToken,
   findUserbyToken,
 } from './functionHelpers';

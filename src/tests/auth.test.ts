@@ -1,4 +1,4 @@
-import { Token } from '../dataTypes';
+// import { Token } from '../dataTypes';
 import {
   clearV1,
   authRegisterV1,
@@ -192,10 +192,9 @@ describe('Testing POST /v1/admin/auth/login', () => {
         numSuccessfulLogins: 2,
         numFailedPasswordsSinceLastLogin: 2,
       }
-    })
+    });
   });
 });
-
 
 describe('Testing GET /v1/admin/user/details', () => {
   let token: string;
@@ -207,7 +206,7 @@ describe('Testing GET /v1/admin/user/details', () => {
     test('returns bad request error when authUserId is invalid', () => {
       expect(userDetailsV1(token + 10)).toStrictEqual(UNAUTHORISED_ERROR);
     });
-    
+
     test('returns bad request error when authUserId has logged out', () => {
       authLogoutV1(token);
       expect(userDetailsV1(token)).toStrictEqual(UNAUTHORISED_ERROR);
@@ -268,7 +267,6 @@ describe('Testing GET /v1/admin/user/details', () => {
     });
   });
 });
-
 
 describe('Testing PUT /v1/admin/user/details', () => {
   const emailUpdate = 'janedoe@gmail.com';
