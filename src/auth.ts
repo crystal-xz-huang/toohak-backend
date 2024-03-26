@@ -94,19 +94,29 @@ export function adminAuthLogin(email: string, password: string): AdminAuthLoginR
 
   const user = findUserbyEmail(email, data);
   if (user.password !== password) {
-    user.numFailedPasswordsSinceLastLogin = user.numFailedPasswordsSinceLastLogin + 1;
+    user.numFailedPasswordsSinceLastLogin++;
     data.users[getUserIndex(user.authUserId, data)] = user;
     setData(data);
     throw HTTPError(400, 'Password is incorrect for the given email');
   }
 
+  const sessionId = data.sessionId_counter + 1;
+  const userId = user.authUserId;
+  const token = generateToken(sessionId);
+
+  data.sessions.push({
+    token: token,
+    sessionId: data.sessionId_counter,
+    adminUserId: userId,
+    valid: true,
+  });
+
   user.numFailedPasswordsSinceLastLogin = 0;
-  user.numSuccessfulLogins = user.numSuccessfulLogins + 1;
-  data.users[getUserIndex(user.authUserId, data)] = user;
+  user.numSuccessfulLogins++;
   setData(data);
 
   // Return the token corresponding to the user
-  return findTokenforUser(user.authUserId, data);
+  return { token: token };
 }
 
 /**
