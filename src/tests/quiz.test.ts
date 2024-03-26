@@ -12,7 +12,7 @@ import {
   quizTrashViewV1,
   authLogoutV1,
   quizRestoreV1,
-  quizTrashEmptyV1,
+  // quizTrashEmptyV1,
   // quizTransferV1,
   // quizQuestionCreateV1,
   // quizQuestionUpdateV1,
