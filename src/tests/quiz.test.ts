@@ -12,7 +12,7 @@ import {
   quizTrashViewV1,
   authLogoutV1,
   quizRestoreV1,
-  // quizTrashEmptyV1,
+  quizTrashEmptyV1,
   // quizTransferV1,
   // quizQuestionCreateV1,
   // quizQuestionUpdateV1,
@@ -572,7 +572,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
   });
 
   test('Error when the user does not own the quiz', () => {
-    const response = quizRestoreV1(tokenUser2, quizId1); // Using tokenUser2 to attempt to restore quizId1
+    const response = quizRestoreV1(tokenUser2, quizId1);
     expect(response).toStrictEqual(FORBIDDEN_ERROR);
   });
 
@@ -580,5 +580,66 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
     const invalidQuizId = -1;
     const response = quizRestoreV1(tokenUser1, invalidQuizId);
     expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  });
+});
+
+describe('Testing POST /v1/admin/quiz/trash/empty', () => {
+  let tokenUser1: string;
+  let quizId1: number;
+  let quizId2: number;
+  let quizId3: number;
+
+  const user1Details = { email: 'user1@example.com', password: 'password1', nameFirst: 'User', nameLast: 'One' };
+
+  beforeEach(() => {
+    const user1 = authRegisterV1(user1Details.email, user1Details.password, user1Details.nameFirst, user1Details.nameLast).jsonBody;
+    tokenUser1 = user1.token as string;
+
+    const quiz1 = quizCreateV1(tokenUser1, 'Quiz 1', 'Description for Quiz 1').jsonBody;
+    quizId1 = quiz1.quizId as number;
+    quizRemoveV1(tokenUser1, quizId1);
+
+    const quiz2 = quizCreateV1(tokenUser1, 'Quiz 2', 'Description for Quiz 2').jsonBody;
+    quizId2 = quiz2.quizId as number;
+    quizRemoveV1(tokenUser1, quizId2);
+
+    const quiz3 = quizCreateV1(tokenUser1, 'Quiz 3', 'Description for Quiz 3').jsonBody;
+    quizId3 = quiz3.quizId as number;
+    quizRemoveV1(tokenUser1, quizId3);
+  });
+
+  test('Successful empty of trash for multiple quizzes', () => {
+    const response1 = quizTrashEmptyV1(tokenUser1, [quizId1, quizId2, quizId3]).jsonBody;
+    expect(response1).toStrictEqual({});
+
+    // View newest trash list to check if trash has been empty correctly
+    const response2 = quizTrashViewV1(tokenUser1).jsonBody;
+    const expected = { quizzes: [] } as { quizzes: { quizId: number, name: string }[] };
+    expect(response2).toStrictEqual(expected);
+  });
+
+  test('Error when trying to empty trash for quizzes not owned by the user', () => {
+    const quizId4 = 999;
+    const response = quizTrashEmptyV1(tokenUser1, [quizId1, quizId4]);
+    expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  });
+
+  test('Error when one or more of the quizzes is not in the trash', () => {
+    quizRestoreV1(tokenUser1, quizId2);
+    quizRestoreV1(tokenUser1, quizId3);
+    const response1 = quizTrashEmptyV1(tokenUser1, [quizId1, quizId2]);
+    expect(response1).toStrictEqual(BAD_REQUEST_ERROR);
+    const response2 = quizTrashEmptyV1(tokenUser1, [quizId1, quizId2, quizId3]);
+    expect(response2).toStrictEqual(BAD_REQUEST_ERROR);
+  });
+
+  test('Error with an empty token', () => {
+    const response = quizTrashEmptyV1('', [quizId1, quizId2, quizId3]);
+    expect(response).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Error with an invalid token', () => {
+    const response = quizTrashEmptyV1(tokenUser1 + 'random', [quizId1, quizId2, quizId3]);
+    expect(response).toStrictEqual(UNAUTHORISED_ERROR);
   });
 });
