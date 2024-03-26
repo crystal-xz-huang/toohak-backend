@@ -8,6 +8,7 @@ import {
   isValidQuizDescription,
   isQuizNameUsed,
   isValidQuizIdForUser,
+  // getQuizIndex,
 } from './functionHelpers';
 import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
@@ -240,4 +241,36 @@ export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | Er
     .map(quiz => ({ quizId: quiz.quizId, name: quiz.name }));
 
   return { quizzes: quizDetails };
+}
+
+export function adminQuizRestore(token: string, quizId: number): EmptyObject | ErrorMessage {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const authUserId = findUserbyToken(token, data).authUserId;
+  const userError = isValidQuizIdForUser(authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError.error);
+  }
+
+  const quiz = findQuizbyId(quizId, data);
+  if (quiz.valid) {
+    throw HTTPError(400, 'Quiz ID refers to a quiz that is not currently invalid or in the trash');
+  }
+
+  const isNameUsed = data.quizzes.some(q => q.name === quiz.name && q.valid === true && q.quizId !== quizId);
+  if (isNameUsed) {
+    throw HTTPError(400, 'Quiz name of the restored quiz is already used by another active quiz');
+  }
+
+  quiz.valid = true;
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+
+  setData(data);
+
+  return {};
 }
