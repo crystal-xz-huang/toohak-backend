@@ -124,8 +124,8 @@ export function quizRestoreV1(token: string, quizId: number): RequestResponse {
   return requestHelper('POST', `/v1/admin/quiz/${quizId}/restore`, { token });
 }
 
-export function quizTrashEmptyV1(token: string, quizIds: string): RequestResponse {
-  return requestHelper('DELETE', '/v1/admin/quiz/trash/empty', { token, quizIds });
+export function quizTrashEmptyV1(token: string, quizIds: number[]): RequestResponse {
+  return requestHelper('DELETE', '/v1/admin/quiz/trash/empty', { token, quizIds: JSON.stringify(quizIds) });
 }
 
 export function quizTransferV1(token: string, quizId: number, userEmail: string): RequestResponse {
