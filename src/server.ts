@@ -94,9 +94,7 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
   const response = adminAuthLogin(email, password);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
+  console.log('POST /v1/admin/auth/login', response);
   res.json(response);
 });
 
