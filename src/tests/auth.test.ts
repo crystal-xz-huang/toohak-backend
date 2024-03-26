@@ -122,7 +122,7 @@ describe('Testing POST /v1/admin/auth/login', () => {
 
   test('Correct display information for logged in user', () => {
     const token = authLoginV1(user1.email, user1.password).jsonBody.token;
-    expect(userDetailsV1(token)).toStrictEqual({
+    expect(userDetailsV1(token).jsonBody).toStrictEqual({
       user: {
         userId: expect.any(Number),
         name: `${user1.nameFirst} ${user1.nameLast}`,
@@ -136,17 +136,17 @@ describe('Testing POST /v1/admin/auth/login', () => {
   test('Correct display information for seperate tokens of same user', () => {
     const token1 = authLoginV1(user1.email, user1.password).jsonBody.token;
     const token2 = authLoginV1(user1.email, user1.password).jsonBody.token;
-    expect(userDetailsV1(token1)).toStrictEqual({
+    expect(userDetailsV1(token1).jsonBody).toStrictEqual({
       user: {
         userId: expect.any(Number),
         name: `${user1.nameFirst} ${user1.nameLast}`,
         email: user1.email,
-        numSuccessfulLogins: 2,
+        numSuccessfulLogins: 3,
         numFailedPasswordsSinceLastLogin: 0,
       }
     });
 
-    expect(userDetailsV1(token2)).toStrictEqual({
+    expect(userDetailsV1(token2).jsonBody).toStrictEqual({
       user: {
         userId: expect.any(Number),
         name: `${user1.nameFirst} ${user1.nameLast}`,
@@ -184,7 +184,7 @@ describe('Testing POST /v1/admin/auth/login', () => {
     authLoginV1(user1.email, 'incorrect_password');
     authLoginV1(user1.email, 'incorrect_password');
 
-    expect(userDetailsV1(token1)).toStrictEqual({
+    expect(userDetailsV1(token1).jsonBody).toStrictEqual({
       user: {
         userId: expect.any(Number),
         name: `${user1.nameFirst} ${user1.nameLast}`,
@@ -205,18 +205,18 @@ describe('Testing GET /v1/admin/user/details', () => {
 
   describe('Bad request errors', () => {
     test('returns bad request error when authUserId is invalid', () => {
-      expect(userDetailsV1(token + 10)).toStrictEqual(BAD_REQUEST_ERROR);
+      expect(userDetailsV1(token + 10)).toStrictEqual(UNAUTHORISED_ERROR);
     });
     
     test('returns bad request error when authUserId has logged out', () => {
       authLogoutV1(token);
-      expect(userDetailsV1(token)).toStrictEqual(BAD_REQUEST_ERROR);
+      expect(userDetailsV1(token)).toStrictEqual(UNAUTHORISED_ERROR);
     });
   });
 
   describe('returns an object with correct key-values when authUserId is valid', () => {
     test('test numSuccessfulLogins is 1 when user is registered with authRegisterV1', () => {
-      expect(userDetailsV1(token)).toStrictEqual({
+      expect(userDetailsV1(token).jsonBody).toStrictEqual({
         user: {
           userId: expect.any(Number),
           name: `${user1.nameFirst} ${user1.nameLast}`,
@@ -229,7 +229,7 @@ describe('Testing GET /v1/admin/user/details', () => {
 
     test('test numSuccessfulLogins is 2 when user successfully logs in with adminAuthLogin', () => {
       authLoginV1(user1.email, user1.password);
-      expect(userDetailsV1(token)).toStrictEqual({
+      expect(userDetailsV1(token).jsonBody).toStrictEqual({
         user: {
           userId: expect.any(Number),
           name: `${user1.nameFirst} ${user1.nameLast}`,
@@ -242,9 +242,9 @@ describe('Testing GET /v1/admin/user/details', () => {
 
     test('test numFailedPasswordsSinceLastLogin is 1 when user fails to log in with an invalid password', () => {
       authLoginV1(user1.email, 'invalid_password1');
-      expect(userDetailsV1(token)).toStrictEqual({
+      expect(userDetailsV1(token).jsonBody).toStrictEqual({
         user: {
-          userId: token,
+          userId: expect.any(Number),
           name: `${user1.nameFirst} ${user1.nameLast}`,
           email: user1.email,
           numSuccessfulLogins: 1,
@@ -256,9 +256,9 @@ describe('Testing GET /v1/admin/user/details', () => {
     test('test numFailedPasswordsSinceLastLogin is reset with a successful login', () => {
       authLoginV1(user1.email, 'invalid_password1');
       authLoginV1(user1.email, user1.password);
-      expect(userDetailsV1(token)).toStrictEqual({
+      expect(userDetailsV1(token).jsonBody).toStrictEqual({
         user: {
-          userId: token,
+          userId: expect.any(Number),
           name: `${user1.nameFirst} ${user1.nameLast}`,
           email: user1.email,
           numSuccessfulLogins: 2,

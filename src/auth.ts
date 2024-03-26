@@ -94,7 +94,6 @@ export function adminAuthLogin(email: string, password: string): AdminAuthLoginR
   const user = findUserbyEmail(email, data);
   if (user.password !== password) {
     user.numFailedPasswordsSinceLastLogin++;
-    data.users[getUserIndex(user.authUserId, data)] = user;
     setData(data);
     throw HTTPError(400, 'Password is incorrect for the given email');
   }
