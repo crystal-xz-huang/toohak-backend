@@ -19,7 +19,6 @@ import {
   getUserIndex,
   generateToken,
   findUserbyToken,
-  findTokenforUser,
 } from './functionHelpers';
 
 /**

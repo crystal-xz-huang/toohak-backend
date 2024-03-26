@@ -1,4 +1,3 @@
-import { token } from 'morgan';
 import {
   clearV1,
   authRegisterV1,

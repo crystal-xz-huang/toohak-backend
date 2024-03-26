@@ -8,7 +8,6 @@ import {
   isValidQuizDescription,
   isQuizNameUsed,
   isValidQuizIdForUser,
-  getQuizIndex,
 } from './functionHelpers';
 import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
@@ -216,7 +215,7 @@ export function adminQuizDescriptionUpdate(token: string, quizId: number, descri
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
   data.quizzes[quizIndex].description = description;
   data.quizzes[quizIndex].timeLastEdited = getCurrentTime();
-  
+
   setData(data);
   return {};
 }

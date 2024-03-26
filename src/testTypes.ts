@@ -51,11 +51,11 @@ export const invalidPasswords = [
 export const incorrectEmails = [
   { email: 'fake1@gmail.com' },
   { email: 'fake2@gmail.com' },
-  { email: 'fake3@gmail.com'},
-  { email: 'hayden.smith@outlook.com'},
-  { email: 'janedo@gmail.com'},
-  { email: 'jonsmith@gmail.com'}
-]
+  { email: 'fake3@gmail.com' },
+  { email: 'hayden.smith@outlook.com' },
+  { email: 'janedo@gmail.com' },
+  { email: 'jonsmith@gmail.com' }
+];
 
 export const incorrectPasswords = [
   { password: 'loserfrfr420' },
@@ -64,7 +64,7 @@ export const incorrectPasswords = [
   { password: 'thetalosprinciple112' },
   { password: 'elohimseesusandconquersus89' },
   { password: 'wemustserveall3000aioverlords' }
-]
+];
 
 // ====================================================================
 // QUIZ CONSTANTS
