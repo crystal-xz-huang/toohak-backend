@@ -1,3 +1,4 @@
+import { Token } from '../dataTypes';
 import {
   clearV1,
   authRegisterV1,
@@ -119,44 +120,44 @@ describe('Testing POST /v1/admin/auth/login', () => {
     expect(authLoginV1(user1.email, user1.password)).toStrictEqual(TOKEN_SUCCESS);
   });
 
-  // test('Correct display information for logged in user', () => {
-  //   const token = authLoginV1(user1.email, user1.password).jsonBody.token;
-  //   expect(userDetailsV1(token)).toStrictEqual({
-  //     user: {
-  //       userId: expect.any(Number),
-  //       name: `${user1.nameFirst} ${user1.nameLast}`,
-  //       email: user1.email,
-  //       numSuccessfulLogins: 2,
-  //       numFailedPasswordsSinceLastLogin: 0,
-  //     }
-  //   });
-  // });
+  test('Correct display information for logged in user', () => {
+    const token = authLoginV1(user1.email, user1.password).jsonBody.token;
+    expect(userDetailsV1(token)).toStrictEqual({
+      user: {
+        userId: expect.any(Number),
+        name: `${user1.nameFirst} ${user1.nameLast}`,
+        email: user1.email,
+        numSuccessfulLogins: 2,
+        numFailedPasswordsSinceLastLogin: 0,
+      }
+    });
+  });
 
-  // test('Correct display information for seperate tokens of same user', () => {
-  //   const token1 = authLoginV1(user1.email, user1.password).jsonBody.token;
-  //   const token2 = authLoginV1(user1.email, user1.password).jsonBody.token;
-  //   expect(userDetailsV1(token1)).toStrictEqual({
-  //     user: {
-  //       userId: expect.any(Number),
-  //       name: `${user1.nameFirst} ${user1.nameLast}`,
-  //       email: user1.email,
-  //       numSuccessfulLogins: 2,
-  //       numFailedPasswordsSinceLastLogin: 0,
-  //     }
-  //   });
+  test('Correct display information for seperate tokens of same user', () => {
+    const token1 = authLoginV1(user1.email, user1.password).jsonBody.token;
+    const token2 = authLoginV1(user1.email, user1.password).jsonBody.token;
+    expect(userDetailsV1(token1)).toStrictEqual({
+      user: {
+        userId: expect.any(Number),
+        name: `${user1.nameFirst} ${user1.nameLast}`,
+        email: user1.email,
+        numSuccessfulLogins: 2,
+        numFailedPasswordsSinceLastLogin: 0,
+      }
+    });
 
-  //   expect(userDetailsV1(token2)).toStrictEqual({
-  //     user: {
-  //       userId: expect.any(Number),
-  //       name: `${user1.nameFirst} ${user1.nameLast}`,
-  //       email: user1.email,
-  //       numSuccessfulLogins: 3,
-  //       numFailedPasswordsSinceLastLogin: 0,
-  //     }
-  //   });
+    expect(userDetailsV1(token2)).toStrictEqual({
+      user: {
+        userId: expect.any(Number),
+        name: `${user1.nameFirst} ${user1.nameLast}`,
+        email: user1.email,
+        numSuccessfulLogins: 3,
+        numFailedPasswordsSinceLastLogin: 0,
+      }
+    });
 
-  //   expect(userDetailsV1(token1).jsonBody.user.userId).toStrictEqual(userDetailsV1(token2).jsonBody.user.userId);
-  // });
+    expect(userDetailsV1(token1).jsonBody.user.userId).toStrictEqual(userDetailsV1(token2).jsonBody.user.userId);
+  });
 
   test('Each seperate login into same user has different tokens', () => {
     const result1 = authLoginV1(user1.email, user1.password).jsonBody;
@@ -178,39 +179,46 @@ describe('Testing POST /v1/admin/auth/login', () => {
     });
   });
 
-  // test('Correctly updates unsuccessful logins when password is not correct', () => {
-  //   const token1 = authLoginV1(user1.email, user1.password).jsonBody.token;
-  //   authLoginV1(user1.email, 'incorrect_password');
-  //   authLoginV1(user1.email, 'incorrect_password');
+  test('Correctly updates unsuccessful logins when password is not correct', () => {
+    const token1 = authLoginV1(user1.email, user1.password).jsonBody.token;
+    authLoginV1(user1.email, 'incorrect_password');
+    authLoginV1(user1.email, 'incorrect_password');
 
-  //   expect(userDetailsV1(token1)).toStrictEqual({
-  //     user: {
-  //       userId: expect.any(Number),
-  //       name: `${user1.nameFirst} ${user1.nameLast}`,
-  //       email: user1.email,
-  //       numSuccessfulLogins: 2,
-  //       numFailedPasswordsSinceLastLogin: 2,
-  //     }
-  //   })
-  // });
+    expect(userDetailsV1(token1)).toStrictEqual({
+      user: {
+        userId: expect.any(Number),
+        name: `${user1.nameFirst} ${user1.nameLast}`,
+        email: user1.email,
+        numSuccessfulLogins: 2,
+        numFailedPasswordsSinceLastLogin: 2,
+      }
+    })
+  });
 });
 
-/*
+
 describe('Testing GET /v1/admin/user/details', () => {
   let token: string;
   beforeEach(() => {
     token = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody.token;
   });
 
-  test('returns BAD_REQUEST_ERROR when authUserId is invalid', () => {
-    expect(userDetailsV1(token + 10)).toStrictEqual(BAD_REQUEST_ERROR);
+  describe('Bad request errors', () => {
+    test('returns bad request error when authUserId is invalid', () => {
+      expect(userDetailsV1(token + 10)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+    
+    test('returns bad request error when authUserId has logged out', () => {
+      authLogoutV1(token);
+      expect(userDetailsV1(token)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
   });
 
   describe('returns an object with correct key-values when authUserId is valid', () => {
     test('test numSuccessfulLogins is 1 when user is registered with authRegisterV1', () => {
       expect(userDetailsV1(token)).toStrictEqual({
         user: {
-          userId: token,
+          userId: expect.any(Number),
           name: `${user1.nameFirst} ${user1.nameLast}`,
           email: user1.email,
           numSuccessfulLogins: 1,
@@ -223,7 +231,7 @@ describe('Testing GET /v1/admin/user/details', () => {
       authLoginV1(user1.email, user1.password);
       expect(userDetailsV1(token)).toStrictEqual({
         user: {
-          userId: token,
+          userId: expect.any(Number),
           name: `${user1.nameFirst} ${user1.nameLast}`,
           email: user1.email,
           numSuccessfulLogins: 2,
@@ -260,7 +268,7 @@ describe('Testing GET /v1/admin/user/details', () => {
     });
   });
 });
-*/
+
 
 describe('Testing PUT /v1/admin/user/details', () => {
   const emailUpdate = 'janedoe@gmail.com';
