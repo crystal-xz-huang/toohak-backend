@@ -102,6 +102,35 @@ export const validQuestion2 = {
   ]
 };
 
+export const validQuestion3 = {
+  question: 'What is the capital of France?',
+  duration: 2,
+  points: 5,
+  answers: [
+    { answer: 'Paris', correct: true },
+    { answer: 'Lyon', correct: false },
+  ]
+};
+
+export const validQuestion4 = {
+  question: 'What is the capital of Japan?',
+  duration: 1,
+  points: 5,
+  answers: [
+    { answer: 'Tokyo', correct: true },
+    { answer: 'Osaka', correct: false },
+  ]
+};
+
+export const validQuestion5 = {
+  question: 'What is the capital of China?',
+  duration: 5,
+  points: 5,
+  answers: [
+    { answer: 'Beijing', correct: true },
+    { answer: 'Shanghai', correct: false },
+  ]
+};
 // Question string is less than 5 characters in length
 export const shortQuestionString = [
   {
