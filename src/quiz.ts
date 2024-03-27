@@ -308,5 +308,6 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
   data.quizzes[quizIndex].authUserId = EmailId;
   data.quizzes[quizIndex].timeLastEdited = getCurrentTime();
 
+  setData();
   return {};
 }
