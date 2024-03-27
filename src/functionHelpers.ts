@@ -1,5 +1,5 @@
 import validator from 'validator';
-import { Data, User, Quiz, Session, ErrorMessage, Token } from './dataTypes';
+import { Data, User, Quiz, Session, ErrorMessage, Token, AdminQuizQuestionCreateInput } from './dataTypes';
 import {
   MIN_USER_NAME_LENGTH,
   MAX_USER_NAME_LENGTH,
@@ -377,7 +377,7 @@ export function isQuizNameUsed(name: string, authUserId: number, data: Data): Er
 }
 
 /**
- * Check if the quizId is valid for the given authUserId:
+ * Check if the quizId is valid for the given authUserId (assuming authUserId is valid and exists)
  * 1. authUserId is a valid user
  * 2. quizId is a valid quiz
  * 3. quizId is owned by the authUserId
@@ -389,13 +389,55 @@ export function isQuizNameUsed(name: string, authUserId: number, data: Data): Er
  * @returns { ErrorMessage | null }  - error message if invalid, or null if the quizId is valid
  */
 export function isValidQuizIdForUser(authUserId: number, quizId: number, data: Data): ErrorMessage | null {
-  if (findUserbyId(authUserId, data) === undefined) {
-    return createError('User is not valid');
-  } else if (!findQuizbyId(quizId, data)) {
+  if (!findQuizbyId(quizId, data)) {
     return createError('QuizId is not a valid quiz');
   } else if (authUserId !== findQuizbyId(quizId, data).authUserId) {
     return createError('User is not an owner of this quiz');
   } else {
     return null;
   }
+}
+
+/**
+ * Check if the quiz question is valid
+ * Question is invalid if:
+ * 1. Question string is less than 5 characters in length or greater than 50 characters in length
+ * 2. The question has more than 6 answers or less than 2 answers
+ * 3. The question duration is not a positive number
+ * 4. The sum of the question durations in the quiz exceeds 3 minutes
+ * 5. The points awarded for the question are less than 1 or greater than 10
+ * 6. The length of any answer is shorter than 1 character long, or longer than 30 characters long
+ * 7. Any answer strings are duplicates of one another (within the same question)
+ * 8. There are no correct answers
+ */
+export function isValidQuestion(question: AdminQuizQuestionCreateInput): ErrorMessage | null {
+  if (question.question.length < 5 || question.question.length > 50) {
+    return createError('Question string is not between 5 and 50 characters');
+  } else if (question.answers.length < 2 || question.answers.length > 6) {
+    return createError('Question has less than 2 or more than 6 answers');
+  } else if (question.duration <= 0) {
+    return createError('Question duration is not a positive number');
+  } else if (question.duration > 180) {
+    return createError('Question duration exceeds 3 minutes');
+  } else if (question.points < 1 || question.points > 10) {
+    return createError('Question points are not between 1 and 10');
+  } else if (question.answers.some(answer => answer.answer.length < 1 || answer.answer.length > 30)) {
+    return createError('Answer is not between 1 and 30 characters');
+  } else if (question.answers.some(answer => question.answers.filter(a => a.answer === answer.answer).length > 1)) {
+    return createError('Duplicate answers in the question');
+  } else if (!question.answers.some(answer => answer.correct === true)) {
+    return createError('No correct answers in the question');
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Generate a random colour
+ */
+export function generateRandomColour(): string {
+  const colours = [
+    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown', 'cyan', 'magenta', 'teal', 'lime', 'indigo',
+  ];
+  return colours[Math.floor(Math.random() * colours.length)];
 }
