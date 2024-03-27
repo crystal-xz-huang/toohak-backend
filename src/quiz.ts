@@ -8,6 +8,7 @@ import {
   isValidQuizDescription,
   isQuizNameUsed,
   isValidQuizIdForUser,
+  getQuizIndex,
   findUserbyEmail,
   // getUserQuizzes,
   // getQuizIndex,
@@ -272,6 +273,35 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
   quiz.valid = true;
   quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
+  setData(data);
+
+  return {};
+}
+
+export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObject | ErrorMessage {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const authUserId = findUserbyToken(token, data).authUserId;
+  for (const quizId of quizIds) {
+    const userError = isValidQuizIdForUser(authUserId, quizId, data);
+    if (userError) {
+      throw HTTPError(403, `User does not own the quiz with ID: ${quizId}`);
+    }
+    const quiz = findQuizbyId(quizId, data);
+    if (quiz.valid) {
+      throw HTTPError(400, { error: 'One or more of the Quiz IDs is not currently in the trash' });
+    }
+  }
+
+  for (const quizId of quizIds) {
+    const quizIndex = getQuizIndex(quizId, data);
+    data.quizzes.splice(quizIndex, 1);
+  }
   setData(data);
 
   return {};
