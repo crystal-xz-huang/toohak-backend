@@ -1,15 +1,17 @@
-import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn } from './dataTypes';
+import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn, AdminQuizQuestionCreateReturn, AdminQuizQuestionCreateInput } from './dataTypes';
 import {
-  isValidToken,
+  generateRandomColour,
+  getCurrentTime,
+  getQuizIndex,
   findUserbyToken,
   findQuizbyId,
-  getCurrentTime,
+  findUserbyEmail,
+  isValidToken,
   isValidQuizName,
   isValidQuizDescription,
   isQuizNameUsed,
   isValidQuizIdForUser,
-  getQuizIndex,
-  findUserbyEmail,
+  isValidQuestion,
   // getUserQuizzes,
   // getQuizIndex,
 } from './functionHelpers';
@@ -246,6 +248,12 @@ export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | Er
   return { quizzes: quizDetails };
 }
 
+/**
+ * Restore a quiz from trash and update the timeLastEdited
+ * @param {string} token
+ * @param {number} quizId
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ */
 export function adminQuizRestore(token: string, quizId: number): EmptyObject | ErrorMessage {
   const data = getData();
 
@@ -271,13 +279,20 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
   }
 
   quiz.valid = true;
-  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+  quiz.timeLastEdited = getCurrentTime();
 
   setData(data);
 
   return {};
 }
 
+/**
+ * Permanently delete specific quizzes currently sitting in the trash
+ *
+ * @param {string} token
+ * @param {number[]} quizIds
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ */
 export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObject | ErrorMessage {
   const data = getData();
 
@@ -307,6 +322,14 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
   return {};
 }
 
+/**
+ * Transfer ownership of a quiz to another user
+ *
+ * @param {string} token
+ * @param {number} quizId
+ * @param {string} userEmail
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ */
 export function adminQuizTransfer(token: string, quizId: number, userEmail: string): EmptyObject | ErrorMessage {
   const data = getData();
 
@@ -340,4 +363,52 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
 
   setData(data);
   return {};
+}
+
+/**
+ * Create a new question for the quiz with the given quizId
+ *
+ * @param {string} token
+ * @param {number} quizId
+ * @param {AdminQuizQuestionCreateInput} questionBody
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ */
+export function adminQuizQuestionCreate(token: string, quizId: number, questionBody: AdminQuizQuestionCreateInput): AdminQuizQuestionCreateReturn | ErrorMessage {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const authUserId = findUserbyToken(token, data).authUserId;
+  const userError = isValidQuizIdForUser(authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError.error);
+  }
+
+  const questionError = isValidQuestion(questionBody);
+  if (questionError) {
+    throw HTTPError(400, questionError.error);
+  }
+
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  quiz.numQuestions = quiz.numQuestions + 1;
+  quiz.timeLastEdited = getCurrentTime();
+  quiz.duration = quiz.duration + questionBody.duration;
+  quiz.questions.push({
+    questionId: quiz.numQuestions,
+    question: questionBody.question,
+    duration: questionBody.duration,
+    points: questionBody.points,
+    answers: questionBody.answers.map((answer, index) => ({
+      answerId: index,
+      answer: answer.answer,
+      colour: generateRandomColour(),
+      correct: answer.correct
+    }))
+  });
+
+  setData(data);
+  return { questionId: quiz.numQuestions };
 }

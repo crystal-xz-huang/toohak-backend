@@ -66,11 +66,6 @@ export const quiz3 = {
   description: 'This is yet another quiz',
 };
 
-export const quiz4 = {
-  name: 'Quiz 4',
-  description: 'This is once again another quiz',
-};
-
 export const shortQuizNames = [
   { name: '' },
   { name: 'a' },
@@ -94,8 +89,6 @@ export const validQuestion1 = {
   answers: [
     { answer: 'Prince Charles', correct: true },
     { answer: 'Queen Elizabeth II', correct: false },
-    { answer: 'Prince William', correct: false },
-    { answer: 'Prince Harry', correct: false },
   ]
 };
 
@@ -158,6 +151,7 @@ export const moreQuestionAnswers = {
     { answer: 'Prince Harry', correct: false },
     { answer: 'Prince Andrew', correct: false },
     { answer: 'Princess Anne', correct: false },
+    { answer: 'Prince Edward', correct: false },
   ]
 };
 
