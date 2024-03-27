@@ -274,3 +274,7 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
 
   return {};
 }
+
+export function adminQuizTransfer(token: string, quizId: number,userEmail: string): EmptyObject | ErrorMessage {
+  return {};
+}
