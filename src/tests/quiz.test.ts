@@ -225,6 +225,18 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual({});
   });
+
+  test('Timestamps are within a 1 second range of the current time', () => {
+    const response1 = quizRemoveV1(token, quizId).jsonBody;
+    expect(response1).toStrictEqual({});
+
+    const expectedTime = Math.floor(Date.now() / 1000);
+    const response2 = quizInfoV1(token, quizId).jsonBody;
+    const timeLastEdited = response2.timeLastEdited as number;
+    // Check if the timeLastEdited are within a 1 second range of the current time
+    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+  });
 });
 
 describe('Testing GET /v1/admin/quiz/{quizid}', () => {
