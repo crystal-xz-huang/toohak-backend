@@ -12,7 +12,7 @@ import process from 'process';
 // import { getData, setData } from './dataStore';
 import { clear } from './other';
 import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate, adminAuthLogout } from './auth';
-import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView, adminQuizRestore, adminQuizTrashEmpty } from './quiz';
+import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView, adminQuizRestore, adminQuizTrashEmpty, adminQuizTransfer } from './quiz';
 
 // Set up web app
 const app = express();
@@ -94,15 +94,11 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
   const response = adminAuthLogin(email, password);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   res.json(response);
 });
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const token = req.query.token as string;
-  // res.send(`The token is ${token}`);     -- check if we are extracting the token correctly
   const response = adminUserDetails(token);
   res.json(response);
 });
@@ -191,12 +187,12 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   res.json(response);
 });
 
-// app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
-//   const quizId = parseInt(req.params.quizid);
-//   const { token, userEmail } = req.body;
-//   const response = adminQuizTransfer(token, quizId);
-//   res.json(response);
-// });
+app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid);
+  const { token, userEmail } = req.body;
+  const response = adminQuizTransfer(token, quizId, userEmail);
+  res.json(response);
+});
 
 // app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
 //   const quizId = parseInt(req.params.quizid);

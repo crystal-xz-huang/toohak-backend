@@ -9,6 +9,9 @@ import {
   isQuizNameUsed,
   isValidQuizIdForUser,
   getQuizIndex,
+  findUserbyEmail,
+  // getUserQuizzes,
+  // getQuizIndex,
 } from './functionHelpers';
 import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
@@ -301,5 +304,40 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
   }
   setData(data);
 
+  return {};
+}
+
+export function adminQuizTransfer(token: string, quizId: number, userEmail: string): EmptyObject | ErrorMessage {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const authUserId = findUserbyToken(token, data).authUserId;
+  const userError = isValidQuizIdForUser(authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError.error);
+  }
+
+  const user = findUserbyEmail(userEmail, data);
+  if (!user) {
+    throw HTTPError(400, 'User email is not the real user');
+  }
+
+  const name = findQuizbyId(quizId, data).name;
+  const userId = user.authUserId;
+  const QuizNameError = isQuizNameUsed(name, userId, data);
+  if (QuizNameError) {
+    throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
+  }
+
+  const EmailId = user.authUserId;
+  const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
+  data.quizzes[quizIndex].authUserId = EmailId;
+  data.quizzes[quizIndex].timeLastEdited = getCurrentTime();
+
+  setData(data);
   return {};
 }

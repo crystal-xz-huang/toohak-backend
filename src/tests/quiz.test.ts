@@ -13,7 +13,7 @@ import {
   authLogoutV1,
   quizRestoreV1,
   quizTrashEmptyV1,
-  // quizTransferV1,
+  quizTransferV1,
   // quizQuestionCreateV1,
   // quizQuestionUpdateV1,
   // quizQuestionRemoveV1,
@@ -28,6 +28,7 @@ import {
   // CLEAR_SUCCESS,
   user1,
   user2,
+  user3,
   quiz1,
   quiz2,
   quiz3,
@@ -39,6 +40,7 @@ import {
   AdminQuizListReturn,
   AdminQuizInfoReturn,
 } from '../dataTypes';
+// import { adminAuthRegister } from '../auth';
 
 // ========================================================================================================================================//
 beforeEach(() => {
@@ -549,6 +551,18 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
     expect(response).toStrictEqual({});
   });
 
+  test('Timestamps are within a 1 second range of the current time', () => {
+    const response1 = quizRestoreV1(tokenUser1, quizId1).jsonBody;
+    expect(response1).toStrictEqual({});
+
+    const expectedTime = Math.floor(Date.now() / 1000);
+    const response2 = quizInfoV1(tokenUser1, quizId1).jsonBody;
+    const timeLastEdited = response2.timeLastEdited as number;
+    // Check if the timeLastEdited are within a 1 second range of the current time
+    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+  });
+
   test('Error when the quiz is not in the trash', () => {
     quizRestoreV1(tokenUser1, quizId1);
     const response = quizRestoreV1(tokenUser1, quizId1);
@@ -643,3 +657,63 @@ describe('Testing POST /v1/admin/quiz/trash/empty', () => {
     expect(response).toStrictEqual(UNAUTHORISED_ERROR);
   });
 });
+
+describe('Testing POST /v1/admin/quiz/{quizid}/transfer', () => {
+  let tokenUser1: string;
+  let tokenUser2: string;
+  let quizId1: number;
+
+  beforeEach(() => {
+    const User1 = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    tokenUser1 = User1.token as string;
+    const q1 = quizCreateV1(tokenUser1, quiz1.name, quiz1.description).jsonBody;
+    quizId1 = q1.quizId as number;
+
+    const User2 = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+    tokenUser2 = User2.token as string;
+  });
+
+  test('Successfull quiz transfer', () => {
+    const response = quizTransferV1(tokenUser1, quizId1, user2.email).jsonBody;
+    expect(response).toStrictEqual({});
+  });
+
+  test('UserEmail is not a real User', () => {
+    const response = quizTransferV1(tokenUser1, quizId1, user3.email);
+    expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  });
+
+  test('UserEmail is the current logged in user', () => {
+    const response = quizTransferV1(tokenUser1, quizId1, user1.email);
+    expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  });
+
+  test('Quiz ID refers to a quiz that has a name that is already used by the target user', () => {
+    quizCreateV1(tokenUser2, quiz1.name, quiz2.description);
+
+    const response = quizTransferV1(tokenUser1, quizId1, user2.email);
+    expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+  });
+
+  test('Error with token empty', () => {
+    const response = quizTransferV1('', quizId1, user2.email);
+    expect(response).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Error with an invalid token', () => {
+    const response = quizTransferV1(tokenUser1 + 'random', quizId1, user2.email);
+    expect(response).toStrictEqual(UNAUTHORISED_ERROR);
+  });
+
+  test('Error when the user does not own the quiz', () => {
+    const response = quizTransferV1(tokenUser2, quizId1, user1.email);
+    expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  });
+
+  test('Error when the quiz ID is invalid', () => {
+    const invalidQuizId = -1;
+    const response = quizTransferV1(tokenUser1, invalidQuizId, user2.email);
+    expect(response).toStrictEqual(FORBIDDEN_ERROR);
+  });
+});
+
