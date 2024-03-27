@@ -552,6 +552,18 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
     expect(response).toStrictEqual({});
   });
 
+  test('Timestamps are within a 1 second range of the current time', () => {
+    const response1 = quizRestoreV1(tokenUser1, quizId1).jsonBody;
+    expect(response1).toStrictEqual({});
+
+    const expectedTime = Math.floor(Date.now() / 1000);
+    const response2 = quizInfoV1(tokenUser1, quizId1).jsonBody;
+    const timeLastEdited = response2.timeLastEdited as number;
+    // Check if the timeLastEdited are within a 1 second range of the current time
+    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+  });
+
   test('Error when the quiz is not in the trash', () => {
     quizRestoreV1(tokenUser1, quizId1);
     const response = quizRestoreV1(tokenUser1, quizId1);
@@ -575,7 +587,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
   });
 
   test('Error when the user does not own the quiz', () => {
-    const response = quizRestoreV1(tokenUser2, quizId1); // Using tokenUser2 to attempt to restore quizId1
+    const response = quizRestoreV1(tokenUser2, quizId1);
     expect(response).toStrictEqual(FORBIDDEN_ERROR);
   });
 
