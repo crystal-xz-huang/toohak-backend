@@ -9,6 +9,7 @@ import {
 } from './dataTypes';
 
 import {
+  generateToken,
   isValidRegisterEmail,
   isValidLoginEmail,
   isValidUserEmail,
@@ -16,8 +17,6 @@ import {
   isValidName,
   isValidToken,
   findUserbyEmail,
-  // getUserIndex,
-  generateToken,
   findUserbyToken,
 } from './functionHelpers';
 
@@ -110,10 +109,9 @@ export function adminAuthLogin(email: string, password: string): AdminAuthLoginR
   });
 
   user.numFailedPasswordsSinceLastLogin = 0;
-  user.numSuccessfulLogins++;
+  user.numSuccessfulLogins = user.numSuccessfulLogins + 1;
   setData(data);
 
-  // Return the token corresponding to the user
   return { token: token };
 }
 
@@ -224,6 +222,7 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
  */
 export function adminAuthLogout(token: string): EmptyObject | ErrorMessage {
   const data = getData();
+
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     throw HTTPError(401, tokenError.error);
