@@ -716,4 +716,3 @@ describe('Testing POST /v1/admin/quiz/{quizid}/transfer', () => {
     expect(response).toStrictEqual(FORBIDDEN_ERROR);
   });
 });
-
