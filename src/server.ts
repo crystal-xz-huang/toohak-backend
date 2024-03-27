@@ -94,13 +94,11 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
   const response = adminAuthLogin(email, password);
-  console.log('POST /v1/admin/auth/login', response);
   res.json(response);
 });
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const token = req.query.token as string;
-  // res.send(`The token is ${token}`);     -- check if we are extracting the token correctly
   const response = adminUserDetails(token);
   res.json(response);
 });
