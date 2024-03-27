@@ -9,7 +9,7 @@ import {
   isQuizNameUsed,
   isValidQuizIdForUser,
   findUserbyEmail,
-  getUserQuizzes,
+  // getUserQuizzes,
   // getQuizIndex,
 } from './functionHelpers';
 import HTTPError from 'http-errors';
@@ -283,25 +283,25 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     throw HTTPError(401, tokenError.error);
-  };
+  }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     throw HTTPError(403, userError.error);
-  };
+  }
 
   const user = findUserbyEmail(userEmail, data);
   if (!user) {
     throw HTTPError(400, 'User email is not the real user');
-  };
+  }
 
   const name = findQuizbyId(quizId, data).name;
   const userId = user.authUserId;
   const QuizNameError = isQuizNameUsed(name, userId, data);
-  if(QuizNameError) {
+  if (QuizNameError) {
     throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
-  };
+  }
 
   const EmailId = user.authUserId;
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
