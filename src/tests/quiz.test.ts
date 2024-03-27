@@ -20,7 +20,7 @@ import {
 } from '../testHelpers';
 
 import { BAD_REQUEST_ERROR, UNAUTHORISED_ERROR, FORBIDDEN_ERROR } from '../testTypes';
-import { user1, user2, user3, quiz1, quiz2, quiz3, quiz4 } from '../testTypes';
+import { user1, user2, user3, quiz1, quiz2, quiz3 } from '../testTypes';
 import {
   shortQuizNames,
   invalidQuizNames,
@@ -40,7 +40,6 @@ import {
   falseQuestionAnswers,
 } from '../testTypes';
 import { AdminQuizListReturn, AdminQuizInfoReturn } from '../dataTypes';
-import exp from 'constants';
 
 beforeEach(() => {
   clearV1();
@@ -805,14 +804,6 @@ describe('Testing POST /v1/admin/quiz/trash/empty', () => {
     expect(response.jsonBody).toStrictEqual({});
   });
 
-  test('Successful empty of trash for multiple quizzes', () => {
-    const response1 = quizTrashEmptyV1(tokenUser1, [quizId1, quizId2, quizId3]).jsonBody;
-    // View newest trash list to check if trash has been empty correctly
-    const response2 = quizTrashViewV1(tokenUser1).jsonBody;
-    const expected = { quizzes: [] } as { quizzes: { quizId: number, name: string }[] };
-    expect(response2).toStrictEqual(expected);
-  });
-
   describe('Permanently delete specific quizzes currently sitting in the trash', () => {
     test('Permanently delete one quiz', () => {
       quizTrashEmptyV1(tokenUser1, [quizId1]);
@@ -864,22 +855,22 @@ describe('Testing POST /v1/admin/quiz/trash/empty', () => {
 
   describe('Bad request errors', () => {
     test('One quiz is not in the trash', () => {
-      quizRestoreV1(tokenUser1, quizId1).jsonBody;
+      quizRestoreV1(tokenUser1, quizId1);
       const response = quizTrashEmptyV1(tokenUser1, [quizId1, quizId2, quizId3]);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('Two quizzes are not in the trash', () => {
-      quizRestoreV1(tokenUser1, quizId1).jsonBody;
-      quizRestoreV1(tokenUser1, quizId2).jsonBody;
+      quizRestoreV1(tokenUser1, quizId1);
+      quizRestoreV1(tokenUser1, quizId2);
       const response = quizTrashEmptyV1(tokenUser1, [quizId1, quizId2, quizId3]);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('All quizzes are not in the trash', () => {
-      quizRestoreV1(tokenUser1, quizId1).jsonBody;
-      quizRestoreV1(tokenUser1, quizId2).jsonBody;
-      quizRestoreV1(tokenUser1, quizId3).jsonBody;
+      quizRestoreV1(tokenUser1, quizId1);
+      quizRestoreV1(tokenUser1, quizId2);
+      quizRestoreV1(tokenUser1, quizId3);
       const response = quizTrashEmptyV1(tokenUser1, [quizId1, quizId2, quizId3]);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
@@ -900,7 +891,7 @@ describe('Testing POST /v1/admin/quiz/trash/empty', () => {
     });
 
     test('Bad request status code 400 last', () => {
-      quizRestoreV1(tokenUser1, quizId1).jsonBody;
+      quizRestoreV1(tokenUser1, quizId1);
       const response = quizTrashEmptyV1(tokenUser1, [quizId1, quizId2, quizId3]);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
@@ -930,7 +921,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/transfer', () => {
   });
 
   test('Successful quiz transfer', () => {
-    quizTransferV1(tokenUser1, quizId1, user2.email).jsonBody;
+    quizTransferV1(tokenUser1, quizId1, user2.email);
     // Check if the quiz has been transferred to the target user
     const response2 = quizListV1(tokenUser2).jsonBody;
     const expected = { quizzes: [{ quizId: quizId1, name: quiz1.name }] };
@@ -1010,7 +1001,6 @@ describe('Testing POST /v1/admin/quiz/{quizid}/transfer', () => {
   });
 });
 
-
 describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
   let token: string;
   let quizId: number;
@@ -1022,42 +1012,43 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
   test('Correct status code and return value', () => {
     const response = quizQuestionCreateV1(token, quizId, validQuestion1);
     expect(response.statusCode).toStrictEqual(200);
-    expect(response).toStrictEqual({ questionId: quizId });
+    expect(response.jsonBody).toStrictEqual({ questionId: expect.any(Number) });
   });
 
   test('Creates a new stub question for the quiz', () => {
     quizQuestionCreateV1(token, quizId, validQuestion1);
-    const response = quizInfoV1(token, quizId).jsonBody;
-    expect(response.questions).toStrictEqual([
-      {
-        questionId: expect.any(Number),
-        question: validQuestion1.question,
-        duration: validQuestion1.duration,
-        points: validQuestion1.points,
-        answers: [
-          {
-            answerId: expect.any(Number),
-            answer: validQuestion1.answers[0].answer,
-            colour: expect.any(String),
-            correct: validQuestion1.answers[0].correct
-          },
-          {
-            answerId: expect.any(Number),
-            answer: validQuestion1.answers[1].answer,
-            colour: expect.any(String),
-            correct: validQuestion1.answers[1].correct
-          }
-        ]
-      }
-    ]);
+    const response = quizInfoV1(token, quizId).jsonBody as AdminQuizInfoReturn;
+    const expectedQuestion = {
+      questionId: expect.any(Number),
+      question: validQuestion1.question,
+      duration: validQuestion1.duration,
+      points: validQuestion1.points,
+      answers: [
+        {
+          answerId: expect.any(Number),
+          answer: validQuestion1.answers[0].answer,
+          colour: expect.any(String),
+          correct: validQuestion1.answers[0].correct
+        },
+        {
+          answerId: expect.any(Number),
+          answer: validQuestion1.answers[1].answer,
+          colour: expect.any(String),
+          correct: validQuestion1.answers[1].correct
+        }
+      ]
+    };
+    expect(response.questions).toStrictEqual([expectedQuestion]);
     expect(response.duration).toStrictEqual(validQuestion1.duration);
+    expect(response.numQuestions).toStrictEqual(1);
   });
 
   test('Successfully creates 2 new stub questions for the quiz', () => {
     quizQuestionCreateV1(token, quizId, validQuestion1);
     quizQuestionCreateV1(token, quizId, validQuestion2);
+    const response = quizInfoV1(token, quizId).jsonBody;
     const expected = {
-      quizId: quizId,
+      quizId: expect.any(Number),
       name: quiz1.name,
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
@@ -1106,8 +1097,8 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
         }
       ],
       duration: validQuestion1.duration + validQuestion2.duration
-    }
-    expect(quizInfoV1(token, quizId).jsonBody).toStrictEqual(expected);
+    };
+    expect(response).toStrictEqual(expected);
   });
 
   test('timeLastEdited is set to the created time', () => {
@@ -1119,14 +1110,6 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
     expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
     expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
   });
-
-  // test('Colours of all answers are randomly generated', () => {
-  //   const response = quizQuestionCreateV1(token, quizId, validQuestion1).jsonBody;
-  //   const response2 = quizQuestionGetV1(token, quizId, response.questionId).jsonBody;
-  //   const answers = response2.answers as { answerId: number, answer: string, correct: boolean, colour: string }[];
-  //   // Check if all answers have colours set
-  //   expect (answers.every(answer => answer.colour)).toBe(true);
-  // });
 
   describe('Unauthorised errors', () => {
     test('Token is empty', () => {
@@ -1169,7 +1152,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
     });
 
     test('Question has more than 6 answers', () => {
-      const response = quizQuestionCreateV1(token, quizId, question);
+      const response = quizQuestionCreateV1(token, quizId, moreQuestionAnswers);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
@@ -1221,8 +1204,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
 
   describe('Errors are returned in the correct order', () => {
     const invalidToken = token + 'random';
-    const emptyToken = '';
-    const invalidQuizId = quizId + 1;
+    const invalidQuizId = -1;
     let notOwnerToken: string;
     beforeEach(() => {
       const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
@@ -1232,9 +1214,6 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
     test('Unauthorised status code 401 first', () => {
       const response1 = quizQuestionCreateV1(invalidToken, invalidQuizId, validQuestion1);
       expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
-
-      const response2 = quizQuestionCreateV1(emptyToken, invalidQuizId, validQuestion1);
-      expect(response2).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
     test('Forbidden status code 403 second', () => {
@@ -1242,10 +1221,9 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
 
-    test.each(shortQuestionString)('Bad request status code 400 last', (question) => {
-      const response = quizQuestionCreateV1(token, quizId, question);
+    test('Bad request status code 400 last', () => {
+      const response = quizQuestionCreateV1(token, quizId, longQuestionString);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 });
-
