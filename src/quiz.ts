@@ -1,4 +1,4 @@
-import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn, AdminQuizQuestionCreateReturn, QuestionBodyInput } from './dataTypes';
+import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn, AdminQuizQuestionCreateReturn, QuestionBodyInput, AdminQuizQuestionDuplicateReturn } from './dataTypes';
 import {
   generateRandomColour,
   getCurrentTime,
@@ -14,8 +14,6 @@ import {
   isValidQuestionIdForQuiz,
   isValidQuestionforCreate,
   isValidQuestionforUpdate,
-  // getUserQuizzes,
-  // getQuizIndex,
 } from './functionHelpers';
 import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
@@ -465,4 +463,58 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
 
   setData(data);
   return {};
+}
+
+/**
+ * Duplicate a quiz question, given the quizId and questionId
+ *
+ * @param {string} token
+ * @param {number} quizId
+ * @param {number} questionId
+ * @param {QuestionBodyInput} questionBody
+ * @returns {AdminQuizQuestionDuplicateReturn | ErrorMessage} - returns an object containing the newQuestionId of the duplicated question
+ */
+export function adminQuizQuestionDuplicate(token: string, quizId: number, questionId: number): AdminQuizQuestionDuplicateReturn | ErrorMessage {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const authUserId = findUserbyToken(token, data).authUserId;
+  const userError = isValidQuizIdForUser(authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError.error);
+  }
+
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const question = quiz.questions.find(question => question.questionId === questionId);
+
+  const questinIdError = isValidQuestionIdForQuiz(quiz, questionId);
+  if (questinIdError) {
+    throw HTTPError(400, questinIdError.error);
+  }
+
+  // duplicate the question to immediately after where the source question is
+  const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
+  const newQuestion = {
+    questionId: quiz.numQuestions + 1,
+    question: question.question,
+    duration: question.duration,
+    points: question.points,
+    answers: question.answers.map(answer => ({
+      answerId: answer.answerId,
+      answer: answer.answer,
+      colour: generateRandomColour(),
+      correct: answer.correct
+    }))
+  };
+  quiz.numQuestions = quiz.numQuestions + 1;
+  quiz.timeLastEdited = getCurrentTime();
+  quiz.duration = quiz.duration + question.duration;
+  quiz.questions.splice(questionIndex + 1, 0, newQuestion);
+
+  setData(data);
+  return { newQuestionId: newQuestion.questionId };
 }
