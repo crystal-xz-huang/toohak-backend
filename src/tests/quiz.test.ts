@@ -19,9 +19,13 @@ import {
   quizQuestionDuplicateV1,
 } from '../testHelpers';
 
-import { BAD_REQUEST_ERROR, UNAUTHORISED_ERROR, FORBIDDEN_ERROR } from '../testTypes';
-import { user1, user2, user3, quiz1, quiz2, quiz3 } from '../testTypes';
 import {
+  user1,
+  user2,
+  user3,
+  quiz1,
+  quiz2,
+  quiz3,
   shortQuizNames,
   invalidQuizNames,
   validQuestion1,
@@ -41,6 +45,7 @@ import {
   duplicateQuestionAnswers,
   falseQuestionAnswers,
 } from '../testTypes';
+import { BAD_REQUEST_ERROR, UNAUTHORISED_ERROR, FORBIDDEN_ERROR } from '../testTypes';
 import { AdminQuizListReturn, AdminQuizInfoReturn } from '../dataTypes';
 
 beforeEach(() => {
@@ -1390,7 +1395,6 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
     quizQuestionUpdateV1(token, quizId, questionId1, validQuestion2);
     const response2 = quizInfoV1(token, quizId).jsonBody;
     const timeLastEdited = response2.timeLastEdited as number;
-    // Check if the timeLastEdited are within a 1 second range of the current time
     expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
     expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
   });
@@ -1651,11 +1655,12 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   });
 });
 
-describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => {
+describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}/move', () => {
   let token: string;
   let quizId: number;
   let quesId1: number;
   let quesId2: number;
+  let quesId3: number;
   let newPosition: number;
   beforeEach(() => {
     token = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody.token as string;
@@ -1666,6 +1671,9 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => 
 
     const q2 = quizQuestionCreateV1(token, quizId, validQuestion2).jsonBody;
     quesId2 = q2.questionId as number;
+
+    const q3 = quizQuestionCreateV1(token, quizId, validQuestion3).jsonBody;
+    quesId3 = q3.questionId as number;
   });
 
   test('Correct status code and return value', () => {
@@ -1675,15 +1683,72 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => 
     expect(response.jsonBody).toStrictEqual({});
   });
 
-  /* test('Succesfull change position', () => {
-    newPosition = 1;
-    quizQuestionMoveV1(token, quizId, quesId2, newPosition);
-    const response2 = quizInfoV1(token, quizId).jsonBody.questions;
-    const index = response2.findIndex(q => q.questionId === quesId2);
-    expect(index + 1).toStrictEqual(newPosition);
-  }); */
+  describe('Succesfully moves a question within the quiz', () => {
+    test('Move the first question to the second position', () => {
+      newPosition = 1;
+      quizQuestionMoveV1(token, quizId, quesId1, newPosition);
+      const response = quizInfoV1(token, quizId).jsonBody.questions;
+      expect(response[0].questionId).toStrictEqual(quesId2);
+      expect(response[1].questionId).toStrictEqual(quesId1);
+      expect(response[2].questionId).toStrictEqual(quesId3);
+    });
 
-  describe('Bad request error', () => {
+    test('Move the first question to the third position', () => {
+      newPosition = 2;
+      quizQuestionMoveV1(token, quizId, quesId1, newPosition);
+      const response = quizInfoV1(token, quizId).jsonBody.questions;
+      expect(response[0].questionId).toStrictEqual(quesId2);
+      expect(response[1].questionId).toStrictEqual(quesId3);
+      expect(response[2].questionId).toStrictEqual(quesId1);
+    });
+
+    test('Move the second question to the first position', () => {
+      newPosition = 0;
+      quizQuestionMoveV1(token, quizId, quesId2, newPosition);
+      const response = quizInfoV1(token, quizId).jsonBody.questions;
+      expect(response[0].questionId).toStrictEqual(quesId2);
+      expect(response[1].questionId).toStrictEqual(quesId1);
+      expect(response[2].questionId).toStrictEqual(quesId3);
+    });
+
+    test('Move the second question to the third position', () => {
+      newPosition = 2;
+      quizQuestionMoveV1(token, quizId, quesId2, newPosition);
+      const response = quizInfoV1(token, quizId).jsonBody.questions;
+      expect(response[0].questionId).toStrictEqual(quesId1);
+      expect(response[1].questionId).toStrictEqual(quesId3);
+      expect(response[2].questionId).toStrictEqual(quesId2);
+    });
+
+    test('Move the third question to the first position', () => {
+      newPosition = 0;
+      quizQuestionMoveV1(token, quizId, quesId3, newPosition);
+      const response = quizInfoV1(token, quizId).jsonBody.questions;
+      expect(response[0].questionId).toStrictEqual(quesId3);
+      expect(response[1].questionId).toStrictEqual(quesId1);
+      expect(response[2].questionId).toStrictEqual(quesId2);
+    });
+
+    test('Move the third question to the second position', () => {
+      newPosition = 1;
+      quizQuestionMoveV1(token, quizId, quesId3, newPosition);
+      const response = quizInfoV1(token, quizId).jsonBody.questions;
+      expect(response[0].questionId).toStrictEqual(quesId1);
+      expect(response[1].questionId).toStrictEqual(quesId3);
+      expect(response[2].questionId).toStrictEqual(quesId2);
+    });
+  });
+
+  test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
+    const expectedTime = Math.floor(Date.now() / 1000);
+    quizQuestionMoveV1(token, quizId, quesId1, 1);
+    const response = quizInfoV1(token, quizId).jsonBody;
+    const timeLastEdited = response.timeLastEdited as number;
+    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+  });
+
+  describe('Bad request errors', () => {
     test('Question Id does not refer to a valid question within this quiz', () => {
       newPosition = 0;
       const randomQuestionId = 456;
@@ -1747,21 +1812,22 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => 
     const invalidToken = token + 'random';
     const invalidQuizId = -1;
     const invalidQuestionId = -1;
+    const invalidNewPosition = -1;
 
     test('Unauthorised status code 401 first', () => {
       newPosition = 0;
-      const response1 = quizQuestionMoveV1(invalidToken, invalidQuizId, quesId2, newPosition);
+      const response1 = quizQuestionMoveV1(invalidToken, invalidQuizId, invalidQuizId, invalidNewPosition);
       expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
     test('Forbidden status code 403 second', () => {
       newPosition = 0;
-      const response = quizQuestionMoveV1(token, invalidQuizId, invalidQuestionId, newPosition);
+      const response = quizQuestionMoveV1(token, invalidQuizId, invalidQuestionId, invalidNewPosition);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
 
     test('Bad request status code 400 last', () => {
-      const response = quizQuestionMoveV1(token, quizId, invalidQuestionId, newPosition);
+      const response = quizQuestionMoveV1(token, quizId, quesId1, invalidNewPosition);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
