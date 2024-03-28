@@ -147,7 +147,7 @@ export type AdminQuizQuestionCreateReturn = {
   questionId: number;
 }
 
-export type AdminQuizQuestionCreateInput = {
+export type QuestionBodyInput = {
   question: string;
   duration: number;
   points: number;
