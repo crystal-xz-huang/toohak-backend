@@ -1,5 +1,5 @@
 import validator from 'validator';
-import { Data, User, Quiz, Session, ErrorMessage, Token, AdminQuizQuestionCreateInput } from './dataTypes';
+import { Data, User, Quiz, Session, ErrorMessage, Token, QuestionBodyInput } from './dataTypes';
 import {
   MIN_USER_NAME_LENGTH,
   MAX_USER_NAME_LENGTH,
@@ -370,9 +370,11 @@ export function isValidQuizDescription(description: string): ErrorMessage | null
  */
 export function isQuizNameUsed(name: string, authUserId: number, data: Data): ErrorMessage | null {
   const userQuizzes: Array<Quiz> = getUserQuizzes(authUserId, data);
-  if (userQuizzes.some(quiz => quiz.name.toLowerCase() === name.toLowerCase())) {
-    return createError('Name is already used for another quiz');
+  // Check if the name is already used by another quiz and that the quiz with the same name is valid
+  if (userQuizzes.some(quiz => quiz.valid === true && quiz.name === name)) {
+    return createError('Name is already used by another quiz');
   }
+
   return null;
 }
 
@@ -410,7 +412,7 @@ export function isValidQuizIdForUser(authUserId: number, quizId: number, data: D
  * 7. Any answer strings are duplicates of one another (within the same question)
  * 8. There are no correct answers
  */
-export function isValidQuestion(question: AdminQuizQuestionCreateInput): ErrorMessage | null {
+export function isValidQuestionforCreate(question: QuestionBodyInput): ErrorMessage | null {
   if (question.question.length < 5 || question.question.length > 50) {
     return createError('Question string is not between 5 and 50 characters');
   } else if (question.answers.length < 2 || question.answers.length > 6) {
@@ -440,4 +442,50 @@ export function generateRandomColour(): string {
     'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown', 'cyan', 'magenta', 'teal', 'lime', 'indigo',
   ];
   return colours[Math.floor(Math.random() * colours.length)];
+}
+
+/**
+ * Check if the questionId is valid for the given quiz
+ * Returns null if the questionId is valid, otherwise returns an error object
+ */
+export function isValidQuestionIdForQuiz(quiz: Quiz, questionId: number): ErrorMessage | null {
+  if (quiz.questions.find(question => question.questionId === questionId) === undefined) {
+    return createError('QuestionId is not a valid question');
+  }
+  return null;
+}
+
+/**
+ * Check if the quiz question to be updated is valid
+ * Question is invalid if:
+ * 1. Question string is less than 5 characters in length or greater than 50 characters in length
+ * 2. The question has more than 6 answers or less than 2 answers
+ * 3. The question duration is not a positive number
+ * 4. If this question were to be updated, the sum of the question durations in the quiz exceeds 3 minutes
+ * 5. The points awarded for the question are less than 1 or greater than 10
+ * 6. The length of any answer is shorter than 1 character long, or longer than 30 characters long
+ * 7. Any answer strings are duplicates of one another (within the same question)
+ * 8. There are no correct answers
+ */
+export function isValidQuestionforUpdate(quiz: Quiz, question: QuestionBodyInput): ErrorMessage | null {
+  if (question.question.length < 5 || question.question.length > 50) {
+    return createError('Question string is not between 5 and 50 characters');
+  } else if (question.answers.length < 2 || question.answers.length > 6) {
+    return createError('Question has less than 2 or more than 6 answers');
+  } else if (question.duration <= 0) {
+    return createError('Question duration is not a positive number');
+    // Check if the sum of the question durations in the quiz exceeds 3 minutes if updated (accounting for the current question's duration)
+  } else if (quiz.questions.reduce((acc, q) => acc + q.duration, 0) + question.duration > 180) {
+    return createError('Question duration exceeds 3 minutes if updated');
+  } else if (question.points < 1 || question.points > 10) {
+    return createError('Question points are not between 1 and 10');
+  } else if (question.answers.some(answer => answer.answer.length < 1 || answer.answer.length > 30)) {
+    return createError('Answer is not between 1 and 30 characters');
+  } else if (question.answers.some(answer => question.answers.filter(a => a.answer === answer.answer).length > 1)) {
+    return createError('Duplicate answers in the question');
+  } else if (!question.answers.some(answer => answer.correct === true)) {
+    return createError('No correct answers in the question');
+  } else {
+    return null;
+  }
 }

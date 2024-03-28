@@ -1,4 +1,4 @@
-import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn, AdminQuizQuestionCreateReturn, AdminQuizQuestionCreateInput } from './dataTypes';
+import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn, AdminQuizQuestionCreateReturn, QuestionBodyInput } from './dataTypes';
 import {
   generateRandomColour,
   getCurrentTime,
@@ -11,7 +11,9 @@ import {
   isValidQuizDescription,
   isQuizNameUsed,
   isValidQuizIdForUser,
-  isValidQuestion,
+  isValidQuestionIdForQuiz,
+  isValidQuestionforCreate,
+  isValidQuestionforUpdate,
   // getUserQuizzes,
   // getQuizIndex,
 } from './functionHelpers';
@@ -43,6 +45,7 @@ export function adminQuizList(token: string): AdminQuizListReturn | ErrorMessage
   const authUserId = findUserbyToken(token, data).authUserId;
   const quizDetails = data.quizzes
     .filter(quiz => quiz.authUserId === authUserId)
+    .filter(quiz => quiz.valid)
     .map(quiz => ({ quizId: quiz.quizId, name: quiz.name }));
 
   return { quizzes: quizDetails };
@@ -51,7 +54,7 @@ export function adminQuizList(token: string): AdminQuizListReturn | ErrorMessage
 /**
   * Given basic details about a new quiz, create one for the logged in user.
   *
-  * @param { number } authUserId - the id of registered user
+  * @param { string } token - the id of registered user
   * @param { string } name - the name of the quiz
   * @param { string } description - basic details about the quiz
   * @returns { QuizId | ErrorMessage } - object containing quizId of the user
@@ -370,10 +373,10 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
  *
  * @param {string} token
  * @param {number} quizId
- * @param {AdminQuizQuestionCreateInput} questionBody
+ * @param {QuestionBodyInput} questionBody
  * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
  */
-export function adminQuizQuestionCreate(token: string, quizId: number, questionBody: AdminQuizQuestionCreateInput): AdminQuizQuestionCreateReturn | ErrorMessage {
+export function adminQuizQuestionCreate(token: string, quizId: number, questionBody: QuestionBodyInput): AdminQuizQuestionCreateReturn | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -387,7 +390,7 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
     throw HTTPError(403, userError.error);
   }
 
-  const questionError = isValidQuestion(questionBody);
+  const questionError = isValidQuestionforCreate(questionBody);
   if (questionError) {
     throw HTTPError(400, questionError.error);
   }
@@ -411,4 +414,55 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
 
   setData(data);
   return { questionId: quiz.numQuestions };
+}
+
+/**
+ * Update the quiz question, given the quizId and questionId
+ *
+ * @param {string} token
+ * @param {number} quizId
+ * @param {number} questionId
+ * @param {QuestionBodyInput} questionBody
+ */
+export function adminQuizQuestionUpdate(token: string, quizId: number, questionId: number, questionBody: QuestionBodyInput): EmptyObject | ErrorMessage {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const authUserId = findUserbyToken(token, data).authUserId;
+  const userError = isValidQuizIdForUser(authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError.error);
+  }
+
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const question = quiz.questions.find(question => question.questionId === questionId);
+
+  const questinIdError = isValidQuestionIdForQuiz(quiz, questionId);
+  if (questinIdError) {
+    throw HTTPError(400, questinIdError.error);
+  }
+
+  const questionError = isValidQuestionforUpdate(quiz, questionBody);
+  if (questionError) {
+    throw HTTPError(400, questionError.error);
+  }
+
+  quiz.timeLastEdited = quiz.timeCreated;
+  quiz.duration = quiz.duration - question.duration + questionBody.duration;
+  question.question = questionBody.question;
+  question.duration = questionBody.duration;
+  question.points = questionBody.points;
+  question.answers = questionBody.answers.map((answer, index) => ({
+    answerId: index,
+    answer: answer.answer,
+    colour: generateRandomColour(),
+    correct: answer.correct
+  }));
+
+  setData(data);
+  return {};
 }
