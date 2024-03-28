@@ -154,6 +154,9 @@ export type QuestionBodyInput = {
   answers: Array<{ answer: string; correct: boolean }>;
 };
 
+export type AdminQuizQuestionDuplicateReturn = {
+  newQuestionId: number;
+}
 // ====================================================================
 // CONSTANTS
 // ====================================================================
