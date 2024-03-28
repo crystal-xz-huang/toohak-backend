@@ -5,6 +5,7 @@ import {
   getQuizIndex,
   findUserbyToken,
   findQuizbyId,
+  findQuestionIndex,
   findUserbyEmail,
   isValidToken,
   isValidQuizName,
@@ -13,19 +14,9 @@ import {
   isValidQuizIdForUser,
   isValidQuestionIdForQuiz,
   isValidQuestion,
-  // isValidQuestionforUpdate,
-  findQuestionIndex,
-  moveQuestion,
 } from './functionHelpers';
 import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
-
-// ====================================================================================
-// !! IMPORTANT !!
-// Errors must be thrown in the following order: 401, then 403, then 400
-// Use throw HTTPError(status code, 'error message') to throw a specific HTTP error
-// Use getCurrentTime() to get the UNIX timestamp
-// ====================================================================================
 
 /**
   * Provide a list of all quizzes that are owned by the currently logged in user.
@@ -117,10 +108,9 @@ export function adminQuizRemove(token: string, quizId: number): EmptyObject | Er
   const quiz = findQuizbyId(quizId, data);
   if (quiz) {
     quiz.valid = false;
-    quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+    quiz.timeLastEdited = getCurrentTime();
   }
   setData(data);
-
   return {};
 }
 
@@ -285,7 +275,6 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
   quiz.timeLastEdited = getCurrentTime();
 
   setData(data);
-
   return {};
 }
 
@@ -312,7 +301,7 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
     }
     const quiz = findQuizbyId(quizId, data);
     if (quiz.valid) {
-      throw HTTPError(400, { error: 'One or more of the Quiz IDs is not currently in the trash' });
+      throw HTTPError(400, 'One or more of the Quiz IDs is not currently in the trash');
     }
   }
 
@@ -321,7 +310,6 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
     data.quizzes.splice(quizIndex, 1);
   }
   setData(data);
-
   return {};
 }
 
@@ -468,15 +456,15 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
 }
 
 /**
- * Moves the position of question
+ * Moves a quiz question to a new position in the quiz
  *
  * @param {string} token
  * @param {number} quizId
  * @param {number} questionId
  * @param {number} newPosition
- * @returns {}
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
  */
-export function adminQuizQuestionMove (token: string, quizId: number, questionId: number, newPosition: number) {
+export function adminQuizQuestionMove(token: string, quizId: number, questionId: number, newPosition: number): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -490,21 +478,28 @@ export function adminQuizQuestionMove (token: string, quizId: number, questionId
     throw HTTPError(403, userError.error);
   }
 
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.valid && quiz.authUserId === authUserId);
   const len = quiz.questions.length;
-  quiz.questions.find(question => question.questionId === questionId);
 
-  const questinIdError = isValidQuestionIdForQuiz(quiz, questionId);
-  if (questinIdError) {
-    throw HTTPError(400, questinIdError.error);
+  const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
+  if (questionIdError) {
+    throw HTTPError(400, questionIdError.error);
   }
 
-  const index = (findQuestionIndex(data, quizId, questionId));
-  if (newPosition < 0 || index === newPosition || newPosition > len) {
-    throw HTTPError(400, 'NewPosition shouldnt be less then 0');
+  const index = findQuestionIndex(data, quizId, questionId);
+  if (newPosition < 0) {
+    throw HTTPError(400, 'NewPosition is less than 0');
+  } else if (index === newPosition) {
+    throw HTTPError(400, 'Question Id is the same as the NewPosition');
+  } else if (newPosition > len - 1) {
+    throw HTTPError(400, 'NewPosition is greater than n-1 where n is the number of questions');
   }
 
-  moveQuestion(quiz, index, newPosition);
+  const question = quiz.questions.find(question => question.questionId === questionId);
+  quiz.questions.splice(index, 1);
+  quiz.questions.splice(newPosition, 0, question);
+  quiz.timeLastEdited = getCurrentTime();
+
   setData(data);
   return {};
 }
