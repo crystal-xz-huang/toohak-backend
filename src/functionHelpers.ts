@@ -489,3 +489,20 @@ export function isValidQuestionforUpdate(quiz: Quiz, question: QuestionBodyInput
     return null;
   }
 }
+
+/**
+ * Return index of particular questionId
+ */
+export function findQuestionIndex(data: Data, quizId: number, questionId: number): number {
+  const quiz: Quiz | undefined = data.quizzes.find(q => q.quizId === quizId);
+  return quiz.questions.findIndex(q => q.questionId === questionId);
+}
+
+/** 
+ * Changes the position of questions 
+*/
+export function moveQuestion(quiz: Quiz, fromIndex: number, toIndex: number): Quiz {
+  const questionToMove = quiz.questions.splice(fromIndex, 1)[0];
+  quiz.questions.splice(toIndex, 0, questionToMove);
+  return quiz;
+}

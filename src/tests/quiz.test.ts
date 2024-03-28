@@ -1539,12 +1539,12 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => 
     newPosition = 1;
     quizQuestionMoveV1(token, quizId, quesId2, newPosition);
     const response2 = quizInfoV1(token, quizId).jsonBody.questions;
-    const index = response2.findIndex(question => question.questionId === quesId2);
+    const index = response2.findIndex(q => q.questionId === quesId2);
     expect(index + 1).toStrictEqual(newPosition);
-  });*/
+  }); */
 
-  describe ('Bad request error', () => {
-    test('Question Id does not refer to a valid question within this quiz', () =>{
+  describe('Bad request error', () => {
+    test('Question Id does not refer to a valid question within this quiz', () => {
       newPosition = 0;
       const randomQuestionId = 456;
       const response = quizQuestionMoveV1(token, quizId, randomQuestionId, newPosition);
@@ -1552,13 +1552,13 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => 
     });
 
     test('NewPosition is less than 0', () => {
-      newPosition = 0;
+      newPosition = -1;
       const response = quizQuestionMoveV1(token, quizId, quesId2, newPosition);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('NewPosition is greater than n-1 where n is the number of questions', () => {
-      newPosition = 2;
+      newPosition = 3;
       const response = quizQuestionMoveV1(token, quizId, quesId2, newPosition);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
@@ -1571,7 +1571,6 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => 
   });
 
   describe('Unauthorised errors', () => {
-    
     test('Token is empty', () => {
       newPosition = 0;
       expect(quizQuestionMoveV1('', quizId, quesId2, newPosition)).toStrictEqual(UNAUTHORISED_ERROR);
@@ -1603,7 +1602,29 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => 
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
   });
-  
+
+  describe('Errors are returned in the correct order', () => {
+    const invalidToken = token + 'random';
+    const invalidQuizId = -1;
+    const invalidQuestionId = -1;
+
+    test('Unauthorised status code 401 first', () => {
+      newPosition = 0;
+      const response1 = quizQuestionMoveV1(invalidToken, invalidQuizId, quesId2, newPosition)
+      expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Forbidden status code 403 second', () => {
+      newPosition = 0;
+      const response = quizQuestionMoveV1(token, invalidQuizId, invalidQuestionId, newPosition);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+
+    test('Bad request status code 400 last', () => {
+      const response = quizQuestionMoveV1(token, quizId, invalidQuestionId, newPosition)
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
 });
 
 describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
