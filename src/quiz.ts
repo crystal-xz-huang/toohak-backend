@@ -1,4 +1,4 @@
-import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn, AdminQuizQuestionCreateReturn, QuestionBodyInput, AdminQuizQuestionDuplicateReturn } from './dataTypes';
+import { EmptyObject, Error, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn, AdminQuizQuestionCreateReturn, QuestionBodyInput, AdminQuizQuestionDuplicateReturn } from './dataTypes';
 import {
   generateRandomColour,
   getCurrentTime,
@@ -15,21 +15,24 @@ import {
   isValidQuestionIdForQuiz,
   isValidQuestion,
 } from './functionHelpers';
-import HTTPError from 'http-errors';
+// import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
 
 /**
   * Provide a list of all quizzes that are owned by the currently logged in user.
   *
   * @param { string } token - the token that corresponds to a user session
-  * @returns { QuizList | ErrorMessage } - an object containing an array of quizzes
+  * @returns { QuizList | Error } - an object containing an array of quizzes
 */
-export function adminQuizList(token: string): AdminQuizListReturn | ErrorMessage {
+export function adminQuizList(token: string): AdminQuizListReturn | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   // find all quizzes that are owned by the currently logged in user
@@ -48,14 +51,17 @@ export function adminQuizList(token: string): AdminQuizListReturn | ErrorMessage
   * @param { string } token - the id of registered user
   * @param { string } name - the name of the quiz
   * @param { string } description - basic details about the quiz
-  * @returns { QuizId | ErrorMessage } - object containing quizId of the user
+  * @returns { QuizId | Error } - object containing quizId of the user
 */
-export function adminQuizCreate(token: string, name: string, description: string): AdminQuizCreateReturn | ErrorMessage {
+export function adminQuizCreate(token: string, name: string, description: string): AdminQuizCreateReturn | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
@@ -63,7 +69,10 @@ export function adminQuizCreate(token: string, name: string, description: string
                      isQuizNameUsed(name, authUserId, data) ??
                      isValidQuizDescription(description);
   if (inputError) {
-    throw HTTPError(400, inputError.error);
+    return {
+      statusCode: 400,
+      error: inputError.error
+    };
   }
 
   data.quizId_counter = data.quizId_counter + 1;
@@ -89,20 +98,26 @@ export function adminQuizCreate(token: string, name: string, description: string
   *
   * @param { number } quizId - the id of the quiz
   * @param { string } token - the token that corresponds to a user session
-  * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
+  * @returns { EmptyObject | Error } - returns an empty object if successful
 */
-export function adminQuizRemove(token: string, quizId: number): EmptyObject | ErrorMessage {
+export function adminQuizRemove(token: string, quizId: number): EmptyObject | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = findQuizbyId(quizId, data);
@@ -119,20 +134,26 @@ export function adminQuizRemove(token: string, quizId: number): EmptyObject | Er
   *
   * @param { string } token - the id of registered user
   * @param { number } quizId - the id of the quiz
-  * @returns  { QuizInfo | ErrorMessage } - object containing the quiz details
+  * @returns  { QuizInfo | Error } - object containing the quiz details
 */
-export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoReturn | ErrorMessage {
+export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoReturn | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = findQuizbyId(quizId, data);
@@ -154,25 +175,34 @@ export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoRetur
   * @param { string } token - the token that corresponds to a user session
   * @param { number } quizId - the id of the quiz
   * @param { string } name - the name of the quiz
-  * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
+  * @returns { EmptyObject | Error } - returns an empty object if successful
 */
-export function adminQuizNameUpdate(token: string, quizId: number, name: string): EmptyObject | ErrorMessage {
+export function adminQuizNameUpdate(token: string, quizId: number, name: string): EmptyObject | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quizNameError = isValidQuizName(name) ?? isQuizNameUsed(name, authUserId, data);
   if (quizNameError) {
-    throw HTTPError(400, quizNameError.error);
+    return {
+      statusCode: 400,
+      error: quizNameError.error
+    };
   }
 
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
@@ -190,25 +220,34 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
   * @param { number } quizId - the id of the quiz
   * @param { string } description - the description of quiz
   *
-  * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
+  * @returns { EmptyObject | Error } - returns an empty object if successful
 */
-export function adminQuizDescriptionUpdate(token: string, quizId: number, description: string): EmptyObject | ErrorMessage {
+export function adminQuizDescriptionUpdate(token: string, quizId: number, description: string): EmptyObject | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const descriptionError = isValidQuizDescription(description);
   if (descriptionError) {
-    throw HTTPError(400, descriptionError.error);
+    return {
+      statusCode: 400,
+      error: descriptionError.error
+    };
   }
 
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
@@ -223,14 +262,17 @@ export function adminQuizDescriptionUpdate(token: string, quizId: number, descri
  * View the quizzes that are currently in the trash for the logged in user
  *
  * @param { string } token - the token that corresponds to a user session
- * @returns { AdminQuizTrashViewReturn | ErrorMessage } - an object containing an array of quizzes
+ * @returns { AdminQuizTrashViewReturn | Error } - an object containing an array of quizzes
  */
-export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | ErrorMessage {
+export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = data.sessions.find(session => session.token === token).adminUserId;
@@ -245,30 +287,42 @@ export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | Er
  * Restore a quiz from trash and update the timeLastEdited
  * @param {string} token
  * @param {number} quizId
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @returns {EmptyObject | Error} - returns an empty object if successful
  */
-export function adminQuizRestore(token: string, quizId: number): EmptyObject | ErrorMessage {
+export function adminQuizRestore(token: string, quizId: number): EmptyObject | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = findQuizbyId(quizId, data);
   if (quiz.valid) {
-    throw HTTPError(400, 'Quiz ID refers to a quiz that is not currently invalid or in the trash');
+    return {
+      statusCode: 400,
+      error: 'Quiz ID refers to a quiz that is not currently invalid or in the trash'
+    };
   }
 
   const isNameUsed = data.quizzes.some(q => q.name === quiz.name && q.valid === true && q.quizId !== quizId);
   if (isNameUsed) {
-    throw HTTPError(400, 'Quiz name of the restored quiz is already used by another active quiz');
+    return {
+      statusCode: 400,
+      error: 'Quiz name of the restored quiz is already used by another active quiz'
+    };
   }
 
   quiz.valid = true;
@@ -283,25 +337,34 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
  *
  * @param {string} token
  * @param {number[]} quizIds
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @returns {EmptyObject | Error} - returns an empty object if successful
  */
-export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObject | ErrorMessage {
+export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObject | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   for (const quizId of quizIds) {
     const userError = isValidQuizIdForUser(authUserId, quizId, data);
     if (userError) {
-      throw HTTPError(403, `User does not own the quiz with ID: ${quizId}`);
+      return {
+        statusCode: 403,
+        error: `User does not own the quiz with ID: ${quizId}`
+      };
     }
     const quiz = findQuizbyId(quizId, data);
     if (quiz.valid) {
-      throw HTTPError(400, 'One or more of the Quiz IDs is not currently in the trash');
+      return {
+        statusCode: 400,
+        error: 'One or more of the Quiz IDs is not currently in the trash'
+      };
     }
   }
 
@@ -319,32 +382,44 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
  * @param {string} token
  * @param {number} quizId
  * @param {string} userEmail
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @returns {EmptyObject | Error} - returns an empty object if successful
  */
-export function adminQuizTransfer(token: string, quizId: number, userEmail: string): EmptyObject | ErrorMessage {
+export function adminQuizTransfer(token: string, quizId: number, userEmail: string): EmptyObject | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const user = findUserbyEmail(userEmail, data);
   if (!user) {
-    throw HTTPError(400, 'User email is not the real user');
+    return {
+      statusCode: 400,
+      error: 'User email is not the real user'
+    };
   }
 
   const name = findQuizbyId(quizId, data).name;
   const userId = user.authUserId;
   const QuizNameError = isQuizNameUsed(name, userId, data);
   if (QuizNameError) {
-    throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
+    return {
+      statusCode: 400,
+      error: 'Quiz ID refers to a quiz that has a name that is already used by the target user'
+    };
   }
 
   const EmailId = user.authUserId;
@@ -362,26 +437,35 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
  * @param {string} token
  * @param {number} quizId
  * @param {QuestionBodyInput} questionBody
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @returns {EmptyObject | Error} - returns an empty object if successful
  */
-export function adminQuizQuestionCreate(token: string, quizId: number, questionBody: QuestionBodyInput): AdminQuizQuestionCreateReturn | ErrorMessage {
+export function adminQuizQuestionCreate(token: string, quizId: number, questionBody: QuestionBodyInput): AdminQuizQuestionCreateReturn | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   const questionError = isValidQuestion(quiz, questionBody);
   if (questionError) {
-    throw HTTPError(400, questionError.error);
+    return {
+      statusCode: 400,
+      error: questionError.error
+    };
   }
 
   quiz.numQuestions = quiz.numQuestions + 1;
@@ -412,18 +496,24 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
  * @param {number} questionId
  * @param {QuestionBodyInput} questionBody
  */
-export function adminQuizQuestionUpdate(token: string, quizId: number, questionId: number, questionBody: QuestionBodyInput): EmptyObject | ErrorMessage {
+export function adminQuizQuestionUpdate(token: string, quizId: number, questionId: number, questionBody: QuestionBodyInput): EmptyObject | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
@@ -431,12 +521,18 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
 
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
-    throw HTTPError(400, questionIdError.error);
+    return {
+      statusCode: 400,
+      error: questionIdError.error
+    };
   }
 
   const questionError = isValidQuestion(quiz, questionBody);
   if (questionError) {
-    throw HTTPError(400, questionError.error);
+    return {
+      statusCode: 400,
+      error: questionError.error
+    };
   }
 
   quiz.timeLastEdited = quiz.timeCreated;
@@ -462,20 +558,26 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
  * @param {number} quizId
  * @param {number} questionId
  * @param {number} newPosition
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @returns {EmptyObject | Error} - returns an empty object if successful
  */
-export function adminQuizQuestionMove(token: string, quizId: number, questionId: number, newPosition: number): EmptyObject | ErrorMessage {
+export function adminQuizQuestionMove(token: string, quizId: number, questionId: number, newPosition: number): EmptyObject | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.valid && quiz.authUserId === authUserId);
@@ -483,16 +585,28 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
 
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
-    throw HTTPError(400, questionIdError.error);
+    return {
+      statusCode: 400,
+      error: questionIdError.error
+    };
   }
 
   const index = findQuestionIndex(data, quizId, questionId);
   if (newPosition < 0) {
-    throw HTTPError(400, 'NewPosition is less than 0');
+    return {
+      statusCode: 400,
+      error: 'NewPosition is less than 0'
+    };
   } else if (index === newPosition) {
-    throw HTTPError(400, 'Question Id is the same as the NewPosition');
+    return {
+      statusCode: 400,
+      error: 'Question Id is the same as the NewPosition'
+    };
   } else if (newPosition > len - 1) {
-    throw HTTPError(400, 'NewPosition is greater than n-1 where n is the number of questions');
+    return {
+      statusCode: 400,
+      error: 'NewPosition is greater than n-1 where n is the number of questions'
+    };
   }
 
   const question = quiz.questions.find(question => question.questionId === questionId);
@@ -511,28 +625,37 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
  * @param {number} quizId
  * @param {number} questionId
  * @param {QuestionBodyInput} questionBody
- * @returns {AdminQuizQuestionDuplicateReturn | ErrorMessage} - returns an object containing the newQuestionId of the duplicated question
+ * @returns {AdminQuizQuestionDuplicateReturn | Error} - returns an object containing the newQuestionId of the duplicated question
  */
-export function adminQuizQuestionDuplicate(token: string, quizId: number, questionId: number): AdminQuizQuestionDuplicateReturn | ErrorMessage {
+export function adminQuizQuestionDuplicate(token: string, quizId: number, questionId: number): AdminQuizQuestionDuplicateReturn | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   const question = quiz.questions.find(question => question.questionId === questionId);
 
-  const questinIdError = isValidQuestionIdForQuiz(quiz, questionId);
-  if (questinIdError) {
-    throw HTTPError(400, questinIdError.error);
+  const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
+  if (questionIdError) {
+    return {
+      statusCode: 400,
+      error: questionIdError.error
+    };
   }
 
   // duplicate the question to immediately after where the source question is
@@ -564,20 +687,26 @@ export function adminQuizQuestionDuplicate(token: string, quizId: number, questi
  * @param {string} token
  * @param {number} quizId
  * @param {number} questionId
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @returns {EmptyObject | Error} - returns an empty object if successful
  */
-export function adminQuizQuestionRemove(token: string, quizId: number, questionId: number): EmptyObject | ErrorMessage {
+export function adminQuizQuestionRemove(token: string, quizId: number, questionId: number): EmptyObject | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
@@ -585,7 +714,10 @@ export function adminQuizQuestionRemove(token: string, quizId: number, questionI
 
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
-    throw HTTPError(400, questionIdError.error);
+    return {
+      statusCode: 400,
+      error: questionIdError.error
+    };
   }
 
   quiz.numQuestions = quiz.numQuestions - 1;

@@ -93,6 +93,11 @@ export type Token = {
 // RETURN TYPES - POST REQUESTS
 // ====================================================================
 
+export type Error = {
+  statusCode: number;
+  error: string;
+};
+
 export type ErrorMessage = {
   error: string;
 };
