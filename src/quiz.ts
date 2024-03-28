@@ -562,3 +562,43 @@ export function adminQuizQuestionDuplicate(token: string, quizId: number, questi
   setData(data);
   return { newQuestionId: newQuestion.questionId };
 }
+
+/**
+ * Remove a question from a quiz
+ *
+ * @param {string} token
+ * @param {number} quizId
+ * @param {number} questionId
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ */
+export function adminQuizQuestionRemove(token: string, quizId: number, questionId: number): EmptyObject | ErrorMessage {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const authUserId = findUserbyToken(token, data).authUserId;
+  const userError = isValidQuizIdForUser(authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError.error);
+  }
+
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const question = quiz.questions.find(question => question.questionId === questionId);
+
+  const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
+  if (questionIdError) {
+    throw HTTPError(400, questionIdError.error);
+  }
+
+  quiz.numQuestions = quiz.numQuestions - 1;
+  quiz.timeLastEdited = getCurrentTime();
+  quiz.duration = quiz.duration - question.duration;
+  const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
+  quiz.questions.splice(questionIndex, 1);
+
+  setData(data);
+  return {};
+}

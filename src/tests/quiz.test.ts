@@ -14,7 +14,7 @@ import {
   quizTransferV1,
   quizQuestionCreateV1,
   quizQuestionUpdateV1,
-  // quizQuestionRemoveV1,
+  quizQuestionRemoveV1,
   quizQuestionMoveV1,
   quizQuestionDuplicateV1,
 } from '../testHelpers';
@@ -1510,6 +1510,143 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
     test('Bad request status code 400 last', () => {
       const response = quizQuestionUpdateV1(token, quizId, invalidQuestionId, validQuestion2);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+});
+
+describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
+  let token: string;
+  let quizId: number;
+  let questionId: number;
+  beforeEach(() => {
+    const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    token = user.token;
+    const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+    quizId = quiz.quizId;
+    const question = quizQuestionCreateV1(token, quizId, validQuestion1).jsonBody;
+    questionId = question.questionId;
+  });
+
+  test('Correct status code and return value', () => {
+    const response = quizQuestionRemoveV1(token, quizId, questionId);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({});
+  });
+
+  test('Successful removal of one question', () => {
+    quizQuestionRemoveV1(token, quizId, questionId);
+    const response = quizInfoV1(token, quizId).jsonBody;
+    expect(response.questions).toStrictEqual([]);
+  });
+
+  test('Successful removal of one question, and creation of a new question with the same body', () => {
+    quizQuestionRemoveV1(token, quizId, questionId);
+    const response1 = quizInfoV1(token, quizId).jsonBody;
+    expect(response1.questions).toStrictEqual([]);
+    quizQuestionCreateV1(token, quizId, validQuestion1);
+    const response2 = quizInfoV1(token, quizId).jsonBody;
+    const expected = {
+      quizId: expect.any(Number),
+      name: quiz1.name,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: quiz1.description,
+      numQuestions: 1,
+      questions: [
+        {
+          questionId: expect.any(Number),
+          question: validQuestion1.question,
+          duration: validQuestion1.duration,
+          points: validQuestion1.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[1].correct
+            }
+          ]
+        }
+      ],
+      duration: 4,
+    };
+    expect(response2).toStrictEqual(expected);
+  });
+
+  test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
+    const expectedTime = Math.floor(Date.now() / 1000);
+    quizQuestionRemoveV1(token, quizId, questionId);
+    const timeLastEdited = quizInfoV1(token, quizId).jsonBody.timeLastEdited as number;
+    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+  });
+
+  describe('Bad request errors', () => {
+    test('Valid token but invalid questionId', () => {
+      const response = quizQuestionRemoveV1(token, quizId, questionId + 1);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    // test('Any session for this quiz is not in END state', () => {
+    // });
+  });
+
+  describe('Unauthorised errors', () => {
+    test('Token is empty', () => {
+      expect(quizQuestionRemoveV1('', quizId, questionId)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid user session', () => {
+      expect(quizQuestionRemoveV1(token + 'random', quizId, questionId)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a logged in user session', () => {
+      authLogoutV1(token);
+      expect(quizQuestionRemoveV1(token, quizId, questionId)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+  });
+
+  describe('Forbidden errors', () => {
+    test('Valid token but invalid quizId', () => {
+      const response = quizQuestionRemoveV1(token, quizId + 1, questionId);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+
+    test('Valid token but user does not own the quiz', () => {
+      const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+      const token2 = invalidUser.token as string;
+      const response = quizQuestionRemoveV1(token2, quizId, questionId);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+  });
+
+  describe('Errors are returned in the correct order', () => {
+    const invalidToken = token + 'random';
+    const emptyToken = '';
+    let notOwnerToken: string;
+    beforeEach(() => {
+      const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+      notOwnerToken = invalidUser.token as string;
+    });
+
+    test('Unauthorised status code 401 first', () => {
+      const response1 = quizQuestionRemoveV1(invalidToken, quizId + 1, questionId + 1);
+      expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
+      const response2 = quizQuestionRemoveV1(emptyToken, quizId + 1, questionId + 1);
+      expect(response2).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Forbidden status code 403 second', () => {
+      const response1 = quizQuestionRemoveV1(notOwnerToken, quizId, questionId + 1);
+      expect(response1).toStrictEqual(FORBIDDEN_ERROR);
+      const response2 = quizQuestionRemoveV1(token, quizId + 1, questionId + 1);
+      expect(response2).toStrictEqual(FORBIDDEN_ERROR);
     });
   });
 });

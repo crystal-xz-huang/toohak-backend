@@ -12,7 +12,7 @@ import process from 'process';
 // import { getData, setData } from './dataStore';
 import { clear } from './other';
 import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate, adminAuthLogout } from './auth';
-import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView, adminQuizRestore, adminQuizTrashEmpty, adminQuizTransfer, adminQuizQuestionCreate, adminQuizQuestionUpdate, adminQuizQuestionMove, adminQuizQuestionDuplicate } from './quiz';
+import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView, adminQuizRestore, adminQuizTrashEmpty, adminQuizTransfer, adminQuizQuestionCreate, adminQuizQuestionUpdate, adminQuizQuestionRemove, adminQuizQuestionMove, adminQuizQuestionDuplicate } from './quiz';
 
 // Set up web app
 const app = express();
@@ -208,13 +208,13 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
   res.json(response);
 });
 
-// app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
-//   const quizId = parseInt(req.params.quizid);
-//   const questionId = parseInt(req.params.questionid);
-//   const token = req.query.token as string;
-//   const response = adminQuizQuestionRemove(token, quizId, questionId);
-//   res.json(response);
-// });
+app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid);
+  const questionId = parseInt(req.params.questionid);
+  const token = req.query.token as string;
+  const response = adminQuizQuestionRemove(token, quizId, questionId);
+  res.json(response);
+});
 
 app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
