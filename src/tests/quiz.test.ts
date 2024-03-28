@@ -1189,8 +1189,10 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
     });
 
     test('Sum of the question durations in the quiz exceeds 3 minutes', () => {
-      const response = quizQuestionCreateV1(token, quizId, moreQuestionDurationSum);
-      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+      const response = quizQuestionCreateV1(token, quizId, moreQuestionDurationSum[0]);
+      expect(response.statusCode).toStrictEqual(200);
+      const response2 = quizQuestionCreateV1(token, quizId, moreQuestionDurationSum[1]);
+      expect(response2).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('Points awarded for the question are less than 1', () => {
@@ -1454,7 +1456,8 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
     });
 
     test('Sum of the question durations in the quiz exceeds 3 minutes after update', () => {
-      const response = quizQuestionUpdateV1(token, quizId, questionId2, moreQuestionDurationSum);
+      quizQuestionUpdateV1(token, quizId, questionId1, moreQuestionDurationSum[0]);
+      const response = quizQuestionUpdateV1(token, quizId, questionId2, moreQuestionDurationSum[1]);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
