@@ -13,6 +13,9 @@ import {
   isValidQuizIdForUser,
   isValidQuestionIdForQuiz,
   isValidQuestion,
+  // isValidQuestionforUpdate,
+  findQuestionIndex,
+  moveQuestion,
 } from './functionHelpers';
 import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
@@ -460,6 +463,48 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
     correct: answer.correct
   }));
 
+  setData(data);
+  return {};
+}
+
+/**
+ * Moves the position of question
+ *
+ * @param {string} token
+ * @param {number} quizId
+ * @param {number} questionId
+ * @param {number} newPosition
+ * @returns {}
+ */
+export function adminQuizQuestionMove (token: string, quizId: number, questionId: number, newPosition: number) {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const authUserId = findUserbyToken(token, data).authUserId;
+  const userError = isValidQuizIdForUser(authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError.error);
+  }
+
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const len = quiz.questions.length;
+  quiz.questions.find(question => question.questionId === questionId);
+
+  const questinIdError = isValidQuestionIdForQuiz(quiz, questionId);
+  if (questinIdError) {
+    throw HTTPError(400, questinIdError.error);
+  }
+
+  const index = (findQuestionIndex(data, quizId, questionId));
+  if (newPosition < 0 || index === newPosition || newPosition > len) {
+    throw HTTPError(400, 'NewPosition shouldnt be less then 0');
+  }
+
+  moveQuestion(quiz, index, newPosition);
   setData(data);
   return {};
 }
