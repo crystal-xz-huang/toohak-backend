@@ -44,19 +44,19 @@ export type User = {
   numFailedPasswordsSinceLastLogin: number;
 }
 
-export type Question = {
+export type AnswerBody = {
+  answerId: number;
+  answer: string;
+  colour: string; // randomly generated colour
+  correct: boolean;
+}
+
+export type QuestionBody = {
   questionId: number;
   question: string;
-  duration: number;
+  duration: number; // in seconds
   points: number;
-  answers: [
-    {
-      answerId: number;
-      answer: string;
-      colour: string;
-      correct: boolean;
-    }
-  ];
+  answers: AnswerBody[];
 }
 
 export type Quiz = {
@@ -67,7 +67,7 @@ export type Quiz = {
   timeCreated: number; // Unix timestamp in seconds: Math.floor(Date.now() / 1000)
   timeLastEdited: number; // Unix timestamp in seconds: Math.floor(Date.now() / 1000)
   numQuestions: number;
-  questions: Question[];
+  questions: QuestionBody[];
   duration: number;
   valid: boolean; // false if the quiz has been moved to the trash
 }
@@ -135,13 +135,24 @@ export type AdminQuizInfoReturn = {
   timeLastEdited: number;
   description: string;
   numQuestions: number;
-  questions: Question[];
+  questions: QuestionBody[];
   duration: number;
 }
 
 export type AdminQuizTrashViewReturn = {
   quizzes: QuizDetails[];
 }
+
+export type AdminQuizQuestionCreateReturn = {
+  questionId: number;
+}
+
+export type AdminQuizQuestionCreateInput = {
+  question: string;
+  duration: number;
+  points: number;
+  answers: Array<{ answer: string; correct: boolean }>;
+};
 
 // ====================================================================
 // CONSTANTS
