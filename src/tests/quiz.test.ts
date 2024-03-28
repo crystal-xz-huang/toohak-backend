@@ -1528,7 +1528,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   });
 
   test('Correct status code and return value', () => {
-    const response = quizQuestionRemoveV1(token, quizId, questionId)
+    const response = quizQuestionRemoveV1(token, quizId, questionId);
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual({});
   });
@@ -1540,10 +1540,10 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   });
 
   test('Successful removal of one question, and creation of a new question with the same body', () => {
-    quizQuestionRemoveV1(token, quizId, questionId)
+    quizQuestionRemoveV1(token, quizId, questionId);
     const response1 = quizInfoV1(token, quizId).jsonBody;
     expect(response1.questions).toStrictEqual([]);
-    quizQuestionCreateV1(token, quizId, validQuestion1);    
+    quizQuestionCreateV1(token, quizId, validQuestion1);
     const response2 = quizInfoV1(token, quizId).jsonBody;
     const expected = {
       quizId: expect.any(Number),
@@ -1581,7 +1581,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
 
   test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
     const expectedTime = Math.floor(Date.now() / 1000);
-    quizQuestionRemoveV1(token, quizId, questionId)
+    quizQuestionRemoveV1(token, quizId, questionId);
     const timeLastEdited = quizInfoV1(token, quizId).jsonBody.timeLastEdited as number;
     expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
     expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
