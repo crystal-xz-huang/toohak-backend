@@ -94,6 +94,7 @@ export type Token = {
 // ====================================================================
 
 export type ErrorMessage = {
+  statusCode: number;
   error: string;
 };
 

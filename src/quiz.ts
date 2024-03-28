@@ -29,7 +29,10 @@ export function adminQuizList(token: string): AdminQuizListReturn | ErrorMessage
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   // find all quizzes that are owned by the currently logged in user
@@ -55,7 +58,10 @@ export function adminQuizCreate(token: string, name: string, description: string
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
@@ -63,7 +69,10 @@ export function adminQuizCreate(token: string, name: string, description: string
                      isQuizNameUsed(name, authUserId, data) ??
                      isValidQuizDescription(description);
   if (inputError) {
-    throw HTTPError(400, inputError.error);
+    return {
+      statusCode: 400,
+      error: inputError.error
+    };
   }
 
   data.quizId_counter = data.quizId_counter + 1;
@@ -96,13 +105,19 @@ export function adminQuizRemove(token: string, quizId: number): EmptyObject | Er
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = findQuizbyId(quizId, data);
@@ -126,13 +141,19 @@ export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoRetur
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = findQuizbyId(quizId, data);
@@ -161,18 +182,27 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quizNameError = isValidQuizName(name) ?? isQuizNameUsed(name, authUserId, data);
   if (quizNameError) {
-    throw HTTPError(400, quizNameError.error);
+    return {
+      statusCode: 400,
+      error: quizNameError.error
+    };
   }
 
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
@@ -197,18 +227,27 @@ export function adminQuizDescriptionUpdate(token: string, quizId: number, descri
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const descriptionError = isValidQuizDescription(description);
   if (descriptionError) {
-    throw HTTPError(400, descriptionError.error);
+    return {
+      statusCode: 400,
+      error: descriptionError.error
+    };
   }
 
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
@@ -230,7 +269,10 @@ export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | Er
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = data.sessions.find(session => session.token === token).adminUserId;
@@ -252,23 +294,35 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = findQuizbyId(quizId, data);
   if (quiz.valid) {
-    throw HTTPError(400, 'Quiz ID refers to a quiz that is not currently invalid or in the trash');
+    return {
+      statusCode: 400,
+      error: 'Quiz ID refers to a quiz that is not currently invalid or in the trash'
+    };
   }
 
   const isNameUsed = data.quizzes.some(q => q.name === quiz.name && q.valid === true && q.quizId !== quizId);
   if (isNameUsed) {
-    throw HTTPError(400, 'Quiz name of the restored quiz is already used by another active quiz');
+    return {
+      statusCode: 400,
+      error: 'Quiz name of the restored quiz is already used by another active quiz'
+    };
   }
 
   quiz.valid = true;
@@ -290,18 +344,27 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   for (const quizId of quizIds) {
     const userError = isValidQuizIdForUser(authUserId, quizId, data);
     if (userError) {
-      throw HTTPError(403, `User does not own the quiz with ID: ${quizId}`);
+      return {
+        statusCode: 403,
+        error: `User does not own the quiz with ID: ${quizId}`
+      };
     }
     const quiz = findQuizbyId(quizId, data);
     if (quiz.valid) {
-      throw HTTPError(400, 'One or more of the Quiz IDs is not currently in the trash');
+      return {
+        statusCode: 400,
+        error: 'One or more of the Quiz IDs is not currently in the trash'
+      };
     }
   }
 
@@ -326,25 +389,37 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const user = findUserbyEmail(userEmail, data);
   if (!user) {
-    throw HTTPError(400, 'User email is not the real user');
+    return {
+      statusCode: 400,
+      error: 'User email is not the real user'
+    };
   }
 
   const name = findQuizbyId(quizId, data).name;
   const userId = user.authUserId;
   const QuizNameError = isQuizNameUsed(name, userId, data);
   if (QuizNameError) {
-    throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
+    return {
+      statusCode: 400,
+      error: 'Quiz ID refers to a quiz that has a name that is already used by the target user'
+    };
   }
 
   const EmailId = user.authUserId;
@@ -369,19 +444,28 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   const questionError = isValidQuestion(quiz, questionBody);
   if (questionError) {
-    throw HTTPError(400, questionError.error);
+    return {
+      statusCode: 400,
+      error: questionError.error
+    };
   }
 
   quiz.numQuestions = quiz.numQuestions + 1;
@@ -417,13 +501,19 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
@@ -431,12 +521,18 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
 
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
-    throw HTTPError(400, questionIdError.error);
+    return {
+      statusCode: 400,
+      error: questionIdError.error
+    };
   }
 
   const questionError = isValidQuestion(quiz, questionBody);
   if (questionError) {
-    throw HTTPError(400, questionError.error);
+    return {
+      statusCode: 400,
+      error: questionError.error
+    };
   }
 
   quiz.timeLastEdited = quiz.timeCreated;
@@ -469,13 +565,19 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.valid && quiz.authUserId === authUserId);
@@ -483,16 +585,28 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
 
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
-    throw HTTPError(400, questionIdError.error);
+    return {
+      statusCode: 400,
+      error: questionIdError.error
+    };
   }
 
   const index = findQuestionIndex(data, quizId, questionId);
   if (newPosition < 0) {
-    throw HTTPError(400, 'NewPosition is less than 0');
+    return {
+      statusCode: 400,
+      error: 'NewPosition is less than 0'
+    };
   } else if (index === newPosition) {
-    throw HTTPError(400, 'Question Id is the same as the NewPosition');
+    return {
+      statusCode: 400,
+      error: 'Question Id is the same as the NewPosition'
+    };
   } else if (newPosition > len - 1) {
-    throw HTTPError(400, 'NewPosition is greater than n-1 where n is the number of questions');
+    return {
+      statusCode: 400,
+      error: 'NewPosition is greater than n-1 where n is the number of questions'
+    };
   }
 
   const question = quiz.questions.find(question => question.questionId === questionId);
@@ -518,21 +632,30 @@ export function adminQuizQuestionDuplicate(token: string, quizId: number, questi
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   const question = quiz.questions.find(question => question.questionId === questionId);
 
-  const questinIdError = isValidQuestionIdForQuiz(quiz, questionId);
-  if (questinIdError) {
-    throw HTTPError(400, questinIdError.error);
+  const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
+  if (questionIdError) {
+    return {
+      statusCode: 400,
+      error: questionIdError.error
+    };
   }
 
   // duplicate the question to immediately after where the source question is
@@ -571,13 +694,19 @@ export function adminQuizQuestionRemove(token: string, quizId: number, questionI
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    throw HTTPError(403, userError.error);
+    return {
+      statusCode: 403,
+      error: userError.error
+    };
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
@@ -585,7 +714,10 @@ export function adminQuizQuestionRemove(token: string, quizId: number, questionI
 
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
-    throw HTTPError(400, questionIdError.error);
+    return {
+      statusCode: 400,
+      error: questionIdError.error
+    };
   }
 
   quiz.numQuestions = quiz.numQuestions - 1;
