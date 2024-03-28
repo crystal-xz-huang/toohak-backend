@@ -12,8 +12,7 @@ import {
   isQuizNameUsed,
   isValidQuizIdForUser,
   isValidQuestionIdForQuiz,
-  isValidQuestionforCreate,
-  isValidQuestionforUpdate,
+  isValidQuestion,
 } from './functionHelpers';
 import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
@@ -388,12 +387,12 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
     throw HTTPError(403, userError.error);
   }
 
-  const questionError = isValidQuestionforCreate(questionBody);
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const questionError = isValidQuestion(quiz, questionBody);
   if (questionError) {
     throw HTTPError(400, questionError.error);
   }
 
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   quiz.numQuestions = quiz.numQuestions + 1;
   quiz.timeLastEdited = getCurrentTime();
   quiz.duration = quiz.duration + questionBody.duration;
@@ -439,12 +438,12 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   const question = quiz.questions.find(question => question.questionId === questionId);
 
-  const questinIdError = isValidQuestionIdForQuiz(quiz, questionId);
-  if (questinIdError) {
-    throw HTTPError(400, questinIdError.error);
+  const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
+  if (questionIdError) {
+    throw HTTPError(400, questionIdError.error);
   }
 
-  const questionError = isValidQuestionforUpdate(quiz, questionBody);
+  const questionError = isValidQuestion(quiz, questionBody);
   if (questionError) {
     throw HTTPError(400, questionError.error);
   }

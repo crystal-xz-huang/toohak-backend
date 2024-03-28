@@ -229,17 +229,30 @@ export const negativeQuestionDuration = [
 ];
 
 // Sum of the question durations in the quiz exceeds 3 minutes
-export const moreQuestionDurationSum = {
-  question: 'What is the capital of Australia?',
-  duration: 181,
-  points: 5,
-  answers: [
-    { answer: 'Canberra', correct: true },
-    { answer: 'Sydney', correct: false },
-    { answer: 'Melbourne', correct: false },
-    { answer: 'Brisbane', correct: false },
-  ]
-};
+export const moreQuestionDurationSum = [
+  {
+    question: 'Who is the Monarch of England?',
+    duration: 60,
+    points: 5,
+    answers: [
+      { answer: 'Prince Charles', correct: true },
+      { answer: 'Queen Elizabeth II', correct: false },
+      { answer: 'Prince William', correct: false },
+      { answer: 'Prince Harry', correct: false },
+    ]
+  },
+  {
+    question: 'What is the capital of Australia?',
+    duration: 121,
+    points: 5,
+    answers: [
+      { answer: 'Canberra', correct: true },
+      { answer: 'Sydney', correct: false },
+      { answer: 'Melbourne', correct: false },
+      { answer: 'Brisbane', correct: false },
+    ]
+  },
+];
 
 // Points awarded for the question is less than 1
 export const lessQuestionPoints = {
