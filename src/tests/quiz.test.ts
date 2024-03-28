@@ -16,7 +16,7 @@ import {
   quizQuestionUpdateV1,
   // quizQuestionRemoveV1,
   // quizQuestionMoveV1,
-  // quizQuestionDuplicateV1,
+  quizQuestionDuplicateV1,
 } from '../testHelpers';
 
 import { BAD_REQUEST_ERROR, UNAUTHORISED_ERROR, FORBIDDEN_ERROR } from '../testTypes';
@@ -1506,6 +1506,170 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
 
     test('Bad request status code 400 last', () => {
       const response = quizQuestionUpdateV1(token, quizId, invalidQuestionId, validQuestion2);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+});
+
+
+describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
+  let token: string;
+  let quizId: number;
+  let questionId1: number;
+  let questionId2: number;
+  beforeEach(() => {
+    token = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody.quizId as number;
+    questionId1 = quizQuestionCreateV1(token, quizId, validQuestion1).jsonBody.questionId as number;
+    questionId2 = quizQuestionCreateV1(token, quizId, validQuestion2).jsonBody.questionId as number;
+  });
+  
+  test('Correct status code and return value', () => {
+    const response = quizQuestionDuplicateV1(token, quizId, questionId1);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({ newQuestionId: expect.any(Number) });
+  });
+
+  test('Successfully duplicates a question', () => {
+    const newQuestionId = quizQuestionDuplicateV1(token, quizId, questionId1).jsonBody.newQuestionId as number;
+    const response = quizInfoV1(token, quizId).jsonBody;
+    const expected = {
+      quizId: expect.any(Number),
+      name: quiz1.name,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: quiz1.description,
+      numQuestions: 3,
+      questions: [
+        {
+          questionId: questionId1,
+          question: validQuestion1.question,
+          duration: validQuestion1.duration,
+          points: validQuestion1.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[1].correct
+            }
+          ]
+        },
+        {
+          questionId: newQuestionId,
+          question: validQuestion1.question,
+          duration: validQuestion1.duration,
+          points: validQuestion1.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[1].correct
+            }
+          ]
+        },
+        {
+          questionId: questionId2,
+          question: validQuestion2.question,
+          duration: validQuestion2.duration,
+          points: validQuestion2.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion2.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion2.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion2.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion2.answers[1].correct
+            }
+          ]
+        },
+      ],
+      duration: validQuestion1.duration * 2 + validQuestion2.duration
+    };
+    expect(response).toStrictEqual(expected);
+  });
+
+  test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
+    const expectedTime = Math.floor(Date.now() / 1000);
+    quizQuestionDuplicateV1(token, quizId, questionId1);
+    const response2 = quizInfoV1(token, quizId).jsonBody;
+    const timeLastEdited = response2.timeLastEdited as number;
+    // Check if the timeLastEdited are within a 1 second range of the current time
+    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+  });
+
+  describe('Unauthorised errors', () => {
+    test('Token is empty', () => {
+      expect(quizQuestionDuplicateV1('', quizId, questionId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid user session', () => {
+      expect(quizQuestionDuplicateV1(token + 'random', quizId, questionId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a logged in user session', () => {
+      authLogoutV1(token);
+      expect(quizQuestionDuplicateV1(token, quizId, questionId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+  });
+
+  describe('Forbidden errors', () => {
+    test('Valid token but invalid quizId', () => {
+      const response = quizQuestionDuplicateV1(token, -1, questionId1);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+
+    test('Valid token but user does not own the quiz', () => {
+      const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+      const token2 = invalidUser.token as string;
+      const response = quizQuestionDuplicateV1(token2, quizId, questionId1);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+  });
+
+  describe('Bad request errors', () => {
+    test('Question Id does not refer to a valid question within this quiz', () => {
+      const response = quizQuestionDuplicateV1(token, quizId, -1);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+
+  describe('Errors are returned in the correct order', () => {
+    const invalidToken = token + 'random';
+    const invalidQuizId = -1;
+    const invalidQuestionId = -1;
+
+    test('Unauthorised status code 401 first', () => {
+      const response1 = quizQuestionDuplicateV1(invalidToken, invalidQuizId, invalidQuestionId);
+      expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Forbidden status code 403 second', () => {
+      const response = quizQuestionDuplicateV1(token, invalidQuizId, invalidQuestionId);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+
+    test('Bad request status code 400 last', () => {
+      const response = quizQuestionDuplicateV1(token, quizId, invalidQuestionId);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
