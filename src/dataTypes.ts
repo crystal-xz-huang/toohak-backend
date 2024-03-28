@@ -180,3 +180,8 @@ export const MIN_QUIZ_NAME_LENGTH = 3;
 export const MAX_QUIZ_NAME_LENGTH = 30;
 export const QUIZNAME_REGEX = /^[a-zA-Z0-9\s]+$/;
 export const MAX_QUIZ_DESCRIPTION_LENGTH = 100;
+
+// STATUS CODES
+export const BAD_REQUEST_CODE = 400;
+export const UNAUTHORISED_CODE = 401;
+export const FORBIDDEN_CODE = 403;
