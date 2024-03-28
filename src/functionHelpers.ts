@@ -498,8 +498,8 @@ export function findQuestionIndex(data: Data, quizId: number, questionId: number
   return quiz.questions.findIndex(q => q.questionId === questionId);
 }
 
-/** 
- * Changes the position of questions 
+/**
+ * Changes the position of questions
 */
 export function moveQuestion(quiz: Quiz, fromIndex: number, toIndex: number): Quiz {
   const questionToMove = quiz.questions.splice(fromIndex, 1)[0];

@@ -469,11 +469,11 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
 
 /**
  * Moves the position of question
- * 
- * @param {string} token 
- * @param {number} quizId 
- * @param {number} questionId 
- * @param {number} newPosition 
+ *
+ * @param {string} token
+ * @param {number} quizId
+ * @param {number} questionId
+ * @param {number} newPosition
  * @returns {}
  */
 export function adminQuizQuestionMove (token: string, quizId: number, questionId: number, newPosition: number) {
@@ -492,15 +492,15 @@ export function adminQuizQuestionMove (token: string, quizId: number, questionId
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   const len = quiz.questions.length;
-  const question = quiz.questions.find(question => question.questionId === questionId);
+  quiz.questions.find(question => question.questionId === questionId);
 
   const questinIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questinIdError) {
     throw HTTPError(400, questinIdError.error);
   }
 
-  const index = (findQuestionIndex(data,quizId, questionId));
-  if(newPosition < 0 || index === newPosition || newPosition > len) {
+  const index = (findQuestionIndex(data, quizId, questionId));
+  if (newPosition < 0 || index === newPosition || newPosition > len) {
     throw HTTPError(400, 'NewPosition shouldnt be less then 0');
   }
 

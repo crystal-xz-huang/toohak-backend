@@ -1535,7 +1535,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => 
     expect(response.jsonBody).toStrictEqual({});
   });
 
-  /*test('Succesfull change position', () => {
+  /* test('Succesfull change position', () => {
     newPosition = 1;
     quizQuestionMoveV1(token, quizId, quesId2, newPosition);
     const response2 = quizInfoV1(token, quizId).jsonBody.questions;
@@ -1610,7 +1610,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => 
 
     test('Unauthorised status code 401 first', () => {
       newPosition = 0;
-      const response1 = quizQuestionMoveV1(invalidToken, invalidQuizId, quesId2, newPosition)
+      const response1 = quizQuestionMoveV1(invalidToken, invalidQuizId, quesId2, newPosition);
       expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
@@ -1621,7 +1621,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => 
     });
 
     test('Bad request status code 400 last', () => {
-      const response = quizQuestionMoveV1(token, quizId, invalidQuestionId, newPosition)
+      const response = quizQuestionMoveV1(token, quizId, invalidQuestionId, newPosition);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
