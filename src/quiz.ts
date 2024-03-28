@@ -54,7 +54,7 @@ export function adminQuizList(token: string): AdminQuizListReturn | ErrorMessage
 /**
   * Given basic details about a new quiz, create one for the logged in user.
   *
-  * @param { number } authUserId - the id of registered user
+  * @param { string } token - the id of registered user
   * @param { string } name - the name of the quiz
   * @param { string } description - basic details about the quiz
   * @returns { QuizId | ErrorMessage } - object containing quizId of the user
