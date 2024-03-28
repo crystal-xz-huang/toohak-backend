@@ -509,7 +509,7 @@ export function adminQuizQuestionMove (token: string, quizId: number, questionId
   return {};
 }
 
-/**
+/** 
  * Duplicate a quiz question, given the quizId and questionId
  *
  * @param {string} token
