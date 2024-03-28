@@ -12,7 +12,7 @@ import process from 'process';
 // import { getData, setData } from './dataStore';
 import { clear } from './other';
 import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate, adminAuthLogout } from './auth';
-import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView, adminQuizRestore, adminQuizTrashEmpty, adminQuizTransfer, adminQuizQuestionCreate, adminQuizQuestionUpdate } from './quiz';
+import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView, adminQuizRestore, adminQuizTrashEmpty, adminQuizTransfer, adminQuizQuestionCreate, adminQuizQuestionUpdate, adminQuizQuestionDuplicate } from './quiz';
 
 // Set up web app
 const app = express();
@@ -224,13 +224,13 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
 //   res.json(response);
 // });
 
-// app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
-//   const quizId = parseInt(req.params.quizid);
-//   const questionId = parseInt(req.params.questionid);
-//   const token = req.body.token as string;
-//   const response = adminQuizQuestionDuplicate(token, quizId, questionId);
-//   res.json(response);
-// });
+app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid);
+  const questionId = parseInt(req.params.questionid);
+  const token = req.body.token as string;
+  const response = adminQuizQuestionDuplicate(token, quizId, questionId);
+  res.json(response);
+});
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
