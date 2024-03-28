@@ -129,12 +129,30 @@ describe('Testing POST /v1/admin/quiz', () => {
     expect(response.jsonBody).toStrictEqual({ quizId: expect.any(Number) });
   });
 
+  test('Successful creation of one quiz', () => {
+    const response = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+    const response2 = quizListV1(token).jsonBody;
+    const expected = { quizzes: [{ quizId: response.quizId as number, name: quiz1.name }] };
+    expect(response2).toStrictEqual(expected);
+  });
+
   test('QuizId is unique for two different quizzes', () => {
     const response1 = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
     const quizId1 = response1.quizId as number;
     const response2 = quizCreateV1(token, quiz2.name, quiz2.description).jsonBody;
     const quizId2 = response2.quizId as number;
     expect(quizId1).not.toStrictEqual(quizId2);
+  });
+
+  test('timeCreated and timeLastEdited are within a 1 second range of the current time', () => {
+    const expectedTime = Math.floor(Date.now() / 1000);
+    const response = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+    const timeCreated = quizInfoV1(token, response.quizId as number).jsonBody.timeCreated as number;
+    const timeLastEdited = quizInfoV1(token, response.quizId as number).jsonBody.timeLastEdited as number;
+    expect(timeCreated).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeCreated).toBeLessThanOrEqual(expectedTime + 1);
+    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
   });
 
   describe('Unauthorised errors', () => {
@@ -225,9 +243,24 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
   });
 
   test('Successful removal of one quiz', () => {
-    const response = quizRemoveV1(token, quizId);
-    expect(response.statusCode).toStrictEqual(200);
-    expect(response.jsonBody).toStrictEqual({});
+    quizRemoveV1(token, quizId);
+    const response = quizListV1(token).jsonBody;
+    expect(response).toStrictEqual({ quizzes: [] });
+  });
+
+  test('Successful removal of one quiz, and creation of a new quiz with the same name', () => {
+    quizRemoveV1(token, quizId);
+    quizCreateV1(token, quiz1.name, quiz1.description);
+    const response = quizListV1(token).jsonBody;
+    expect(response).toStrictEqual({ quizzes: [{ quizId: expect.any(Number), name: quiz1.name }] });
+  });
+
+  test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
+    const expectedTime = Math.floor(Date.now() / 1000);
+    quizRemoveV1(token, quizId);
+    const timeLastEdited = quizInfoV1(token, quizId).jsonBody.timeLastEdited as number;
+    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
   });
 
   describe('Unauthorised errors', () => {
@@ -322,21 +355,6 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
     expect(response).toStrictEqual(expected);
   });
 
-  test('Timestamps are within a 1 second range of the current time', () => {
-    // Capture the current time
-    const expectedTime = Math.floor(Date.now() / 1000);
-    // Send a request to create a new quiz and get the timeCreated and timeLastEdited of the quiz with quizInfo
-    const response = quizInfoV1(token, quizId).jsonBody;
-    const timeCreated = response.timeCreated as number;
-    const timeLastEdited = response.timeLastEdited as number;
-
-    // Check if the timeCreated and timeLastEdited are within a 1 second range of the current time
-    expect(timeCreated).toBeGreaterThanOrEqual(expectedTime);
-    expect(timeCreated).toBeLessThanOrEqual(expectedTime + 1);
-    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
-    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
-  });
-
   describe('Unauthorised errors', () => {
     test('Token is empty', () => {
       expect(quizInfoV1('', quizId)).toStrictEqual(UNAUTHORISED_ERROR);
@@ -417,6 +435,12 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
     quizCreateV1(token, quiz1.name, quiz1.description);
     const response = quizListV1(token).jsonBody;
     expect(response).toStrictEqual({ quizzes: [{ quizId: quizId, name: quiz2.name }, { quizId: expect.any(Number), name: quiz1.name }] });
+  });
+
+  test('timeLastEdited is set to the same value as timeCreated', () => {
+    const timeCreated = quizInfoV1(token, quizId).jsonBody.timeCreated as number;
+    const timeLastEdited = quizInfoV1(token, quizId).jsonBody.timeLastEdited as number;
+    expect(timeCreated).toStrictEqual(timeLastEdited);
   });
 
   describe('Unauthorised errors', () => {
@@ -699,7 +723,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
     expect(response).toStrictEqual({});
   });
 
-  test('Timestamps are within a 1 second range of the current time', () => {
+  test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
     const response1 = quizRestoreV1(tokenUser1, quizId1).jsonBody;
     expect(response1).toStrictEqual({});
 
@@ -1099,7 +1123,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
     expect(response).toStrictEqual(expected);
   });
 
-  test('timeLastEdited is set to the created time', () => {
+  test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
     const expectedTime = Math.floor(Date.now() / 1000);
     quizQuestionCreateV1(token, quizId, validQuestion1);
     const response2 = quizInfoV1(token, quizId).jsonBody;
@@ -1359,7 +1383,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
     expect(response).toStrictEqual(expected);
   });
 
-  test('timeLastEdited is set to the updated time', () => {
+  test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
     const expectedTime = Math.floor(Date.now() / 1000);
     quizQuestionUpdateV1(token, quizId, questionId1, validQuestion2);
     const response2 = quizInfoV1(token, quizId).jsonBody;
