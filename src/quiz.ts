@@ -12,8 +12,8 @@ import {
   isQuizNameUsed,
   isValidQuizIdForUser,
   isValidQuestionIdForQuiz,
-  isValidQuestionforCreate,
-  isValidQuestionforUpdate,
+  isValidQuestion,
+  // isValidQuestionforUpdate,
   findQuestionIndex,
   moveQuestion,
 } from './functionHelpers';
