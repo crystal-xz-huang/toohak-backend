@@ -1534,16 +1534,49 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   });
 
   test('Successful removal of one question', () => {
-    quizQuestionRemoveV1(token, quizId, questionId)
+    quizQuestionRemoveV1(token, quizId, questionId);
     const response = quizInfoV1(token, quizId).jsonBody;
-    expect(response).toStrictEqual({ quizzes: [] });
+    expect(response.questions).toStrictEqual([]);
   });
 
   test('Successful removal of one question, and creation of a new question with the same body', () => {
     quizQuestionRemoveV1(token, quizId, questionId)
+    const response1 = quizInfoV1(token, quizId).jsonBody;
+    expect(response1.questions).toStrictEqual([]);
     quizQuestionCreateV1(token, quizId, validQuestion1);    
-    const response = quizInfoV1(token, quizId).jsonBody;
-    expect(response).toStrictEqual({ quizId: expect.any(Number), name: quiz1.name });
+    const response2 = quizInfoV1(token, quizId).jsonBody;
+    const expected = {
+      quizId: expect.any(Number),
+      name: quiz1.name,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: quiz1.description,
+      numQuestions: 1,
+      questions: [
+        {
+          questionId: expect.any(Number),
+          question: validQuestion1.question,
+          duration: validQuestion1.duration,
+          points: validQuestion1.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[1].correct
+            }
+          ]
+        }
+      ],
+      duration: 4,
+    };
+    expect(response2).toStrictEqual(expected);
   });
 
   test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
