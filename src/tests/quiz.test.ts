@@ -15,7 +15,7 @@ import {
   quizQuestionCreateV1,
   quizQuestionUpdateV1,
   // quizQuestionRemoveV1,
-  // quizQuestionMoveV1,
+  quizQuestionMoveV1,
   quizQuestionDuplicateV1,
 } from '../testHelpers';
 
@@ -1509,6 +1509,101 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
+});
+
+describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}move', () => {
+  let token: string;
+  let quizId: number;
+  let quesId1: number;
+  let quesId2: number;
+  let newPosition: number;
+  beforeEach(() => {
+    token = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody.quizId as number;
+
+    const q1 = quizQuestionCreateV1(token, quizId, validQuestion1).jsonBody;
+    quesId1 = q1.questionId as number;
+
+    const q2 = quizQuestionCreateV1(token, quizId, validQuestion2).jsonBody;
+    quesId2 = q2.questionId as number;
+  });
+
+  test('Correct status code and return value', () => {
+    newPosition = 1;
+    const response = quizQuestionMoveV1(token, quizId, quesId1, newPosition);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({});
+  });
+
+  /*test('Succesfull change position', () => {
+    newPosition = 1;
+    quizQuestionMoveV1(token, quizId, quesId2, newPosition);
+    const response2 = quizInfoV1(token, quizId).jsonBody.questions;
+    const index = response2.findIndex(question => question.questionId === quesId2);
+    expect(index + 1).toStrictEqual(newPosition);
+  });*/
+
+  describe ('Bad request error', () => {
+    test('Question Id does not refer to a valid question within this quiz', () =>{
+      newPosition = 0;
+      const randomQuestionId = 456;
+      const response = quizQuestionMoveV1(token, quizId, randomQuestionId, newPosition);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('NewPosition is less than 0', () => {
+      newPosition = 0;
+      const response = quizQuestionMoveV1(token, quizId, quesId2, newPosition);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('NewPosition is greater than n-1 where n is the number of questions', () => {
+      newPosition = 2;
+      const response = quizQuestionMoveV1(token, quizId, quesId2, newPosition);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('NewPosition is the position of the current question', () => {
+      newPosition = 1;
+      const response = quizQuestionMoveV1(token, quizId, quesId2, newPosition);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+
+  describe('Unauthorised errors', () => {
+    
+    test('Token is empty', () => {
+      newPosition = 0;
+      expect(quizQuestionMoveV1('', quizId, quesId2, newPosition)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid user session', () => {
+      newPosition = 0;
+      expect(quizQuestionMoveV1(token + 'random', quizId, quesId2, newPosition)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a logged in user session', () => {
+      newPosition = 0;
+      authLogoutV1(token);
+      expect(quizQuestionMoveV1(token, quizId, quesId2, newPosition)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+  });
+
+  describe('Forbidden errors', () => {
+    test('Valid token but invalid quizId', () => {
+      newPosition = 0;
+      const response = quizQuestionMoveV1(token, quizId + 1, quesId2, newPosition);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+
+    test('Valid token but user does not own the quiz', () => {
+      const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+      const token2 = invalidUser.token as string;
+      const response = quizQuestionMoveV1(token2, quizId, quesId2, newPosition);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+  });
+  
 });
 
 describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {

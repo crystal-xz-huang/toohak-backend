@@ -465,6 +465,11 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
   return {};
 }
 
+export function adminQuizQuestionMove (token: number, quizId: number, questionId: number, newPosition: number) {
+  return {};
+}
+
+
 /**
  * Duplicate a quiz question, given the quizId and questionId
  *
