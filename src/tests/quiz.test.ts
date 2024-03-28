@@ -1511,7 +1511,6 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   });
 });
 
-
 describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
   let token: string;
   let quizId: number;
@@ -1523,14 +1522,14 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
     questionId1 = quizQuestionCreateV1(token, quizId, validQuestion1).jsonBody.questionId as number;
     questionId2 = quizQuestionCreateV1(token, quizId, validQuestion2).jsonBody.questionId as number;
   });
-  
+
   test('Correct status code and return value', () => {
     const response = quizQuestionDuplicateV1(token, quizId, questionId1);
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual({ newQuestionId: expect.any(Number) });
   });
 
-  test('Successfully duplicates a question', () => {
+  test('Successfully duplicates the first question', () => {
     const newQuestionId = quizQuestionDuplicateV1(token, quizId, questionId1).jsonBody.newQuestionId as number;
     const response = quizInfoV1(token, quizId).jsonBody;
     const expected = {
@@ -1603,6 +1602,181 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
         },
       ],
       duration: validQuestion1.duration * 2 + validQuestion2.duration
+    };
+    expect(response).toStrictEqual(expected);
+  });
+
+  test('Successfully duplicates the middle question', () => {
+    const questionId3 = quizQuestionCreateV1(token, quizId, validQuestion3).jsonBody.questionId as number;
+    const newQuestionId = quizQuestionDuplicateV1(token, quizId, questionId2).jsonBody.newQuestionId as number;
+    const response = quizInfoV1(token, quizId).jsonBody;
+    const expected = {
+      quizId: expect.any(Number),
+      name: quiz1.name,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: quiz1.description,
+      numQuestions: 4,
+      questions: [
+        {
+          questionId: questionId1,
+          question: validQuestion1.question,
+          duration: validQuestion1.duration,
+          points: validQuestion1.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[1].correct
+            }
+          ]
+        },
+        {
+          questionId: questionId2,
+          question: validQuestion2.question,
+          duration: validQuestion2.duration,
+          points: validQuestion2.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion2.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion2.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion2.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion2.answers[1].correct
+            }
+          ]
+        },
+        {
+          questionId: newQuestionId,
+          question: validQuestion2.question,
+          duration: validQuestion2.duration,
+          points: validQuestion2.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion2.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion2.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion2.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion2.answers[1].correct
+            }
+          ]
+        },
+        {
+          questionId: questionId3,
+          question: validQuestion3.question,
+          duration: validQuestion3.duration,
+          points: validQuestion3.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion3.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion3.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion3.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion3.answers[1].correct
+            }
+          ]
+        }
+      ],
+      duration: validQuestion1.duration + validQuestion2.duration * 2 + validQuestion3.duration
+    };
+    expect(response).toStrictEqual(expected);
+  });
+
+  test('Successfully duplicates the last question', () => {
+    const newQuestionId = quizQuestionDuplicateV1(token, quizId, questionId2).jsonBody.newQuestionId as number;
+    const response = quizInfoV1(token, quizId).jsonBody;
+    const expected = {
+      quizId: expect.any(Number),
+      name: quiz1.name,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: quiz1.description,
+      numQuestions: 3,
+      questions: [
+        {
+          questionId: questionId1,
+          question: validQuestion1.question,
+          duration: validQuestion1.duration,
+          points: validQuestion1.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion1.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion1.answers[1].correct
+            }
+          ]
+        },
+        {
+          questionId: questionId2,
+          question: validQuestion2.question,
+          duration: validQuestion2.duration,
+          points: validQuestion2.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion2.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion2.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion2.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion2.answers[1].correct
+            }
+          ]
+        },
+        {
+          questionId: newQuestionId,
+          question: validQuestion2.question,
+          duration: validQuestion2.duration,
+          points: validQuestion2.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion2.answers[0].answer,
+              colour: expect.any(String),
+              correct: validQuestion2.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: validQuestion2.answers[1].answer,
+              colour: expect.any(String),
+              correct: validQuestion2.answers[1].correct
+            }
+          ]
+        }
+      ],
+      duration: validQuestion1.duration + validQuestion2.duration * 2
     };
     expect(response).toStrictEqual(expected);
   });
