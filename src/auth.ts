@@ -1,7 +1,6 @@
 import { getData, setData } from './dataStore';
-import HTTPError from 'http-errors';
 import {
-  ErrorMessage,
+  Error,
   EmptyObject,
   AdminAuthRegisterReturn,
   AdminAuthLoginReturn,
@@ -28,21 +27,24 @@ import {
   * @param { string } password - the password of the user
   * @param { string } nameFirst - the first name of the user
   * @param { string } nameLast - the last name of the user
-  * @returns { AdminAuthRegisterReturn | ErrorMessage } - the authUserId of the user
+  * @returns { AdminAuthRegisterReturn | Error } - the authUserId of the user
 */
 export function adminAuthRegister(
   email: string,
   password: string,
   nameFirst: string,
   nameLast: string
-): AdminAuthRegisterReturn | ErrorMessage {
+): AdminAuthRegisterReturn | Error {
   const data = getData();
   const error = isValidRegisterEmail(email, data) ??
                 isValidPassword(password, 'Password') ??
                 isValidName(nameFirst, 'First') ??
                 isValidName(nameLast, 'Last');
   if (error) {
-    throw HTTPError(400, error.error);
+    return {
+      statusCode: 400,
+      error: error.error
+    };
   }
 
   data.sessionId_counter = data.sessionId_counter + 1;
@@ -80,21 +82,27 @@ export function adminAuthRegister(
   *
   * @param { string } email - the email of a registered user
   * @param { string } password - the password of a registered user
-  * @returns { UserId | ErrorMessage } - object containing the authUserId of the user
+  * @returns { UserId | Error } - object containing the authUserId of the user
 */
-export function adminAuthLogin(email: string, password: string): AdminAuthLoginReturn | ErrorMessage {
+export function adminAuthLogin(email: string, password: string): AdminAuthLoginReturn | Error {
   const data = getData();
 
   const emailError = isValidLoginEmail(email, data);
   if (emailError) {
-    throw HTTPError(400, emailError.error);
+    return {
+      statusCode: 400,
+      error: emailError.error
+    };
   }
 
   const user = findUserbyEmail(email, data);
   if (user.password !== password) {
     user.numFailedPasswordsSinceLastLogin++;
     setData(data);
-    throw HTTPError(400, 'Password is incorrect for the given email');
+    return {
+      statusCode: 400,
+      error: 'Password is incorrect for the given email'
+    };
   }
 
   const sessionId = data.sessionId_counter + 1;
@@ -119,14 +127,17 @@ export function adminAuthLogin(email: string, password: string): AdminAuthLoginR
   * Given an admin user's authUserId, return the user's details.
   *
   * @param { string } token - a unique admin user identifier
-  * @returns { AdminUserDetailsReturn | ErrorMessage } - an object containing the user's details on success
+  * @returns { AdminUserDetailsReturn | Error } - an object containing the user's details on success
 */
-export function adminUserDetails(token: string): AdminUserDetailsReturn | ErrorMessage {
+export function adminUserDetails(token: string): AdminUserDetailsReturn | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const user = findUserbyToken(token, data);
@@ -148,13 +159,16 @@ export function adminUserDetails(token: string): AdminUserDetailsReturn | ErrorM
   * @param { string } email - the email of an admin user
   * @param { string } nameFirst - the first name of an admin user
   * @param { string } nameLast - the last name of an admin user
-  * @returns { EmptyObject | ErrorMessage } - returns nothing if successful
+  * @returns { EmptyObject | Error } - returns nothing if successful
 */
-export function adminUserDetailsUpdate(token: string, email: string, nameFirst: string, nameLast: string): EmptyObject | ErrorMessage {
+export function adminUserDetailsUpdate(token: string, email: string, nameFirst: string, nameLast: string): EmptyObject | Error {
   const data = getData();
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const user = findUserbyToken(token, data);
@@ -163,7 +177,10 @@ export function adminUserDetailsUpdate(token: string, email: string, nameFirst: 
                 isValidName(nameFirst, 'First') ??
                 isValidName(nameLast, 'Last');
   if (error) {
-    throw HTTPError(400, error.error);
+    return {
+      statusCode: 400,
+      error: error.error
+    };
   }
 
   const index = data.users.findIndex((user) => user.authUserId === authUserId);
@@ -182,28 +199,40 @@ export function adminUserDetailsUpdate(token: string, email: string, nameFirst: 
   * @param { string } token - the id of registered user
   * @param { string } oldPassword - the old password of registered user
   * @param { string } newPassword - the new password of registered user
-  * @returns { EmptyObject | ErrorMessage } - returns nothing
+  * @returns { EmptyObject | Error } - returns nothing
 */
-export function adminUserPasswordUpdate(token: string, oldPassword: string, newPassword: string): EmptyObject | ErrorMessage {
+export function adminUserPasswordUpdate(token: string, oldPassword: string, newPassword: string): EmptyObject | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const foundUser = findUserbyToken(token, data);
   if (foundUser.password !== oldPassword) {
-    throw HTTPError(400, 'Old password is incorrect');
+    return {
+      statusCode: 400,
+      error: 'Old password is incorrect'
+    };
   }
 
   if (foundUser.password === newPassword) {
-    throw HTTPError(400, 'Old password and new password are the same');
+    return {
+      statusCode: 400,
+      error: 'Old password and new password are the same'
+    };
   }
 
   const passwordError = isValidPassword(newPassword, 'New password');
   if (passwordError) {
-    throw HTTPError(400, passwordError.error);
+    return {
+      statusCode: 400,
+      error: passwordError.error
+    };
   }
 
   const authUserId = foundUser.authUserId;
@@ -218,14 +247,17 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
  * Should be called with a token that is returned after either a login or register has been made
  *
  * @param { string } token - the token that corresponds to a user session
- * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
+ * @returns { EmptyObject | Error } - returns an empty object if successful
  */
-export function adminAuthLogout(token: string): EmptyObject | ErrorMessage {
+export function adminAuthLogout(token: string): EmptyObject | Error {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    throw HTTPError(401, tokenError.error);
+    return {
+      statusCode: 401,
+      error: tokenError.error
+    };
   }
 
   const index = data.sessions.findIndex((session) => session.token === token);

@@ -81,25 +81,41 @@ app.get('/echo', (req: Request, res: Response) => {
 
 app.delete('/v1/clear', (req: Request, res: Response) => {
   const response = clear();
-  res.json(response);
+  if ('error' in response) {
+    res.status(response.statusCode).json(response.error);
+  } else {
+    res.json(response);
+  }
 });
 
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   const { email, password, nameFirst, nameLast } = req.body;
   const response = adminAuthRegister(email, password, nameFirst, nameLast);
-  res.json(response);
+  if ('error' in response) {
+    res.status(response.statusCode).json(response.error);
+  } else {
+    res.json(response);
+  }
 });
 
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
   const response = adminAuthLogin(email, password);
-  res.json(response);
+  if ('error' in response) {
+    res.status(response.statusCode).json(response.error);
+  } else {
+    res.json(response);
+  }
 });
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const response = adminUserDetails(token);
-  res.json(response);
+  if ('error' in response) {
+    res.status(response.statusCode).json(response.error);
+  } else {
+    res.json(response);
+  }
 });
 
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
@@ -108,13 +124,21 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   const nameFirst = req.body.nameFirst as string;
   const nameLast = req.body.nameLast as string;
   const response = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
-  res.json(response);
+  if ('error' in response) {
+    res.status(response.statusCode).json(response.error);
+  } else {
+    res.json(response);
+  }
 });
 
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   const { token, oldPassword, newPassword } = req.body;
   const response = adminUserPasswordUpdate(token, oldPassword, newPassword);
-  res.json(response);
+  if ('error' in response) {
+    res.status(response.statusCode).json(response.error);
+  } else {
+    res.json(response);
+  }
 });
 
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
@@ -197,7 +221,11 @@ app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   const token = req.body.token as string;
   const response = adminAuthLogout(token);
-  res.json(response);
+  if ('error' in response) {
+    res.status(response.statusCode).json(response.error);
+  } else {
+    res.json(response);
+  }
 });
 
 app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
