@@ -5,6 +5,8 @@ import {
   AdminAuthRegisterReturn,
   AdminAuthLoginReturn,
   AdminUserDetailsReturn,
+  BAD_REQUEST_CODE,
+  UNAUTHORISED_CODE
 } from './dataTypes';
 
 import {
@@ -42,7 +44,7 @@ export function adminAuthRegister(
                 isValidName(nameLast, 'Last');
   if (error) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: error.error
     };
   }
@@ -90,7 +92,7 @@ export function adminAuthLogin(email: string, password: string): AdminAuthLoginR
   const emailError = isValidLoginEmail(email, data);
   if (emailError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: emailError.error
     };
   }
@@ -100,7 +102,7 @@ export function adminAuthLogin(email: string, password: string): AdminAuthLoginR
     user.numFailedPasswordsSinceLastLogin++;
     setData(data);
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: 'Password is incorrect for the given email'
     };
   }
@@ -135,7 +137,7 @@ export function adminUserDetails(token: string): AdminUserDetailsReturn | Error 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -166,7 +168,7 @@ export function adminUserDetailsUpdate(token: string, email: string, nameFirst: 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -178,7 +180,7 @@ export function adminUserDetailsUpdate(token: string, email: string, nameFirst: 
                 isValidName(nameLast, 'Last');
   if (error) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: error.error
     };
   }
@@ -207,7 +209,7 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -215,14 +217,14 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
   const foundUser = findUserbyToken(token, data);
   if (foundUser.password !== oldPassword) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: 'Old password is incorrect'
     };
   }
 
   if (foundUser.password === newPassword) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: 'Old password and new password are the same'
     };
   }
@@ -230,7 +232,7 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
   const passwordError = isValidPassword(newPassword, 'New password');
   if (passwordError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: passwordError.error
     };
   }
@@ -255,7 +257,7 @@ export function adminAuthLogout(token: string): EmptyObject | Error {
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }

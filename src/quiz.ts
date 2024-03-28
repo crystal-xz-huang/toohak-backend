@@ -1,4 +1,17 @@
-import { EmptyObject, Error, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn, AdminQuizQuestionCreateReturn, QuestionBodyInput, AdminQuizQuestionDuplicateReturn } from './dataTypes';
+import {
+  EmptyObject,
+  Error,
+  AdminQuizCreateReturn,
+  AdminQuizListReturn,
+  AdminQuizInfoReturn,
+  AdminQuizTrashViewReturn,
+  AdminQuizQuestionCreateReturn,
+  QuestionBodyInput,
+  AdminQuizQuestionDuplicateReturn,
+  BAD_REQUEST_CODE,
+  UNAUTHORISED_CODE,
+  FORBIDDEN_CODE
+} from './dataTypes';
 import {
   generateRandomColour,
   getCurrentTime,
@@ -30,7 +43,7 @@ export function adminQuizList(token: string): AdminQuizListReturn | Error {
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -59,7 +72,7 @@ export function adminQuizCreate(token: string, name: string, description: string
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -70,7 +83,7 @@ export function adminQuizCreate(token: string, name: string, description: string
                      isValidQuizDescription(description);
   if (inputError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: inputError.error
     };
   }
@@ -106,7 +119,7 @@ export function adminQuizRemove(token: string, quizId: number): EmptyObject | Er
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -115,7 +128,7 @@ export function adminQuizRemove(token: string, quizId: number): EmptyObject | Er
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     return {
-      statusCode: 403,
+      statusCode: FORBIDDEN_CODE,
       error: userError.error
     };
   }
@@ -142,7 +155,7 @@ export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoRetur
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -151,7 +164,7 @@ export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoRetur
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     return {
-      statusCode: 403,
+      statusCode: FORBIDDEN_CODE,
       error: userError.error
     };
   }
@@ -183,7 +196,7 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -192,7 +205,7 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     return {
-      statusCode: 403,
+      statusCode: FORBIDDEN_CODE,
       error: userError.error
     };
   }
@@ -200,7 +213,7 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
   const quizNameError = isValidQuizName(name) ?? isQuizNameUsed(name, authUserId, data);
   if (quizNameError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: quizNameError.error
     };
   }
@@ -228,7 +241,7 @@ export function adminQuizDescriptionUpdate(token: string, quizId: number, descri
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -237,7 +250,7 @@ export function adminQuizDescriptionUpdate(token: string, quizId: number, descri
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     return {
-      statusCode: 403,
+      statusCode: FORBIDDEN_CODE,
       error: userError.error
     };
   }
@@ -245,7 +258,7 @@ export function adminQuizDescriptionUpdate(token: string, quizId: number, descri
   const descriptionError = isValidQuizDescription(description);
   if (descriptionError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: descriptionError.error
     };
   }
@@ -270,7 +283,7 @@ export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | Er
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -295,7 +308,7 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -304,7 +317,7 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     return {
-      statusCode: 403,
+      statusCode: FORBIDDEN_CODE,
       error: userError.error
     };
   }
@@ -312,7 +325,7 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
   const quiz = findQuizbyId(quizId, data);
   if (quiz.valid) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: 'Quiz ID refers to a quiz that is not currently invalid or in the trash'
     };
   }
@@ -320,7 +333,7 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
   const isNameUsed = data.quizzes.some(q => q.name === quiz.name && q.valid === true && q.quizId !== quizId);
   if (isNameUsed) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: 'Quiz name of the restored quiz is already used by another active quiz'
     };
   }
@@ -345,7 +358,7 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -355,14 +368,14 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
     const userError = isValidQuizIdForUser(authUserId, quizId, data);
     if (userError) {
       return {
-        statusCode: 403,
+        statusCode: FORBIDDEN_CODE,
         error: `User does not own the quiz with ID: ${quizId}`
       };
     }
     const quiz = findQuizbyId(quizId, data);
     if (quiz.valid) {
       return {
-        statusCode: 400,
+        statusCode: BAD_REQUEST_CODE,
         error: 'One or more of the Quiz IDs is not currently in the trash'
       };
     }
@@ -390,7 +403,7 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -399,7 +412,7 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     return {
-      statusCode: 403,
+      statusCode: FORBIDDEN_CODE,
       error: userError.error
     };
   }
@@ -407,7 +420,7 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
   const user = findUserbyEmail(userEmail, data);
   if (!user) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: 'User email is not the real user'
     };
   }
@@ -417,7 +430,7 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
   const QuizNameError = isQuizNameUsed(name, userId, data);
   if (QuizNameError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: 'Quiz ID refers to a quiz that has a name that is already used by the target user'
     };
   }
@@ -445,7 +458,7 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -454,7 +467,7 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     return {
-      statusCode: 403,
+      statusCode: FORBIDDEN_CODE,
       error: userError.error
     };
   }
@@ -463,7 +476,7 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
   const questionError = isValidQuestion(quiz, questionBody);
   if (questionError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: questionError.error
     };
   }
@@ -502,7 +515,7 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -511,7 +524,7 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     return {
-      statusCode: 403,
+      statusCode: FORBIDDEN_CODE,
       error: userError.error
     };
   }
@@ -522,7 +535,7 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: questionIdError.error
     };
   }
@@ -530,7 +543,7 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
   const questionError = isValidQuestion(quiz, questionBody);
   if (questionError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: questionError.error
     };
   }
@@ -566,7 +579,7 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -575,7 +588,7 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     return {
-      statusCode: 403,
+      statusCode: FORBIDDEN_CODE,
       error: userError.error
     };
   }
@@ -586,7 +599,7 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: questionIdError.error
     };
   }
@@ -594,17 +607,17 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
   const index = findQuestionIndex(data, quizId, questionId);
   if (newPosition < 0) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: 'NewPosition is less than 0'
     };
   } else if (index === newPosition) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: 'Question Id is the same as the NewPosition'
     };
   } else if (newPosition > len - 1) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: 'NewPosition is greater than n-1 where n is the number of questions'
     };
   }
@@ -633,7 +646,7 @@ export function adminQuizQuestionDuplicate(token: string, quizId: number, questi
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -642,7 +655,7 @@ export function adminQuizQuestionDuplicate(token: string, quizId: number, questi
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     return {
-      statusCode: 403,
+      statusCode: FORBIDDEN_CODE,
       error: userError.error
     };
   }
@@ -653,7 +666,7 @@ export function adminQuizQuestionDuplicate(token: string, quizId: number, questi
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: questionIdError.error
     };
   }
@@ -695,7 +708,7 @@ export function adminQuizQuestionRemove(token: string, quizId: number, questionI
   const tokenError = isValidToken(token, data);
   if (tokenError) {
     return {
-      statusCode: 401,
+      statusCode: UNAUTHORISED_CODE,
       error: tokenError.error
     };
   }
@@ -704,7 +717,7 @@ export function adminQuizQuestionRemove(token: string, quizId: number, questionI
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
     return {
-      statusCode: 403,
+      statusCode: FORBIDDEN_CODE,
       error: userError.error
     };
   }
@@ -715,7 +728,7 @@ export function adminQuizQuestionRemove(token: string, quizId: number, questionI
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
     return {
-      statusCode: 400,
+      statusCode: BAD_REQUEST_CODE,
       error: questionIdError.error
     };
   }
