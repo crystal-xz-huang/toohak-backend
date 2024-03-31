@@ -1,5 +1,10 @@
 // YOU SHOULD MODIFY THIS OBJECT BELOW ONLY
-let data = {};
+let data = {
+  users: [],
+  quizzes: [],
+  userId_counter: 0,
+  quizId_counter: 0,
+};
 
 // YOU SHOULD MODIFY THIS OBJECT ABOVE ONLY
 
