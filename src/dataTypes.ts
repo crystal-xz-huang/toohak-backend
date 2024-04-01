@@ -37,7 +37,8 @@ export type AnswerBody = {
 export type QuestionBody = {
   questionId: number;
   question: string;
-  duration: number; // in seconds
+  duration: number;
+  // thumbnailUrl: string;
   points: number;
   answers: AnswerBody[];
 }
@@ -140,11 +141,109 @@ export type QuestionBodyInput = {
   duration: number;
   points: number;
   answers: Array<{ answer: string; correct: boolean }>;
-};
+}
 
 export type AdminQuizQuestionDuplicateReturn = {
   newQuestionId: number;
 }
+
+export type AdminQuizSessionListReturn = {
+  activeSessions: number[],
+  inactiveSessions: number[],
+}
+
+export type AdminQuizSessionStartReturn = {
+  sessionId: number;
+}
+
+type QuizMetadata = {
+  quizId: number;
+  name: string;
+  timeCreated: number;
+  timeLastEdited: number;
+  description: string;
+  numQuestions: number;
+  questions: QuestionBody[];
+  duration: number;
+  thumbnailUrl: string;
+}
+
+export type AdminQuizSessionStatusReturn = {
+  state: string;
+  atQuestion: number;
+  players: string[];
+  metadata: QuizMetadata;
+}
+
+export type AdminQuizSessionResultsReturn = {
+  usersRankedByScore: UserScore[];
+  questionResults: PlayerQuestionResultsReturn[];
+}
+
+export type AdminQuizSessionResultsCSVReturn = {
+  url: string;
+}
+
+export type PlayerJoinReturn = {
+  playerId: number;
+}
+
+export type PlayerStatusReturn = {
+  state: string;
+  numQuestions: number;
+  atQuestion: number;
+}
+
+type PlayerQuestionAnswerBody = {
+  answerId: number;
+  answer: string;
+  colour: string;
+}
+
+export type PlayerQuestionInfoReturn = {
+  questionId: number;
+  question: string;
+  duration: number;
+  points: number;
+  answers: PlayerQuestionAnswerBody[];
+}
+
+export type PlayerQuestionAnswerReturn = {
+  answerIds: number[];
+}
+
+export type PlayerQuestionResultsReturn = {
+  questionId: number;
+  playersCorrectList: string[]; // array of strings in ascending order
+  averageAnswerTime: number;
+  percentCorrect: number;
+}
+
+type UserScore = {
+  name: string;
+  score: number;
+}
+
+export type PlayerFinalResultsReturn = {
+  usersRankedByScore: UserScore[];
+  questionResults: PlayerQuestionResultsReturn[];
+}
+
+type PlayerChatMessage = {
+  messageBody: string;
+  playerId: number;
+  playerName: string;
+  timeSent: number;
+}
+
+export type PlayerChatListReturn = {
+  messages: PlayerChatMessage[];
+}
+
+export type ChatMessage = {
+  messageBody: string;
+}
+
 // ====================================================================
 // CONSTANTS
 // ====================================================================
