@@ -74,7 +74,7 @@ export function adminQuizSessionStatus(token: string, quizId: number, sessionId:
           questionId: 5546,
           question: 'Who is the Monarch of England?',
           duration: 4,
-          thumbnailUrl: 'http://google.com/some/image/path.jpg',   // uncomment this property from QuestionBody in dataTypes.ts
+          thumbnailUrl: 'http://google.com/some/image/path.jpg', // uncomment this property from QuestionBody in dataTypes.ts
           points: 5,
           answers: [
             {
