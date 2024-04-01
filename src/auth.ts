@@ -1,13 +1,11 @@
 import { getData, setData } from './dataStore';
 import HTTPError from 'http-errors';
 import {
-  ErrorMessage,
   EmptyObject,
   AdminAuthRegisterReturn,
   AdminAuthLoginReturn,
   AdminUserDetailsReturn,
 } from './dataTypes';
-
 import {
   generateToken,
   isValidRegisterEmail,
@@ -28,14 +26,15 @@ import {
   * @param { string } password - the password of the user
   * @param { string } nameFirst - the first name of the user
   * @param { string } nameLast - the last name of the user
-  * @returns { AdminAuthRegisterReturn | ErrorMessage } - the authUserId of the user
+  * @returns { AdminAuthRegisterReturn } - the authUserId of the user
+  * @throws { HTTPError } - throws an HTTP 400 error if user input is invalid
 */
 export function adminAuthRegister(
   email: string,
   password: string,
   nameFirst: string,
   nameLast: string
-): AdminAuthRegisterReturn | ErrorMessage {
+): AdminAuthRegisterReturn {
   const data = getData();
   const error = isValidRegisterEmail(email, data) ??
                 isValidPassword(password, 'Password') ??
@@ -80,9 +79,10 @@ export function adminAuthRegister(
   *
   * @param { string } email - the email of a registered user
   * @param { string } password - the password of a registered user
-  * @returns { UserId | ErrorMessage } - object containing the authUserId of the user
+  * @returns { AdminAuthLoginReturn } - returns a token on success
+  * @throws { HTTPError } - throws an HTTP 400 error if the email or password is invalid
 */
-export function adminAuthLogin(email: string, password: string): AdminAuthLoginReturn | ErrorMessage {
+export function adminAuthLogin(email: string, password: string): AdminAuthLoginReturn {
   const data = getData();
 
   const emailError = isValidLoginEmail(email, data);
@@ -119,9 +119,10 @@ export function adminAuthLogin(email: string, password: string): AdminAuthLoginR
   * Given an admin user's authUserId, return the user's details.
   *
   * @param { string } token - a unique admin user identifier
-  * @returns { AdminUserDetailsReturn | ErrorMessage } - an object containing the user's details on success
+  * @returns { AdminUserDetailsReturn } - an object containing the user's details on success
+  * @throws { HTTPError } - throws an HTTP 401 error if the token is invalid
 */
-export function adminUserDetails(token: string): AdminUserDetailsReturn | ErrorMessage {
+export function adminUserDetails(token: string): AdminUserDetailsReturn {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -148,9 +149,10 @@ export function adminUserDetails(token: string): AdminUserDetailsReturn | ErrorM
   * @param { string } email - the email of an admin user
   * @param { string } nameFirst - the first name of an admin user
   * @param { string } nameLast - the last name of an admin user
-  * @returns { EmptyObject | ErrorMessage } - returns nothing if successful
+  * @returns { EmptyObject } - returns an empty object on success
+  * @throws { HTTPError } - throws either a HTTP 401 error or 400 error
 */
-export function adminUserDetailsUpdate(token: string, email: string, nameFirst: string, nameLast: string): EmptyObject | ErrorMessage {
+export function adminUserDetailsUpdate(token: string, email: string, nameFirst: string, nameLast: string): EmptyObject {
   const data = getData();
   const tokenError = isValidToken(token, data);
   if (tokenError) {
@@ -182,9 +184,10 @@ export function adminUserDetailsUpdate(token: string, email: string, nameFirst: 
   * @param { string } token - the id of registered user
   * @param { string } oldPassword - the old password of registered user
   * @param { string } newPassword - the new password of registered user
-  * @returns { EmptyObject | ErrorMessage } - returns nothing
+  * @returns { EmptyObject } - returns an empty object on success
+  * @throws { HTTPError } - throws an HTTP 401 error if the token is invalid or an HTTP 400 error if user input is invalid
 */
-export function adminUserPasswordUpdate(token: string, oldPassword: string, newPassword: string): EmptyObject | ErrorMessage {
+export function adminUserPasswordUpdate(token: string, oldPassword: string, newPassword: string): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -218,9 +221,10 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
  * Should be called with a token that is returned after either a login or register has been made
  *
  * @param { string } token - the token that corresponds to a user session
- * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
+ * @returns { EmptyObject } - returns an empty object on success
+ * @throws { HTTPError } - throws an HTTP 401 error if the token is invalid
  */
-export function adminAuthLogout(token: string): EmptyObject | ErrorMessage {
+export function adminAuthLogout(token: string): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
