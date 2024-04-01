@@ -988,5 +988,3 @@ describe('Testing POST /v1/admin/quiz/{quizid}/transfer', () => {
     });
   });
 });
-
-

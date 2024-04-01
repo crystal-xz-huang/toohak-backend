@@ -112,7 +112,7 @@ describe('Testing DELETE /v1/clear', () => {
         clearV1();
         expect(quizTrashViewV1(token)).toStrictEqual(UNAUTHORISED_ERROR);
       });
-      
+
       test('POST /v1/admin/quiz/{quizid}/restore should return an error after clear is called', () => {
         clearV1();
         expect(quizRestoreV1(token, quizID)).toStrictEqual(UNAUTHORISED_ERROR);
@@ -127,7 +127,7 @@ describe('Testing DELETE /v1/clear', () => {
         clearV1();
         expect(quizTransferV1(token, quizID, user1.email)).toStrictEqual(UNAUTHORISED_ERROR);
       });
-      
+
       test('POST /v1/admin/quiz/{quizid}/question should return an error after clear is called', () => {
         clearV1();
         expect(quizQuestionCreateV1(token, quizID, validQuestion1)).toStrictEqual(UNAUTHORISED_ERROR);

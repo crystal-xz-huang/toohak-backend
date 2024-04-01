@@ -55,7 +55,6 @@ function requestHelper(
         statusCode: res.statusCode,
         error: JSON.parse(bodyString).error,
       };
-      return bodyObject;
     } else {
       bodyObject = {
         statusCode: res.statusCode,
