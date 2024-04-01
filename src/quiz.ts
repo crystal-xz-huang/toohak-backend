@@ -1,4 +1,15 @@
-import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn, AdminQuizQuestionCreateReturn, QuestionBodyInput, AdminQuizQuestionDuplicateReturn } from './dataTypes';
+import HTTPError from 'http-errors';
+import { getData, setData } from './dataStore';
+import {
+  EmptyObject,
+  AdminQuizCreateReturn,
+  AdminQuizListReturn,
+  AdminQuizInfoReturn,
+  AdminQuizTrashViewReturn,
+  AdminQuizQuestionCreateReturn,
+  QuestionBodyInput,
+  AdminQuizQuestionDuplicateReturn
+} from './dataTypes';
 import {
   generateRandomColour,
   getCurrentTime,
@@ -15,16 +26,15 @@ import {
   isValidQuestionIdForQuiz,
   isValidQuestion,
 } from './functionHelpers';
-import HTTPError from 'http-errors';
-import { getData, setData } from './dataStore';
 
 /**
   * Provide a list of all quizzes that are owned by the currently logged in user.
   *
   * @param { string } token - the token that corresponds to a user session
-  * @returns { QuizList | ErrorMessage } - an object containing an array of quizzes
+  * @returns { AdminQuizListReturn } - an object containing an array of quizzes
+  * @throws { HTTPError } - throws a HTTP 401 error if the token is invalid
 */
-export function adminQuizList(token: string): AdminQuizListReturn | ErrorMessage {
+export function adminQuizList(token: string): AdminQuizListReturn {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -35,8 +45,7 @@ export function adminQuizList(token: string): AdminQuizListReturn | ErrorMessage
   // find all quizzes that are owned by the currently logged in user
   const authUserId = findUserbyToken(token, data).authUserId;
   const quizDetails = data.quizzes
-    .filter(quiz => quiz.authUserId === authUserId)
-    .filter(quiz => quiz.valid)
+    .filter(quiz => quiz.authUserId === authUserId && quiz.valid)
     .map(quiz => ({ quizId: quiz.quizId, name: quiz.name }));
 
   return { quizzes: quizDetails };
@@ -48,9 +57,10 @@ export function adminQuizList(token: string): AdminQuizListReturn | ErrorMessage
   * @param { string } token - the id of registered user
   * @param { string } name - the name of the quiz
   * @param { string } description - basic details about the quiz
-  * @returns { QuizId | ErrorMessage } - object containing quizId of the user
+  * @returns { AdminQuizCreateReturn } - object containing quizId of the user
+  * @throws { HTTPError } - thtrows either a HTTP 401 or 400 error
 */
-export function adminQuizCreate(token: string, name: string, description: string): AdminQuizCreateReturn | ErrorMessage {
+export function adminQuizCreate(token: string, name: string, description: string): AdminQuizCreateReturn {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -89,9 +99,10 @@ export function adminQuizCreate(token: string, name: string, description: string
   *
   * @param { number } quizId - the id of the quiz
   * @param { string } token - the token that corresponds to a user session
-  * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
+  * @returns { EmptyObject } - returns an empty object if successful
+  * @throws { HTTPError } - throws either a HTTP 401 or 403 error
 */
-export function adminQuizRemove(token: string, quizId: number): EmptyObject | ErrorMessage {
+export function adminQuizRemove(token: string, quizId: number): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -119,9 +130,10 @@ export function adminQuizRemove(token: string, quizId: number): EmptyObject | Er
   *
   * @param { string } token - the id of registered user
   * @param { number } quizId - the id of the quiz
-  * @returns  { QuizInfo | ErrorMessage } - object containing the quiz details
+  * @returns  { AdminQuizInfoReturn } - object containing the quiz details
+  * @throws { HTTPError } - throws either a HTTP 401 or 403 error
 */
-export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoReturn | ErrorMessage {
+export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoReturn {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -154,9 +166,10 @@ export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoRetur
   * @param { string } token - the token that corresponds to a user session
   * @param { number } quizId - the id of the quiz
   * @param { string } name - the name of the quiz
-  * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
+  * @returns { EmptyObject } - returns an empty object if successful
+  * @throws { HTTPError } - throws either a HTTP 401, 403 or 400 error
 */
-export function adminQuizNameUpdate(token: string, quizId: number, name: string): EmptyObject | ErrorMessage {
+export function adminQuizNameUpdate(token: string, quizId: number, name: string): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -189,10 +202,10 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
   * @param { string } token - the token that corresponds to a user session
   * @param { number } quizId - the id of the quiz
   * @param { string } description - the description of quiz
-  *
-  * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
+  * @returns { EmptyObject } - returns an empty object on success
+  * @throws { HTTPError } - throws either a HTTP 401, 403 or 400 error
 */
-export function adminQuizDescriptionUpdate(token: string, quizId: number, description: string): EmptyObject | ErrorMessage {
+export function adminQuizDescriptionUpdate(token: string, quizId: number, description: string): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -223,9 +236,10 @@ export function adminQuizDescriptionUpdate(token: string, quizId: number, descri
  * View the quizzes that are currently in the trash for the logged in user
  *
  * @param { string } token - the token that corresponds to a user session
- * @returns { AdminQuizTrashViewReturn | ErrorMessage } - an object containing an array of quizzes
+ * @returns { AdminQuizTrashViewReturn } - an object containing an array of quizzes
+ * @throws { HTTPError } - throws an HTTP 401 error if the token is invalid
  */
-export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | ErrorMessage {
+export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -243,11 +257,12 @@ export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | Er
 
 /**
  * Restore a quiz from trash and update the timeLastEdited
- * @param {string} token
- * @param {number} quizId
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @param { string } token
+ * @param { number } quizId
+ * @returns { EmptyObject } - returns an empty object if successful
+ * @throws { HTTPError } - throws an HTTP 401, 403 or 400 error
  */
-export function adminQuizRestore(token: string, quizId: number): EmptyObject | ErrorMessage {
+export function adminQuizRestore(token: string, quizId: number): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -281,11 +296,12 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
 /**
  * Permanently delete specific quizzes currently sitting in the trash
  *
- * @param {string} token
- * @param {number[]} quizIds
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @param { string } token
+ * @param { number[] } quizIds
+ * @returns { EmptyObject } - returns an empty object if successful
+ * @throws { HTTPError } - throws an HTTP 401, 403 or 400 error
  */
-export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObject | ErrorMessage {
+export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -316,12 +332,13 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
 /**
  * Transfer ownership of a quiz to another user
  *
- * @param {string} token
- * @param {number} quizId
- * @param {string} userEmail
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @param { string } token
+ * @param { number } quizId
+ * @param { string } userEmail
+ * @returns { EmptyObject } - returns an empty object if successful
+ * @throws { HTTPError } - throws an HTTP 401, 403 or 400 error
  */
-export function adminQuizTransfer(token: string, quizId: number, userEmail: string): EmptyObject | ErrorMessage {
+export function adminQuizTransfer(token: string, quizId: number, userEmail: string): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -359,12 +376,13 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
 /**
  * Create a new question for the quiz with the given quizId
  *
- * @param {string} token
- * @param {number} quizId
- * @param {QuestionBodyInput} questionBody
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @param { string } token
+ * @param { number } quizId
+ * @param { QuestionBodyInput } questionBody
+ * @returns { AdminQuizQuestionCreateReturn } - returns an object containing the questionId of the new question
+ * @throws { HTTPError } - throws an HTTP 401, 403 or 400 error
  */
-export function adminQuizQuestionCreate(token: string, quizId: number, questionBody: QuestionBodyInput): AdminQuizQuestionCreateReturn | ErrorMessage {
+export function adminQuizQuestionCreate(token: string, quizId: number, questionBody: QuestionBodyInput): AdminQuizQuestionCreateReturn {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -407,12 +425,14 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
 /**
  * Update the quiz question, given the quizId and questionId
  *
- * @param {string} token
- * @param {number} quizId
- * @param {number} questionId
- * @param {QuestionBodyInput} questionBody
+ * @param { string } token
+ * @param { number } quizId
+ * @param { number } questionId
+ * @param { QuestionBodyInput } questionBody
+ * @returns { EmptyObject } - returns an empty object if successful
+ * @throws { HTTPError } - throws an HTTP 401, 403 or 400 error
  */
-export function adminQuizQuestionUpdate(token: string, quizId: number, questionId: number, questionBody: QuestionBodyInput): EmptyObject | ErrorMessage {
+export function adminQuizQuestionUpdate(token: string, quizId: number, questionId: number, questionBody: QuestionBodyInput): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -458,13 +478,14 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
 /**
  * Moves a quiz question to a new position in the quiz
  *
- * @param {string} token
- * @param {number} quizId
- * @param {number} questionId
- * @param {number} newPosition
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @param { string } token
+ * @param { number } quizId
+ * @param { number } questionId
+ * @param { number } newPosition
+ * @returns { EmptyObject } - returns an empty object if successful
+ * @throws { HTTPError } - throws an HTTP 401, 403 or 400 error
  */
-export function adminQuizQuestionMove(token: string, quizId: number, questionId: number, newPosition: number): EmptyObject | ErrorMessage {
+export function adminQuizQuestionMove(token: string, quizId: number, questionId: number, newPosition: number): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -507,13 +528,14 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
 /**
  * Duplicate a quiz question, given the quizId and questionId
  *
- * @param {string} token
- * @param {number} quizId
- * @param {number} questionId
- * @param {QuestionBodyInput} questionBody
- * @returns {AdminQuizQuestionDuplicateReturn | ErrorMessage} - returns an object containing the newQuestionId of the duplicated question
+ * @param { string } token
+ * @param { number } quizId
+ * @param { number } questionId
+ * @param { QuestionBodyInput } questionBody
+ * @returns { AdminQuizQuestionDuplicateReturn } - returns an object containing the newQuestionId of the duplicated question
+ * @throws { HTTPError } - throws an HTTP 401, 403 or 400 error
  */
-export function adminQuizQuestionDuplicate(token: string, quizId: number, questionId: number): AdminQuizQuestionDuplicateReturn | ErrorMessage {
+export function adminQuizQuestionDuplicate(token: string, quizId: number, questionId: number): AdminQuizQuestionDuplicateReturn {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -561,12 +583,13 @@ export function adminQuizQuestionDuplicate(token: string, quizId: number, questi
 /**
  * Remove a question from a quiz
  *
- * @param {string} token
- * @param {number} quizId
- * @param {number} questionId
- * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
+ * @param { string } token
+ * @param { number } quizId
+ * @param { number } questionId
+ * @returns { EmptyObject } - returns an empty object if successful
+ * @throws { HTTPError } - throws an HTTP 401, 403 or 400 error
  */
-export function adminQuizQuestionRemove(token: string, quizId: number, questionId: number): EmptyObject | ErrorMessage {
+export function adminQuizQuestionRemove(token: string, quizId: number, questionId: number): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -595,5 +618,18 @@ export function adminQuizQuestionRemove(token: string, quizId: number, questionI
   quiz.questions.splice(questionIndex, 1);
 
   setData(data);
+  return {};
+}
+
+/**
+ * Update the thumbnail for the quiz
+ * Also updates the timeLastEdited
+ *
+ * @param { string } token
+ * @param { number } quizId
+ * @param { string } imgUrl
+ * @returns { EmptyObject }
+ */
+export function adminQuizThumbnailUpdate(token: string, quizId: number, imgUrl: string): EmptyObject {
   return {};
 }
