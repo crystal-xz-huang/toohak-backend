@@ -32,6 +32,7 @@ const PORT: number = parseInt(process.env.PORT || config.port);
 // const HOST: string = process.env.IP || 'localhost';
 const HOST: string = process.env.IP || '127.0.0.1';
 
+
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
@@ -251,6 +252,9 @@ app.use((req: Request, res: Response) => {
   `;
   res.json({ error });
 });
+
+// For handling errors
+app.use(errorHandler());
 
 // start server
 const server = app.listen(PORT, HOST, () => {

@@ -46,14 +46,22 @@ function requestHelper(
 
   const res = request(method, SERVER_URL + path, { qs, json, timeout: 20000 });
 
-  const bodyString = res.body.toString();
+  const bodyString = res.body as string;
   let bodyObject: RequestResponse;
   try {
     // Try to parse the server's response as JSON
-    bodyObject = {
-      statusCode: res.statusCode,
-      jsonBody: JSON.parse(bodyString),
-    };
+    if (res.statusCode !== 200) {
+      bodyObject = {
+        statusCode: res.statusCode,
+        error: JSON.parse(bodyString).error,
+      };
+      return bodyObject;
+    } else {
+      bodyObject = {
+        statusCode: res.statusCode,
+        jsonBody: JSON.parse(bodyString),
+      };
+    }
   } catch (error) {
     // If JSON.parse fails, the server's response is not JSON so we return the response as a custom error message instead
     bodyObject = {
