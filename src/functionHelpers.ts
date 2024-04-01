@@ -302,17 +302,6 @@ export function isValidUserEmail(email: string, data: Data, authUserId: number):
 }
 
 /**
- * Check if the authUserId is valid
- * Returns null if the authUserId is valid, otherwise returns an error object
- */
-export function isValidAuthUserId(authUserId: number, data: Data): ErrorMessage | null {
-  if (findUserbyId(authUserId, data) === undefined) {
-    return createError('AuthUserId is not a valid user');
-  }
-  return null;
-}
-
-/**
  * Check if the quiz name is valid:
  * 1. Name is not empty
  * 2. Name is between 3 and 30 characters
