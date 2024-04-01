@@ -1,12 +1,11 @@
 import { getData, setData } from './dataStore';
+import HTTPError from 'http-errors';
 import {
-  Error,
+  ErrorMessage,
   EmptyObject,
   AdminAuthRegisterReturn,
   AdminAuthLoginReturn,
   AdminUserDetailsReturn,
-  BAD_REQUEST_CODE,
-  UNAUTHORISED_CODE
 } from './dataTypes';
 
 import {
@@ -29,24 +28,21 @@ import {
   * @param { string } password - the password of the user
   * @param { string } nameFirst - the first name of the user
   * @param { string } nameLast - the last name of the user
-  * @returns { AdminAuthRegisterReturn | Error } - the authUserId of the user
+  * @returns { AdminAuthRegisterReturn | ErrorMessage } - the authUserId of the user
 */
 export function adminAuthRegister(
   email: string,
   password: string,
   nameFirst: string,
   nameLast: string
-): AdminAuthRegisterReturn | Error {
+): AdminAuthRegisterReturn | ErrorMessage {
   const data = getData();
   const error = isValidRegisterEmail(email, data) ??
                 isValidPassword(password, 'Password') ??
                 isValidName(nameFirst, 'First') ??
                 isValidName(nameLast, 'Last');
   if (error) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: error.error
-    };
+    throw HTTPError(400, error.error);
   }
 
   data.sessionId_counter = data.sessionId_counter + 1;
@@ -84,27 +80,21 @@ export function adminAuthRegister(
   *
   * @param { string } email - the email of a registered user
   * @param { string } password - the password of a registered user
-  * @returns { UserId | Error } - object containing the authUserId of the user
+  * @returns { UserId | ErrorMessage } - object containing the authUserId of the user
 */
-export function adminAuthLogin(email: string, password: string): AdminAuthLoginReturn | Error {
+export function adminAuthLogin(email: string, password: string): AdminAuthLoginReturn | ErrorMessage {
   const data = getData();
 
   const emailError = isValidLoginEmail(email, data);
   if (emailError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: emailError.error
-    };
+    throw HTTPError(400, emailError.error);
   }
 
   const user = findUserbyEmail(email, data);
   if (user.password !== password) {
     user.numFailedPasswordsSinceLastLogin++;
     setData(data);
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: 'Password is incorrect for the given email'
-    };
+    throw HTTPError(400, 'Password is incorrect for the given email');
   }
 
   const sessionId = data.sessionId_counter + 1;
@@ -129,17 +119,14 @@ export function adminAuthLogin(email: string, password: string): AdminAuthLoginR
   * Given an admin user's authUserId, return the user's details.
   *
   * @param { string } token - a unique admin user identifier
-  * @returns { AdminUserDetailsReturn | Error } - an object containing the user's details on success
+  * @returns { AdminUserDetailsReturn | ErrorMessage } - an object containing the user's details on success
 */
-export function adminUserDetails(token: string): AdminUserDetailsReturn | Error {
+export function adminUserDetails(token: string): AdminUserDetailsReturn | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const user = findUserbyToken(token, data);
@@ -161,16 +148,13 @@ export function adminUserDetails(token: string): AdminUserDetailsReturn | Error 
   * @param { string } email - the email of an admin user
   * @param { string } nameFirst - the first name of an admin user
   * @param { string } nameLast - the last name of an admin user
-  * @returns { EmptyObject | Error } - returns nothing if successful
+  * @returns { EmptyObject | ErrorMessage } - returns nothing if successful
 */
-export function adminUserDetailsUpdate(token: string, email: string, nameFirst: string, nameLast: string): EmptyObject | Error {
+export function adminUserDetailsUpdate(token: string, email: string, nameFirst: string, nameLast: string): EmptyObject | ErrorMessage {
   const data = getData();
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const user = findUserbyToken(token, data);
@@ -179,10 +163,7 @@ export function adminUserDetailsUpdate(token: string, email: string, nameFirst: 
                 isValidName(nameFirst, 'First') ??
                 isValidName(nameLast, 'Last');
   if (error) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: error.error
-    };
+    throw HTTPError(400, error.error);
   }
 
   const index = data.users.findIndex((user) => user.authUserId === authUserId);
@@ -201,40 +182,28 @@ export function adminUserDetailsUpdate(token: string, email: string, nameFirst: 
   * @param { string } token - the id of registered user
   * @param { string } oldPassword - the old password of registered user
   * @param { string } newPassword - the new password of registered user
-  * @returns { EmptyObject | Error } - returns nothing
+  * @returns { EmptyObject | ErrorMessage } - returns nothing
 */
-export function adminUserPasswordUpdate(token: string, oldPassword: string, newPassword: string): EmptyObject | Error {
+export function adminUserPasswordUpdate(token: string, oldPassword: string, newPassword: string): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const foundUser = findUserbyToken(token, data);
   if (foundUser.password !== oldPassword) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: 'Old password is incorrect'
-    };
+    throw HTTPError(400, 'Old password is incorrect');
   }
 
   if (foundUser.password === newPassword) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: 'Old password and new password are the same'
-    };
+    throw HTTPError(400, 'Old password and new password are the same');
   }
 
   const passwordError = isValidPassword(newPassword, 'New password');
   if (passwordError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: passwordError.error
-    };
+    throw HTTPError(400, passwordError.error);
   }
 
   const authUserId = foundUser.authUserId;
@@ -249,17 +218,14 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
  * Should be called with a token that is returned after either a login or register has been made
  *
  * @param { string } token - the token that corresponds to a user session
- * @returns { EmptyObject | Error } - returns an empty object if successful
+ * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
  */
-export function adminAuthLogout(token: string): EmptyObject | Error {
+export function adminAuthLogout(token: string): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const index = data.sessions.findIndex((session) => session.token === token);

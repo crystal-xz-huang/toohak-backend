@@ -1,17 +1,4 @@
-import {
-  EmptyObject,
-  Error,
-  AdminQuizCreateReturn,
-  AdminQuizListReturn,
-  AdminQuizInfoReturn,
-  AdminQuizTrashViewReturn,
-  AdminQuizQuestionCreateReturn,
-  QuestionBodyInput,
-  AdminQuizQuestionDuplicateReturn,
-  BAD_REQUEST_CODE,
-  UNAUTHORISED_CODE,
-  FORBIDDEN_CODE
-} from './dataTypes';
+import { EmptyObject, ErrorMessage, AdminQuizCreateReturn, AdminQuizListReturn, AdminQuizInfoReturn, AdminQuizTrashViewReturn, AdminQuizQuestionCreateReturn, QuestionBodyInput, AdminQuizQuestionDuplicateReturn } from './dataTypes';
 import {
   generateRandomColour,
   getCurrentTime,
@@ -28,24 +15,21 @@ import {
   isValidQuestionIdForQuiz,
   isValidQuestion,
 } from './functionHelpers';
-// import HTTPError from 'http-errors';
+import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
 
 /**
   * Provide a list of all quizzes that are owned by the currently logged in user.
   *
   * @param { string } token - the token that corresponds to a user session
-  * @returns { QuizList | Error } - an object containing an array of quizzes
+  * @returns { QuizList | ErrorMessage } - an object containing an array of quizzes
 */
-export function adminQuizList(token: string): AdminQuizListReturn | Error {
+export function adminQuizList(token: string): AdminQuizListReturn | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   // find all quizzes that are owned by the currently logged in user
@@ -64,17 +48,14 @@ export function adminQuizList(token: string): AdminQuizListReturn | Error {
   * @param { string } token - the id of registered user
   * @param { string } name - the name of the quiz
   * @param { string } description - basic details about the quiz
-  * @returns { QuizId | Error } - object containing quizId of the user
+  * @returns { QuizId | ErrorMessage } - object containing quizId of the user
 */
-export function adminQuizCreate(token: string, name: string, description: string): AdminQuizCreateReturn | Error {
+export function adminQuizCreate(token: string, name: string, description: string): AdminQuizCreateReturn | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
@@ -82,10 +63,7 @@ export function adminQuizCreate(token: string, name: string, description: string
                      isQuizNameUsed(name, authUserId, data) ??
                      isValidQuizDescription(description);
   if (inputError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: inputError.error
-    };
+    throw HTTPError(400, inputError.error);
   }
 
   data.quizId_counter = data.quizId_counter + 1;
@@ -111,26 +89,20 @@ export function adminQuizCreate(token: string, name: string, description: string
   *
   * @param { number } quizId - the id of the quiz
   * @param { string } token - the token that corresponds to a user session
-  * @returns { EmptyObject | Error } - returns an empty object if successful
+  * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
 */
-export function adminQuizRemove(token: string, quizId: number): EmptyObject | Error {
+export function adminQuizRemove(token: string, quizId: number): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    return {
-      statusCode: FORBIDDEN_CODE,
-      error: userError.error
-    };
+    throw HTTPError(403, userError.error);
   }
 
   const quiz = findQuizbyId(quizId, data);
@@ -147,26 +119,20 @@ export function adminQuizRemove(token: string, quizId: number): EmptyObject | Er
   *
   * @param { string } token - the id of registered user
   * @param { number } quizId - the id of the quiz
-  * @returns  { QuizInfo | Error } - object containing the quiz details
+  * @returns  { QuizInfo | ErrorMessage } - object containing the quiz details
 */
-export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoReturn | Error {
+export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoReturn | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    return {
-      statusCode: FORBIDDEN_CODE,
-      error: userError.error
-    };
+    throw HTTPError(403, userError.error);
   }
 
   const quiz = findQuizbyId(quizId, data);
@@ -188,34 +154,25 @@ export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoRetur
   * @param { string } token - the token that corresponds to a user session
   * @param { number } quizId - the id of the quiz
   * @param { string } name - the name of the quiz
-  * @returns { EmptyObject | Error } - returns an empty object if successful
+  * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
 */
-export function adminQuizNameUpdate(token: string, quizId: number, name: string): EmptyObject | Error {
+export function adminQuizNameUpdate(token: string, quizId: number, name: string): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    return {
-      statusCode: FORBIDDEN_CODE,
-      error: userError.error
-    };
+    throw HTTPError(403, userError.error);
   }
 
   const quizNameError = isValidQuizName(name) ?? isQuizNameUsed(name, authUserId, data);
   if (quizNameError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: quizNameError.error
-    };
+    throw HTTPError(400, quizNameError.error);
   }
 
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
@@ -233,34 +190,25 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
   * @param { number } quizId - the id of the quiz
   * @param { string } description - the description of quiz
   *
-  * @returns { EmptyObject | Error } - returns an empty object if successful
+  * @returns { EmptyObject | ErrorMessage } - returns an empty object if successful
 */
-export function adminQuizDescriptionUpdate(token: string, quizId: number, description: string): EmptyObject | Error {
+export function adminQuizDescriptionUpdate(token: string, quizId: number, description: string): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    return {
-      statusCode: FORBIDDEN_CODE,
-      error: userError.error
-    };
+    throw HTTPError(403, userError.error);
   }
 
   const descriptionError = isValidQuizDescription(description);
   if (descriptionError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: descriptionError.error
-    };
+    throw HTTPError(400, descriptionError.error);
   }
 
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
@@ -275,17 +223,14 @@ export function adminQuizDescriptionUpdate(token: string, quizId: number, descri
  * View the quizzes that are currently in the trash for the logged in user
  *
  * @param { string } token - the token that corresponds to a user session
- * @returns { AdminQuizTrashViewReturn | Error } - an object containing an array of quizzes
+ * @returns { AdminQuizTrashViewReturn | ErrorMessage } - an object containing an array of quizzes
  */
-export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | Error {
+export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = data.sessions.find(session => session.token === token).adminUserId;
@@ -300,42 +245,30 @@ export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn | Er
  * Restore a quiz from trash and update the timeLastEdited
  * @param {string} token
  * @param {number} quizId
- * @returns {EmptyObject | Error} - returns an empty object if successful
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
  */
-export function adminQuizRestore(token: string, quizId: number): EmptyObject | Error {
+export function adminQuizRestore(token: string, quizId: number): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    return {
-      statusCode: FORBIDDEN_CODE,
-      error: userError.error
-    };
+    throw HTTPError(403, userError.error);
   }
 
   const quiz = findQuizbyId(quizId, data);
   if (quiz.valid) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: 'Quiz ID refers to a quiz that is not currently invalid or in the trash'
-    };
+    throw HTTPError(400, 'Quiz ID refers to a quiz that is not currently invalid or in the trash');
   }
 
   const isNameUsed = data.quizzes.some(q => q.name === quiz.name && q.valid === true && q.quizId !== quizId);
   if (isNameUsed) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: 'Quiz name of the restored quiz is already used by another active quiz'
-    };
+    throw HTTPError(400, 'Quiz name of the restored quiz is already used by another active quiz');
   }
 
   quiz.valid = true;
@@ -350,34 +283,25 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject | E
  *
  * @param {string} token
  * @param {number[]} quizIds
- * @returns {EmptyObject | Error} - returns an empty object if successful
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
  */
-export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObject | Error {
+export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   for (const quizId of quizIds) {
     const userError = isValidQuizIdForUser(authUserId, quizId, data);
     if (userError) {
-      return {
-        statusCode: FORBIDDEN_CODE,
-        error: `User does not own the quiz with ID: ${quizId}`
-      };
+      throw HTTPError(403, `User does not own the quiz with ID: ${quizId}`);
     }
     const quiz = findQuizbyId(quizId, data);
     if (quiz.valid) {
-      return {
-        statusCode: BAD_REQUEST_CODE,
-        error: 'One or more of the Quiz IDs is not currently in the trash'
-      };
+      throw HTTPError(400, 'One or more of the Quiz IDs is not currently in the trash');
     }
   }
 
@@ -395,44 +319,32 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
  * @param {string} token
  * @param {number} quizId
  * @param {string} userEmail
- * @returns {EmptyObject | Error} - returns an empty object if successful
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
  */
-export function adminQuizTransfer(token: string, quizId: number, userEmail: string): EmptyObject | Error {
+export function adminQuizTransfer(token: string, quizId: number, userEmail: string): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    return {
-      statusCode: FORBIDDEN_CODE,
-      error: userError.error
-    };
+    throw HTTPError(403, userError.error);
   }
 
   const user = findUserbyEmail(userEmail, data);
   if (!user) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: 'User email is not the real user'
-    };
+    throw HTTPError(400, 'User email is not the real user');
   }
 
   const name = findQuizbyId(quizId, data).name;
   const userId = user.authUserId;
   const QuizNameError = isQuizNameUsed(name, userId, data);
   if (QuizNameError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: 'Quiz ID refers to a quiz that has a name that is already used by the target user'
-    };
+    throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
   }
 
   const EmailId = user.authUserId;
@@ -450,35 +362,26 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
  * @param {string} token
  * @param {number} quizId
  * @param {QuestionBodyInput} questionBody
- * @returns {EmptyObject | Error} - returns an empty object if successful
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
  */
-export function adminQuizQuestionCreate(token: string, quizId: number, questionBody: QuestionBodyInput): AdminQuizQuestionCreateReturn | Error {
+export function adminQuizQuestionCreate(token: string, quizId: number, questionBody: QuestionBodyInput): AdminQuizQuestionCreateReturn | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    return {
-      statusCode: FORBIDDEN_CODE,
-      error: userError.error
-    };
+    throw HTTPError(403, userError.error);
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   const questionError = isValidQuestion(quiz, questionBody);
   if (questionError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: questionError.error
-    };
+    throw HTTPError(400, questionError.error);
   }
 
   quiz.numQuestions = quiz.numQuestions + 1;
@@ -509,24 +412,18 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
  * @param {number} questionId
  * @param {QuestionBodyInput} questionBody
  */
-export function adminQuizQuestionUpdate(token: string, quizId: number, questionId: number, questionBody: QuestionBodyInput): EmptyObject | Error {
+export function adminQuizQuestionUpdate(token: string, quizId: number, questionId: number, questionBody: QuestionBodyInput): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    return {
-      statusCode: FORBIDDEN_CODE,
-      error: userError.error
-    };
+    throw HTTPError(403, userError.error);
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
@@ -534,18 +431,12 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
 
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: questionIdError.error
-    };
+    throw HTTPError(400, questionIdError.error);
   }
 
   const questionError = isValidQuestion(quiz, questionBody);
   if (questionError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: questionError.error
-    };
+    throw HTTPError(400, questionError.error);
   }
 
   quiz.timeLastEdited = quiz.timeCreated;
@@ -571,26 +462,20 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
  * @param {number} quizId
  * @param {number} questionId
  * @param {number} newPosition
- * @returns {EmptyObject | Error} - returns an empty object if successful
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
  */
-export function adminQuizQuestionMove(token: string, quizId: number, questionId: number, newPosition: number): EmptyObject | Error {
+export function adminQuizQuestionMove(token: string, quizId: number, questionId: number, newPosition: number): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    return {
-      statusCode: FORBIDDEN_CODE,
-      error: userError.error
-    };
+    throw HTTPError(403, userError.error);
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.valid && quiz.authUserId === authUserId);
@@ -598,28 +483,16 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
 
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: questionIdError.error
-    };
+    throw HTTPError(400, questionIdError.error);
   }
 
   const index = findQuestionIndex(data, quizId, questionId);
   if (newPosition < 0) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: 'NewPosition is less than 0'
-    };
+    throw HTTPError(400, 'NewPosition is less than 0');
   } else if (index === newPosition) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: 'Question Id is the same as the NewPosition'
-    };
+    throw HTTPError(400, 'Question Id is the same as the NewPosition');
   } else if (newPosition > len - 1) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: 'NewPosition is greater than n-1 where n is the number of questions'
-    };
+    throw HTTPError(400, 'NewPosition is greater than n-1 where n is the number of questions');
   }
 
   const question = quiz.questions.find(question => question.questionId === questionId);
@@ -638,37 +511,28 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
  * @param {number} quizId
  * @param {number} questionId
  * @param {QuestionBodyInput} questionBody
- * @returns {AdminQuizQuestionDuplicateReturn | Error} - returns an object containing the newQuestionId of the duplicated question
+ * @returns {AdminQuizQuestionDuplicateReturn | ErrorMessage} - returns an object containing the newQuestionId of the duplicated question
  */
-export function adminQuizQuestionDuplicate(token: string, quizId: number, questionId: number): AdminQuizQuestionDuplicateReturn | Error {
+export function adminQuizQuestionDuplicate(token: string, quizId: number, questionId: number): AdminQuizQuestionDuplicateReturn | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    return {
-      statusCode: FORBIDDEN_CODE,
-      error: userError.error
-    };
+    throw HTTPError(403, userError.error);
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   const question = quiz.questions.find(question => question.questionId === questionId);
 
-  const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
-  if (questionIdError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: questionIdError.error
-    };
+  const questinIdError = isValidQuestionIdForQuiz(quiz, questionId);
+  if (questinIdError) {
+    throw HTTPError(400, questinIdError.error);
   }
 
   // duplicate the question to immediately after where the source question is
@@ -700,26 +564,20 @@ export function adminQuizQuestionDuplicate(token: string, quizId: number, questi
  * @param {string} token
  * @param {number} quizId
  * @param {number} questionId
- * @returns {EmptyObject | Error} - returns an empty object if successful
+ * @returns {EmptyObject | ErrorMessage} - returns an empty object if successful
  */
-export function adminQuizQuestionRemove(token: string, quizId: number, questionId: number): EmptyObject | Error {
+export function adminQuizQuestionRemove(token: string, quizId: number, questionId: number): EmptyObject | ErrorMessage {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
   if (tokenError) {
-    return {
-      statusCode: UNAUTHORISED_CODE,
-      error: tokenError.error
-    };
+    throw HTTPError(401, tokenError.error);
   }
 
   const authUserId = findUserbyToken(token, data).authUserId;
   const userError = isValidQuizIdForUser(authUserId, quizId, data);
   if (userError) {
-    return {
-      statusCode: FORBIDDEN_CODE,
-      error: userError.error
-    };
+    throw HTTPError(403, userError.error);
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
@@ -727,10 +585,7 @@ export function adminQuizQuestionRemove(token: string, quizId: number, questionI
 
   const questionIdError = isValidQuestionIdForQuiz(quiz, questionId);
   if (questionIdError) {
-    return {
-      statusCode: BAD_REQUEST_CODE,
-      error: questionIdError.error
-    };
+    throw HTTPError(400, questionIdError.error);
   }
 
   quiz.numQuestions = quiz.numQuestions - 1;

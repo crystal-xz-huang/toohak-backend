@@ -42,7 +42,9 @@ function requestHelper(
   }
 
   // Send the request to the server
-  const res = request(method, SERVER_URL + path, { qs, json });
+  // const res = request(method, SERVER_URL + path, { qs, json });
+
+  const res = request(method, SERVER_URL + path, { qs, json, timeout: 20000 });
 
   const bodyString = res.body.toString();
   let bodyObject: RequestResponse;

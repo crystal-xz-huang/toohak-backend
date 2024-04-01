@@ -1,9 +1,9 @@
 // ====================================================================
 // RETURN CONSTANTS
 // ====================================================================
-export const BAD_REQUEST_ERROR = { statusCode: 400, jsonBody: expect.any(String) };
-export const UNAUTHORISED_ERROR = { statusCode: 401, jsonBody: expect.any(String) };
-export const FORBIDDEN_ERROR = { statusCode: 403, jsonBody: expect.any(String) };
+export const BAD_REQUEST_ERROR = { statusCode: 400, error: expect.any(String) };
+export const UNAUTHORISED_ERROR = { statusCode: 401, error: expect.any(String) };
+export const FORBIDDEN_ERROR = { statusCode: 403, error: expect.any(String) };
 
 export const CLEAR_SUCCESS = { statusCode: 200, jsonBody: {} };
 export const TOKEN_SUCCESS = { statusCode: 200, jsonBody: { token: expect.any(String) } };
