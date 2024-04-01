@@ -38,7 +38,7 @@ function requestHelper(method: HttpVerb, path: string, payload: object, headers?
     json = payload;
   }
 
-  // Send the request to the server with a timeout 
+  // Send the request to the server with a timeout
   const res = request(method, SERVER_URL + path, { qs, json, timeout: 2000, headers: headers });
   const bodyString = res.body as string;
 
