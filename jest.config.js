@@ -8,5 +8,4 @@ module.exports = {
   },
 
   testMatch: ['**/tests/**/*.test.(ts)'], // only run tests in the tests folder
-  // testPathIgnorePatterns: ['newecho.test.ts'],
 };

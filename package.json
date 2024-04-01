@@ -1,5 +1,6 @@
 {
-    "scripts": {
+    "scripts": { 
+        "test-coverage": "jest --coverage",
         "test": "jest", 
         "tsc": "tsc --project tsconfig.json",
         "lint": "eslint 'src/**/*.{ts,js}'",

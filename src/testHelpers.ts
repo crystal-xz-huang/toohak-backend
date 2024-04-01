@@ -48,6 +48,7 @@ function requestHelper(
 
   const bodyString = res.body as string;
   let bodyObject: RequestResponse;
+
   try {
     // Try to parse the server's response as JSON
     if (res.statusCode !== 200) {
