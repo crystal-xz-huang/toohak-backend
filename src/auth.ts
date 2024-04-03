@@ -5,8 +5,9 @@ import {
   AdminAuthRegisterReturn,
   AdminAuthLoginReturn,
   AdminUserDetailsReturn,
-} from './dataTypes';
+} from './functionTypes';
 import {
+  getHashOf,
   generateToken,
   isValidRegisterEmail,
   isValidLoginEmail,
@@ -20,7 +21,7 @@ import {
 
 /**
   * Register a user with an email, password, and first and last name.
-  * Returns the authUserId of the user.
+  * Returns a token that can be used to authenticate the user.
   *
   * @param { string } email - the email of the user
   * @param { string } password - the password of the user
@@ -44,18 +45,13 @@ export function adminAuthRegister(
     throw HTTPError(400, error.error);
   }
 
-  data.sessionId_counter = data.sessionId_counter + 1;
-  data.userId_counter = data.userId_counter + 1;
-
-  const sessionId = data.sessionId_counter;
-  const userId = data.userId_counter;
-  const token = generateToken(sessionId);
+  const userId = data.users.length + 1;
+  const token = generateToken();
 
   // Create a new session for the user
-  data.sessions.push({
+  data.userSessions.push({
+    authUserId: userId,
     token: token,
-    sessionId: sessionId,
-    adminUserId: userId,
     valid: true,
   });
 
@@ -63,7 +59,7 @@ export function adminAuthRegister(
   data.users.push({
     authUserId: userId,
     email: email,
-    password: password,
+    password: getHashOf(password),
     nameFirst: nameFirst,
     nameLast: nameLast,
     numSuccessfulLogins: 1,
@@ -91,32 +87,30 @@ export function adminAuthLogin(email: string, password: string): AdminAuthLoginR
   }
 
   const user = findUserbyEmail(email, data);
-  if (user.password !== password) {
+  if (user.password !== getHashOf(password)) {
     user.numFailedPasswordsSinceLastLogin++;
     setData(data);
     throw HTTPError(400, 'Password is incorrect for the given email');
   }
 
-  const sessionId = data.sessionId_counter + 1;
   const userId = user.authUserId;
-  const token = generateToken(sessionId);
+  const token = generateToken();
 
-  data.sessions.push({
+  data.userSessions.push({
+    authUserId: userId,
     token: token,
-    sessionId: data.sessionId_counter,
-    adminUserId: userId,
     valid: true,
   });
 
   user.numFailedPasswordsSinceLastLogin = 0;
-  user.numSuccessfulLogins = user.numSuccessfulLogins + 1;
+  user.numSuccessfulLogins++;
   setData(data);
 
   return { token: token };
 }
 
 /**
-  * Given an admin user's authUserId, return the user's details.
+  * Given a token, returns the details of the admin user who is logged in.
   *
   * @param { string } token - a unique admin user identifier
   * @returns { AdminUserDetailsReturn } - an object containing the user's details on success
@@ -168,10 +162,9 @@ export function adminUserDetailsUpdate(token: string, email: string, nameFirst: 
     throw HTTPError(400, error.error);
   }
 
-  const index = data.users.findIndex((user) => user.authUserId === authUserId);
-  data.users[index].email = email;
-  data.users[index].nameFirst = nameFirst;
-  data.users[index].nameLast = nameLast;
+  user.email = email;
+  user.nameFirst = nameFirst;
+  user.nameLast = nameLast;
   setData(data);
 
   return {};
@@ -196,11 +189,11 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
   }
 
   const foundUser = findUserbyToken(token, data);
-  if (foundUser.password !== oldPassword) {
+  if (foundUser.password !== getHashOf(oldPassword)) {
     throw HTTPError(400, 'Old password is incorrect');
   }
 
-  if (foundUser.password === newPassword) {
+  if (foundUser.password === getHashOf(newPassword)) {
     throw HTTPError(400, 'Old password and new password are the same');
   }
 
@@ -209,10 +202,9 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
     throw HTTPError(400, passwordError.error);
   }
 
-  const authUserId = foundUser.authUserId;
-  const index = data.users.findIndex((user) => user.authUserId === authUserId);
-  data.users[index].password = newPassword;
+  foundUser.password = getHashOf(newPassword);
   setData(data);
+
   return {};
 }
 
@@ -232,8 +224,8 @@ export function adminAuthLogout(token: string): EmptyObject {
     throw HTTPError(401, tokenError.error);
   }
 
-  const index = data.sessions.findIndex((session) => session.token === token);
-  data.sessions[index].valid = false;
+  const index = data.userSessions.findIndex((session) => session.token === token);
+  data.userSessions[index].valid = false;
   setData(data);
   return {};
 }

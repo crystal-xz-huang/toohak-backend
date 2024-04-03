@@ -2,14 +2,14 @@ import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
 import {
   EmptyObject,
+  QuestionBodyInput,
   AdminQuizCreateReturn,
   AdminQuizListReturn,
   AdminQuizInfoReturn,
   AdminQuizTrashViewReturn,
   AdminQuizQuestionCreateReturn,
-  QuestionBodyInput,
   AdminQuizQuestionDuplicateReturn
-} from './dataTypes';
+} from './functionTypes';
 import {
   generateRandomColour,
   getCurrentTime,
@@ -76,9 +76,10 @@ export function adminQuizCreate(token: string, name: string, description: string
     throw HTTPError(400, inputError.error);
   }
 
-  data.quizId_counter = data.quizId_counter + 1;
+  const quizId = data.quizzes.length + 1; // modify this to use a more unique id thats 4 digits long
   data.quizzes.push({
-    quizId: data.quizId_counter,
+    quizId: quizId,
+    sessionIds: [],
     name: name,
     authUserId: authUserId,
     description: description,
@@ -87,11 +88,12 @@ export function adminQuizCreate(token: string, name: string, description: string
     numQuestions: 0,
     questions: [],
     duration: 0,
+    // thumbnailUrl: '',
     valid: true
   });
 
   setData(data);
-  return { quizId: data.quizId_counter };
+  return { quizId: quizId };
 }
 
 /**
@@ -116,7 +118,7 @@ export function adminQuizRemove(token: string, quizId: number): EmptyObject {
     throw HTTPError(403, userError.error);
   }
 
-  const quiz = findQuizbyId(quizId, data);
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (quiz) {
     quiz.valid = false;
     quiz.timeLastEdited = getCurrentTime();
@@ -147,7 +149,7 @@ export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoRetur
     throw HTTPError(403, userError.error);
   }
 
-  const quiz = findQuizbyId(quizId, data);
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   return {
     quizId: quiz.quizId,
     name: quiz.name,
@@ -157,6 +159,7 @@ export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoRetur
     numQuestions: quiz.numQuestions,
     questions: quiz.questions,
     duration: quiz.duration,
+    // thumbnailUrl: quiz.thumbnailUrl,
   };
 }
 
@@ -188,9 +191,9 @@ export function adminQuizNameUpdate(token: string, quizId: number, name: string)
     throw HTTPError(400, quizNameError.error);
   }
 
-  const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
-  data.quizzes[quizIndex].name = name;
-  data.quizzes[quizIndex].timeLastEdited = getCurrentTime();
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.valid && quiz.authUserId === authUserId);
+  quiz.name = name;
+  quiz.timeLastEdited = getCurrentTime();
 
   setData(data);
   return {};
@@ -247,7 +250,7 @@ export function adminQuizTrashView(token: string): AdminQuizTrashViewReturn {
     throw HTTPError(401, tokenError.error);
   }
 
-  const authUserId = data.sessions.find(session => session.token === token).adminUserId;
+  const authUserId = data.userSessions.find(session => session.token === token).authUserId;
   const quizDetails = data.quizzes
     .filter(quiz => quiz.authUserId === authUserId && !quiz.valid)
     .map(quiz => ({ quizId: quiz.quizId, name: quiz.name }));
@@ -276,13 +279,15 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject {
     throw HTTPError(403, userError.error);
   }
 
-  const quiz = findQuizbyId(quizId, data);
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (quiz.valid) {
     throw HTTPError(400, 'Quiz ID refers to a quiz that is not currently invalid or in the trash');
   }
 
-  const isNameUsed = data.quizzes.some(q => q.name === quiz.name && q.valid === true && q.quizId !== quizId);
-  if (isNameUsed) {
+  const quizNameExists = data.quizzes
+    .filter(q => q.authUserId === authUserId && q.valid) // only check active quizzes of the user
+    .some(q => q.name === quiz.name); // check if the name is already used
+  if (quizNameExists) {
     throw HTTPError(400, 'Quiz name of the restored quiz is already used by another active quiz');
   }
 
@@ -409,6 +414,7 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
     questionId: quiz.numQuestions,
     question: questionBody.question,
     duration: questionBody.duration,
+    // thumbnailUrl: '',
     points: questionBody.points,
     answers: questionBody.answers.map((answer, index) => ({
       answerId: index,

@@ -25,7 +25,7 @@ import {
   invalidQuizNames,
 } from '../testTypes';
 import { BAD_REQUEST_ERROR, UNAUTHORISED_ERROR, FORBIDDEN_ERROR } from '../testTypes';
-import { AdminQuizListReturn, AdminQuizInfoReturn } from '../dataTypes';
+import { AdminQuizListReturn, AdminQuizInfoReturn } from '../functionTypes';
 
 beforeEach(() => {
   clearV1();

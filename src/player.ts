@@ -10,7 +10,7 @@ import {
   PlayerQuestionResultsReturn,
   PlayerFinalResultsReturn,
   PlayerChatListReturn,
-} from './dataTypes';
+} from './functionTypes';
 
 /**
  * Allows a guest player to join a session

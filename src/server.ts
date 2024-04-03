@@ -14,7 +14,7 @@ import process from 'process';
 import { clear } from './other';
 import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate, adminAuthLogout } from './auth';
 import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView, adminQuizRestore, adminQuizTrashEmpty, adminQuizTransfer, adminQuizQuestionCreate, adminQuizQuestionUpdate, adminQuizQuestionRemove, adminQuizQuestionMove, adminQuizQuestionDuplicate, adminQuizThumbnailUpdate } from './quiz';
-import { adminQuizSessionList, adminQuizSessionStatus, adminQuizSessionUpdate, adminQuizSessionResults, adminQuizSessionResultsCSV, adminQuizSessionStart } from './session';
+import { adminQuizSessionList, adminQuizSessionStatus, adminQuizSessionUpdate, adminQuizSessionResults, adminQuizSessionResultsCSV, adminQuizSessionStart } from './quizSession';
 import { playerJoin, playerStatus, playerQuestionInfo, playerQuestionAnswer, playerQuestionResults, playerFinalResults, playerChatList, playerChatSend } from './player';
 
 // Set up web app
@@ -202,6 +202,10 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
 
 /***********************************************************************
 * Iteration 3 (MODIFIED)
+* Routes now have tokens in the headers instead of the body or query
+* Access HTTP headers with:
+* 1. const token = req.header('token')  - for a single header
+* 2. const token = req.headers['token'] - for multiple headers
 ***********************************************************************/
 app.get('/v2/admin/user/details', (req: Request, res: Response) => {
   const token = req.header('token');
