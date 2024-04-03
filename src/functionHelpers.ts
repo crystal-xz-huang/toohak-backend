@@ -69,32 +69,6 @@ export function getQuizIndex(quizId: number, data: Data): number | null {
   }
 }
 
-// /**
-//  * Returns an array containing the quizzes of the user with the given authUserId
-//  * Otherwise, returns an empty array if no quizzes are found
-//  *
-//  * @param { number } authUserId - the id of registered user
-//  * @param { object } data - the data object from getData()
-//  * @returns { Array<Quiz> | [] } - array containing the quizzes of the user
-//  */
-// export function getUserQuizzes(authUserId: number, data: Data): Array<Quiz> | [] {
-//   return data.quizzes.filter(quiz => quiz.authUserId === authUserId);
-// }
-
-// export function getUserIndex(authUserId: number, data: Data): number | null {
-//   const index = data.users.findIndex(user => user.authUserId === authUserId);
-//   if (index === -1) {
-//     return null;
-//   }
-// }
-
-// export function getSessionIndex(token: string, data: Data): number | null {
-//   const index = data.sessions.findIndex(session => session.token === token);
-//   if (index === -1) {
-//     return null;
-//   }
-// }
-
 /// ////////////////////////////////////////////////////////////////////////////////////
 /// //////////////////////////  FIND FUNCTIONS  ////////////////////////////////////////
 /// ////////////////////////////////////////////////////////////////////////////////////
@@ -142,46 +116,6 @@ export function findQuestionIndex(data: Data, quizId: number, questionId: number
   const quiz: Quiz | undefined = data.quizzes.find(q => q.quizId === quizId);
   return quiz.questions.findIndex(q => q.questionId === questionId);
 }
-
-// /**
-//  * Given a userID, returns the user object
-//  * Otherwise, returns undefined if userID is not found
-//  *
-//  * @param { number } authUserId
-//  * @param { object } data - the data object from getData()
-//  * @returns { User | null } - object containing the user's details
-//  */
-// export function findUserbyId(authUserId: number, data: Data): User | null {
-//   return data.users.find(user => user.authUserId === authUserId) ?? null;
-// }
-
-// /**
-//  * Given a userId, return the token for a logged in user session
-//  */
-// export function findTokenforUser(authUserId: number, data: Data): Token | null {
-//   const session = data.sessions.find(session => session.adminUserId === authUserId);
-//   if (session === undefined || session.valid === false) {
-//     return null;
-//   }
-//   return { token: session.token };
-// }
-
-// /**
-//  * Given a token, returns the session object
-//  * Otherwise, returns null (if the token is not found)
-//  */
-// export function findSessionbyToken(token: string, data: Data): Session | null {
-//   return data.sessions.find(session => session.token === token) ?? null;
-// }
-
-// /**
-//  * Given the authUserId, returns all the valid logged-in sessions for the user
-//  */
-// export function findValidSessionsforUser(authUserId: number, data: Data): Array<Session> | [] {
-//   const sessions = data.sessions.filter(session => session.adminUserId === authUserId);
-//   // return only the valid sessions
-//   return sessions.filter(session => session.valid === true);
-// }
 
 /// ////////////////////////////////////////////////////////////////////////////////////
 /// ////////////////////////  IS VALID FUNCTIONS  //////////////////////////////////////

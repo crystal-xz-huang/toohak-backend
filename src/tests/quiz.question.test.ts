@@ -12,27 +12,29 @@ import {
 } from '../testHelpers';
 
 import {
-  user1,
-  user2,
-  quiz1,
-  validQuestion1,
-  validQuestion2,
-  validQuestion3,
-  validQuestion4,
-  shortQuestionString,
-  longQuestionString,
-  moreQuestionAnswers,
-  lessQuestionAnswers,
-  negativeQuestionDuration,
-  moreQuestionDurationSum,
-  lessQuestionPoints,
-  moreQuestionPoints,
-  shortQuestionAnswers,
-  longQuestionAnswers,
-  duplicateQuestionAnswers,
-  falseQuestionAnswers,
+  BAD_REQUEST_ERROR,
+  UNAUTHORISED_ERROR,
+  FORBIDDEN_ERROR,
+  USER1,
+  USER2,
+  QUIZ1,
+  VALID_QUESTION1,
+  VALID_QUESTION2,
+  VALID_QUESTION3,
+  VALID_QUESTION4,
+  SHORT_QUESTION_STRING,
+  LONG_QUESTION_STRING,
+  MORE_QUESTION_ANSWERS,
+  LESS_QUESTION_ANSWERS,
+  NEGATIVE_QUESTION_DURATION,
+  MORE_QUESTION_DURATION_SUM,
+  LESS_QUESTION_POINTS,
+  MORE_QUESTION_POINTS,
+  SHORT_QUESTION_ANSWERS,
+  LONG_QUESTION_ANSWERS,
+  DUPLICATE_QUESTION_ANSWERS,
+  FALSE_QUESTION_ANSWERS,
 } from '../testTypes';
-import { BAD_REQUEST_ERROR, UNAUTHORISED_ERROR, FORBIDDEN_ERROR } from '../testTypes';
 
 beforeEach(() => {
   clearV1();
@@ -48,136 +50,136 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   let questionId1: number;
   let questionId2: number;
   beforeEach(() => {
-    token = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody.token as string;
-    quizId = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody.quizId as number;
-    questionId1 = quizQuestionCreateV1(token, quizId, validQuestion1).jsonBody.questionId as number;
-    questionId2 = quizQuestionCreateV1(token, quizId, validQuestion2).jsonBody.questionId as number;
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV1(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    questionId1 = quizQuestionCreateV1(token, quizId, VALID_QUESTION1).jsonBody.questionId as number;
+    questionId2 = quizQuestionCreateV1(token, quizId, VALID_QUESTION2).jsonBody.questionId as number;
   });
 
   test('Correct status code and return value', () => {
-    const response = quizQuestionUpdateV1(token, quizId, questionId1, validQuestion3);
+    const response = quizQuestionUpdateV1(token, quizId, questionId1, VALID_QUESTION3);
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual({});
   });
 
   test('Successfully updates a question', () => {
-    quizQuestionUpdateV1(token, quizId, questionId1, validQuestion2);
+    quizQuestionUpdateV1(token, quizId, questionId1, VALID_QUESTION2);
     const response = quizInfoV1(token, quizId).jsonBody;
     const expected = {
       quizId: expect.any(Number),
-      name: quiz1.name,
+      name: QUIZ1.name,
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
-      description: quiz1.description,
+      description: QUIZ1.description,
       numQuestions: 2,
       questions: [
         {
           questionId: questionId1,
-          question: validQuestion2.question,
-          duration: validQuestion2.duration,
-          points: validQuestion2.points,
+          question: VALID_QUESTION2.question,
+          duration: VALID_QUESTION2.duration,
+          points: VALID_QUESTION2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[0].answer,
+              answer: VALID_QUESTION2.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[0].correct
+              correct: VALID_QUESTION2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[1].answer,
+              answer: VALID_QUESTION2.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[1].correct
+              correct: VALID_QUESTION2.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId2,
-          question: validQuestion2.question,
-          duration: validQuestion2.duration,
-          points: validQuestion2.points,
+          question: VALID_QUESTION2.question,
+          duration: VALID_QUESTION2.duration,
+          points: VALID_QUESTION2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[0].answer,
+              answer: VALID_QUESTION2.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[0].correct
+              correct: VALID_QUESTION2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[1].answer,
+              answer: VALID_QUESTION2.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[1].correct
+              correct: VALID_QUESTION2.answers[1].correct
             }
           ]
         }
       ],
-      duration: validQuestion2.duration * 2
+      duration: VALID_QUESTION2.duration * 2
     };
     expect(response).toStrictEqual(expected);
   });
 
   test('Successfully updates 2 questions', () => {
-    quizQuestionUpdateV1(token, quizId, questionId1, validQuestion3);
-    quizQuestionUpdateV1(token, quizId, questionId2, validQuestion4);
+    quizQuestionUpdateV1(token, quizId, questionId1, VALID_QUESTION3);
+    quizQuestionUpdateV1(token, quizId, questionId2, VALID_QUESTION4);
     const response = quizInfoV1(token, quizId).jsonBody;
     const expected = {
       quizId: expect.any(Number),
-      name: quiz1.name,
+      name: QUIZ1.name,
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
-      description: quiz1.description,
+      description: QUIZ1.description,
       numQuestions: 2,
       questions: [
         {
           questionId: questionId1,
-          question: validQuestion3.question,
-          duration: validQuestion3.duration,
-          points: validQuestion3.points,
+          question: VALID_QUESTION3.question,
+          duration: VALID_QUESTION3.duration,
+          points: VALID_QUESTION3.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion3.answers[0].answer,
+              answer: VALID_QUESTION3.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion3.answers[0].correct
+              correct: VALID_QUESTION3.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion3.answers[1].answer,
+              answer: VALID_QUESTION3.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion3.answers[1].correct
+              correct: VALID_QUESTION3.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId2,
-          question: validQuestion4.question,
-          duration: validQuestion4.duration,
-          points: validQuestion4.points,
+          question: VALID_QUESTION4.question,
+          duration: VALID_QUESTION4.duration,
+          points: VALID_QUESTION4.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion4.answers[0].answer,
+              answer: VALID_QUESTION4.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion4.answers[0].correct
+              correct: VALID_QUESTION4.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion4.answers[1].answer,
+              answer: VALID_QUESTION4.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion4.answers[1].correct
+              correct: VALID_QUESTION4.answers[1].correct
             }
           ]
         }
       ],
-      duration: validQuestion3.duration + validQuestion4.duration
+      duration: VALID_QUESTION3.duration + VALID_QUESTION4.duration
     };
     expect(response).toStrictEqual(expected);
   });
 
   test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
     const expectedTime = Math.floor(Date.now() / 1000);
-    quizQuestionUpdateV1(token, quizId, questionId1, validQuestion2);
+    quizQuestionUpdateV1(token, quizId, questionId1, VALID_QUESTION2);
     const response2 = quizInfoV1(token, quizId).jsonBody;
     const timeLastEdited = response2.timeLastEdited as number;
     expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
@@ -186,97 +188,97 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
 
   describe('Unauthorised errors', () => {
     test('Token is empty', () => {
-      expect(quizQuestionUpdateV1('', quizId, questionId1, validQuestion2)).toStrictEqual(UNAUTHORISED_ERROR);
+      expect(quizQuestionUpdateV1('', quizId, questionId1, VALID_QUESTION2)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
     test('Token does not refer to a valid user session', () => {
-      expect(quizQuestionUpdateV1(token + 'random', quizId, questionId1, validQuestion2)).toStrictEqual(UNAUTHORISED_ERROR);
+      expect(quizQuestionUpdateV1(token + 'random', quizId, questionId1, VALID_QUESTION2)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
     test('Token does not refer to a logged in user session', () => {
       authLogoutV1(token);
-      expect(quizQuestionUpdateV1(token, quizId, questionId1, validQuestion2)).toStrictEqual(UNAUTHORISED_ERROR);
+      expect(quizQuestionUpdateV1(token, quizId, questionId1, VALID_QUESTION2)).toStrictEqual(UNAUTHORISED_ERROR);
     });
   });
 
   describe('Forbidden errors', () => {
     test('Valid token but invalid quizId', () => {
-      const response = quizQuestionUpdateV1(token, -1, questionId1, validQuestion2);
+      const response = quizQuestionUpdateV1(token, -1, questionId1, VALID_QUESTION2);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
 
     test('Valid token but user does not own the quiz', () => {
-      const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+      const invalidUser = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
       const token2 = invalidUser.token as string;
-      const response = quizQuestionUpdateV1(token2, quizId, questionId1, validQuestion2);
+      const response = quizQuestionUpdateV1(token2, quizId, questionId1, VALID_QUESTION2);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
   });
 
   describe('Bad request errors', () => {
     test('Question Id does not refer to a valid question within this quiz', () => {
-      const response = quizQuestionUpdateV1(token, quizId, -1, validQuestion2);
+      const response = quizQuestionUpdateV1(token, quizId, -1, VALID_QUESTION2);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test.each(shortQuestionString)('Question string is less than 5 characters', (question) => {
+    test.each(SHORT_QUESTION_STRING)('Question string is less than 5 characters', (question) => {
       const response = quizQuestionUpdateV1(token, quizId, questionId1, question);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('Question string is more than 100 characters', () => {
-      const response = quizQuestionUpdateV1(token, quizId, questionId1, longQuestionString);
+      const response = quizQuestionUpdateV1(token, quizId, questionId1, LONG_QUESTION_STRING);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('Question has more than 6 answers', () => {
-      const response = quizQuestionUpdateV1(token, quizId, questionId1, moreQuestionAnswers);
+      const response = quizQuestionUpdateV1(token, quizId, questionId1, MORE_QUESTION_ANSWERS);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test.each(lessQuestionAnswers)('Question has less than 2 answers', (question) => {
+    test.each(LESS_QUESTION_ANSWERS)('Question has less than 2 answers', (question) => {
       const response = quizQuestionUpdateV1(token, quizId, questionId1, question);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test.each(negativeQuestionDuration)('Question duration is not a positive number', (question) => {
+    test.each(NEGATIVE_QUESTION_DURATION)('Question duration is not a positive number', (question) => {
       const response = quizQuestionUpdateV1(token, quizId, questionId1, question);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('Sum of the question durations in the quiz exceeds 3 minutes after update', () => {
-      quizQuestionUpdateV1(token, quizId, questionId1, moreQuestionDurationSum[0]);
-      const response = quizQuestionUpdateV1(token, quizId, questionId2, moreQuestionDurationSum[1]);
+      quizQuestionUpdateV1(token, quizId, questionId1, MORE_QUESTION_DURATION_SUM[0]);
+      const response = quizQuestionUpdateV1(token, quizId, questionId2, MORE_QUESTION_DURATION_SUM[1]);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('Points awarded for the question are less than 1', () => {
-      const response = quizQuestionUpdateV1(token, quizId, questionId1, lessQuestionPoints);
+      const response = quizQuestionUpdateV1(token, quizId, questionId1, LESS_QUESTION_POINTS);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('Points awarded for the question are more than 10', () => {
-      const response = quizQuestionUpdateV1(token, quizId, questionId1, moreQuestionPoints);
+      const response = quizQuestionUpdateV1(token, quizId, questionId1, MORE_QUESTION_POINTS);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test.each(shortQuestionAnswers)('Length of any answer is shorter than 1 character', (question) => {
+    test.each(SHORT_QUESTION_ANSWERS)('Length of any answer is shorter than 1 character', (question) => {
       const response = quizQuestionUpdateV1(token, quizId, questionId1, question);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test.each(longQuestionAnswers)('Length of any answer is longer than 30 characters', (question) => {
+    test.each(LONG_QUESTION_ANSWERS)('Length of any answer is longer than 30 characters', (question) => {
       const response = quizQuestionUpdateV1(token, quizId, questionId1, question);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('Any answer strings are duplicates of one another within the same question', () => {
-      const response = quizQuestionUpdateV1(token, quizId, questionId1, duplicateQuestionAnswers);
+      const response = quizQuestionUpdateV1(token, quizId, questionId1, DUPLICATE_QUESTION_ANSWERS);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('No correct answers', () => {
-      const response = quizQuestionUpdateV1(token, quizId, questionId1, falseQuestionAnswers);
+      const response = quizQuestionUpdateV1(token, quizId, questionId1, FALSE_QUESTION_ANSWERS);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
@@ -287,17 +289,17 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
     const invalidQuestionId = -1;
 
     test('Unauthorised status code 401 first', () => {
-      const response1 = quizQuestionUpdateV1(invalidToken, invalidQuizId, invalidQuestionId, validQuestion2);
+      const response1 = quizQuestionUpdateV1(invalidToken, invalidQuizId, invalidQuestionId, VALID_QUESTION2);
       expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
     test('Forbidden status code 403 second', () => {
-      const response = quizQuestionUpdateV1(token, invalidQuizId, invalidQuestionId, validQuestion2);
+      const response = quizQuestionUpdateV1(token, invalidQuizId, invalidQuestionId, VALID_QUESTION2);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
 
     test('Bad request status code 400 last', () => {
-      const response = quizQuestionUpdateV1(token, quizId, invalidQuestionId, validQuestion2);
+      const response = quizQuestionUpdateV1(token, quizId, invalidQuestionId, VALID_QUESTION2);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
@@ -308,11 +310,11 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   let quizId: number;
   let questionId: number;
   beforeEach(() => {
-    const user = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody;
+    const user = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
     token = user.token;
-    const quiz = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody;
+    const quiz = quizCreateV1(token, QUIZ1.name, QUIZ1.description).jsonBody;
     quizId = quiz.quizId;
-    const question = quizQuestionCreateV1(token, quizId, validQuestion1).jsonBody;
+    const question = quizQuestionCreateV1(token, quizId, VALID_QUESTION1).jsonBody;
     questionId = question.questionId;
   });
 
@@ -332,33 +334,33 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
     quizQuestionRemoveV1(token, quizId, questionId);
     const response1 = quizInfoV1(token, quizId).jsonBody;
     expect(response1.questions).toStrictEqual([]);
-    quizQuestionCreateV1(token, quizId, validQuestion1);
+    quizQuestionCreateV1(token, quizId, VALID_QUESTION1);
     const response2 = quizInfoV1(token, quizId).jsonBody;
     const expected = {
       quizId: expect.any(Number),
-      name: quiz1.name,
+      name: QUIZ1.name,
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
-      description: quiz1.description,
+      description: QUIZ1.description,
       numQuestions: 1,
       questions: [
         {
           questionId: expect.any(Number),
-          question: validQuestion1.question,
-          duration: validQuestion1.duration,
-          points: validQuestion1.points,
+          question: VALID_QUESTION1.question,
+          duration: VALID_QUESTION1.duration,
+          points: VALID_QUESTION1.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion1.answers[0].answer,
+              answer: VALID_QUESTION1.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion1.answers[0].correct
+              correct: VALID_QUESTION1.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion1.answers[1].answer,
+              answer: VALID_QUESTION1.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion1.answers[1].correct
+              correct: VALID_QUESTION1.answers[1].correct
             }
           ]
         }
@@ -408,7 +410,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
     });
 
     test('Valid token but user does not own the quiz', () => {
-      const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+      const invalidUser = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
       const token2 = invalidUser.token as string;
       const response = quizQuestionRemoveV1(token2, quizId, questionId);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
@@ -420,7 +422,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
     const emptyToken = '';
     let notOwnerToken: string;
     beforeEach(() => {
-      const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+      const invalidUser = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
       notOwnerToken = invalidUser.token as string;
     });
 
@@ -448,16 +450,16 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}/move', () =>
   let quesId3: number;
   let newPosition: number;
   beforeEach(() => {
-    token = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody.token as string;
-    quizId = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody.quizId as number;
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV1(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
 
-    const q1 = quizQuestionCreateV1(token, quizId, validQuestion1).jsonBody;
+    const q1 = quizQuestionCreateV1(token, quizId, VALID_QUESTION1).jsonBody;
     quesId1 = q1.questionId as number;
 
-    const q2 = quizQuestionCreateV1(token, quizId, validQuestion2).jsonBody;
+    const q2 = quizQuestionCreateV1(token, quizId, VALID_QUESTION2).jsonBody;
     quesId2 = q2.questionId as number;
 
-    const q3 = quizQuestionCreateV1(token, quizId, validQuestion3).jsonBody;
+    const q3 = quizQuestionCreateV1(token, quizId, VALID_QUESTION3).jsonBody;
     quesId3 = q3.questionId as number;
   });
 
@@ -586,7 +588,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}/move', () =>
     });
 
     test('Valid token but user does not own the quiz', () => {
-      const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+      const invalidUser = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
       const token2 = invalidUser.token as string;
       const response = quizQuestionMoveV1(token2, quizId, quesId2, newPosition);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
@@ -624,10 +626,10 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
   let questionId1: number;
   let questionId2: number;
   beforeEach(() => {
-    token = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody.token as string;
-    quizId = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody.quizId as number;
-    questionId1 = quizQuestionCreateV1(token, quizId, validQuestion1).jsonBody.questionId as number;
-    questionId2 = quizQuestionCreateV1(token, quizId, validQuestion2).jsonBody.questionId as number;
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV1(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    questionId1 = quizQuestionCreateV1(token, quizId, VALID_QUESTION1).jsonBody.questionId as number;
+    questionId2 = quizQuestionCreateV1(token, quizId, VALID_QUESTION2).jsonBody.questionId as number;
   });
 
   test('Correct status code and return value', () => {
@@ -641,172 +643,172 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
     const response = quizInfoV1(token, quizId).jsonBody;
     const expected = {
       quizId: expect.any(Number),
-      name: quiz1.name,
+      name: QUIZ1.name,
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
-      description: quiz1.description,
+      description: QUIZ1.description,
       numQuestions: 3,
       questions: [
         {
           questionId: questionId1,
-          question: validQuestion1.question,
-          duration: validQuestion1.duration,
-          points: validQuestion1.points,
+          question: VALID_QUESTION1.question,
+          duration: VALID_QUESTION1.duration,
+          points: VALID_QUESTION1.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion1.answers[0].answer,
+              answer: VALID_QUESTION1.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion1.answers[0].correct
+              correct: VALID_QUESTION1.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion1.answers[1].answer,
+              answer: VALID_QUESTION1.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion1.answers[1].correct
+              correct: VALID_QUESTION1.answers[1].correct
             }
           ]
         },
         {
           questionId: newQuestionId,
-          question: validQuestion1.question,
-          duration: validQuestion1.duration,
-          points: validQuestion1.points,
+          question: VALID_QUESTION1.question,
+          duration: VALID_QUESTION1.duration,
+          points: VALID_QUESTION1.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion1.answers[0].answer,
+              answer: VALID_QUESTION1.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion1.answers[0].correct
+              correct: VALID_QUESTION1.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion1.answers[1].answer,
+              answer: VALID_QUESTION1.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion1.answers[1].correct
+              correct: VALID_QUESTION1.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId2,
-          question: validQuestion2.question,
-          duration: validQuestion2.duration,
-          points: validQuestion2.points,
+          question: VALID_QUESTION2.question,
+          duration: VALID_QUESTION2.duration,
+          points: VALID_QUESTION2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[0].answer,
+              answer: VALID_QUESTION2.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[0].correct
+              correct: VALID_QUESTION2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[1].answer,
+              answer: VALID_QUESTION2.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[1].correct
+              correct: VALID_QUESTION2.answers[1].correct
             }
           ]
         },
       ],
-      duration: validQuestion1.duration * 2 + validQuestion2.duration
+      duration: VALID_QUESTION1.duration * 2 + VALID_QUESTION2.duration
     };
     expect(response).toStrictEqual(expected);
   });
 
   test('Successfully duplicates the middle question', () => {
-    const questionId3 = quizQuestionCreateV1(token, quizId, validQuestion3).jsonBody.questionId as number;
+    const questionId3 = quizQuestionCreateV1(token, quizId, VALID_QUESTION3).jsonBody.questionId as number;
     const newQuestionId = quizQuestionDuplicateV1(token, quizId, questionId2).jsonBody.newQuestionId as number;
     const response = quizInfoV1(token, quizId).jsonBody;
     const expected = {
       quizId: expect.any(Number),
-      name: quiz1.name,
+      name: QUIZ1.name,
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
-      description: quiz1.description,
+      description: QUIZ1.description,
       numQuestions: 4,
       questions: [
         {
           questionId: questionId1,
-          question: validQuestion1.question,
-          duration: validQuestion1.duration,
-          points: validQuestion1.points,
+          question: VALID_QUESTION1.question,
+          duration: VALID_QUESTION1.duration,
+          points: VALID_QUESTION1.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion1.answers[0].answer,
+              answer: VALID_QUESTION1.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion1.answers[0].correct
+              correct: VALID_QUESTION1.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion1.answers[1].answer,
+              answer: VALID_QUESTION1.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion1.answers[1].correct
+              correct: VALID_QUESTION1.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId2,
-          question: validQuestion2.question,
-          duration: validQuestion2.duration,
-          points: validQuestion2.points,
+          question: VALID_QUESTION2.question,
+          duration: VALID_QUESTION2.duration,
+          points: VALID_QUESTION2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[0].answer,
+              answer: VALID_QUESTION2.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[0].correct
+              correct: VALID_QUESTION2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[1].answer,
+              answer: VALID_QUESTION2.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[1].correct
+              correct: VALID_QUESTION2.answers[1].correct
             }
           ]
         },
         {
           questionId: newQuestionId,
-          question: validQuestion2.question,
-          duration: validQuestion2.duration,
-          points: validQuestion2.points,
+          question: VALID_QUESTION2.question,
+          duration: VALID_QUESTION2.duration,
+          points: VALID_QUESTION2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[0].answer,
+              answer: VALID_QUESTION2.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[0].correct
+              correct: VALID_QUESTION2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[1].answer,
+              answer: VALID_QUESTION2.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[1].correct
+              correct: VALID_QUESTION2.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId3,
-          question: validQuestion3.question,
-          duration: validQuestion3.duration,
-          points: validQuestion3.points,
+          question: VALID_QUESTION3.question,
+          duration: VALID_QUESTION3.duration,
+          points: VALID_QUESTION3.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion3.answers[0].answer,
+              answer: VALID_QUESTION3.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion3.answers[0].correct
+              correct: VALID_QUESTION3.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion3.answers[1].answer,
+              answer: VALID_QUESTION3.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion3.answers[1].correct
+              correct: VALID_QUESTION3.answers[1].correct
             }
           ]
         }
       ],
-      duration: validQuestion1.duration + validQuestion2.duration * 2 + validQuestion3.duration
+      duration: VALID_QUESTION1.duration + VALID_QUESTION2.duration * 2 + VALID_QUESTION3.duration
     };
     expect(response).toStrictEqual(expected);
   });
@@ -816,74 +818,74 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
     const response = quizInfoV1(token, quizId).jsonBody;
     const expected = {
       quizId: expect.any(Number),
-      name: quiz1.name,
+      name: QUIZ1.name,
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
-      description: quiz1.description,
+      description: QUIZ1.description,
       numQuestions: 3,
       questions: [
         {
           questionId: questionId1,
-          question: validQuestion1.question,
-          duration: validQuestion1.duration,
-          points: validQuestion1.points,
+          question: VALID_QUESTION1.question,
+          duration: VALID_QUESTION1.duration,
+          points: VALID_QUESTION1.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion1.answers[0].answer,
+              answer: VALID_QUESTION1.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion1.answers[0].correct
+              correct: VALID_QUESTION1.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion1.answers[1].answer,
+              answer: VALID_QUESTION1.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion1.answers[1].correct
+              correct: VALID_QUESTION1.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId2,
-          question: validQuestion2.question,
-          duration: validQuestion2.duration,
-          points: validQuestion2.points,
+          question: VALID_QUESTION2.question,
+          duration: VALID_QUESTION2.duration,
+          points: VALID_QUESTION2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[0].answer,
+              answer: VALID_QUESTION2.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[0].correct
+              correct: VALID_QUESTION2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[1].answer,
+              answer: VALID_QUESTION2.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[1].correct
+              correct: VALID_QUESTION2.answers[1].correct
             }
           ]
         },
         {
           questionId: newQuestionId,
-          question: validQuestion2.question,
-          duration: validQuestion2.duration,
-          points: validQuestion2.points,
+          question: VALID_QUESTION2.question,
+          duration: VALID_QUESTION2.duration,
+          points: VALID_QUESTION2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[0].answer,
+              answer: VALID_QUESTION2.answers[0].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[0].correct
+              correct: VALID_QUESTION2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: validQuestion2.answers[1].answer,
+              answer: VALID_QUESTION2.answers[1].answer,
               colour: expect.any(String),
-              correct: validQuestion2.answers[1].correct
+              correct: VALID_QUESTION2.answers[1].correct
             }
           ]
         }
       ],
-      duration: validQuestion1.duration + validQuestion2.duration * 2
+      duration: VALID_QUESTION1.duration + VALID_QUESTION2.duration * 2
     };
     expect(response).toStrictEqual(expected);
   });
@@ -920,7 +922,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
     });
 
     test('Valid token but user does not own the quiz', () => {
-      const invalidUser = authRegisterV1(user2.email, user2.password, user2.nameFirst, user2.nameLast).jsonBody;
+      const invalidUser = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
       const token2 = invalidUser.token as string;
       const response = quizQuestionDuplicateV1(token2, quizId, questionId1);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);

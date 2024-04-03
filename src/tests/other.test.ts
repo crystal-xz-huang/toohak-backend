@@ -24,12 +24,11 @@ import {
 } from '../testHelpers';
 
 import {
-  CLEAR_SUCCESS,
   BAD_REQUEST_ERROR,
   UNAUTHORISED_ERROR,
-  user1,
-  quiz1,
-  validQuestion1,
+  USER1,
+  QUIZ1,
+  VALID_QUESTION1,
 } from '../testTypes';
 
 beforeEach(() => {
@@ -42,6 +41,7 @@ afterEach(() => {
 
 describe('Testing DELETE /v1/clear', () => {
   test('Correct status code and return value', () => {
+    const CLEAR_SUCCESS = { statusCode: 200, jsonBody: {} };
     expect(clearV1()).toStrictEqual(CLEAR_SUCCESS);
   });
 
@@ -50,15 +50,15 @@ describe('Testing DELETE /v1/clear', () => {
     let token: string;
     let questionID: number;
     beforeEach(() => {
-      token = authRegisterV1(user1.email, user1.password, user1.nameFirst, user1.nameLast).jsonBody.token;
-      quizID = quizCreateV1(token, quiz1.name, quiz1.description).jsonBody.quizId;
-      questionID = quizQuestionCreateV1(token, quizID, validQuestion1).jsonBody.questionId;
+      token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token;
+      quizID = quizCreateV1(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId;
+      questionID = quizQuestionCreateV1(token, quizID, VALID_QUESTION1).jsonBody.questionId;
     });
 
     describe('All registered users are removed', () => {
       test('POST /v1/admin/auth/login should return an error after clear is called', () => {
         clearV1();
-        expect(authLoginV1(user1.email, user1.password)).toStrictEqual(BAD_REQUEST_ERROR);
+        expect(authLoginV1(USER1.email, USER1.password)).toStrictEqual(BAD_REQUEST_ERROR);
       });
 
       test('POST /v1/admin/auth/logout should return an error after clear is called', () => {
@@ -73,12 +73,12 @@ describe('Testing DELETE /v1/clear', () => {
 
       test('PUT /v1/admin/user/details should return an error after clear is called', () => {
         clearV1();
-        expect(userDetailsUpdateV1(token, user1.email, user1.nameFirst, user1.nameLast)).toStrictEqual(UNAUTHORISED_ERROR);
+        expect(userDetailsUpdateV1(token, USER1.email, USER1.nameFirst, USER1.nameLast)).toStrictEqual(UNAUTHORISED_ERROR);
       });
 
       test('PUT /v1/admin/user/password should return an error after clear is called', () => {
         clearV1();
-        expect(userPasswordUpdateV1(token, user1.password, 'password123')).toStrictEqual(UNAUTHORISED_ERROR);
+        expect(userPasswordUpdateV1(token, USER1.password, 'password123')).toStrictEqual(UNAUTHORISED_ERROR);
       });
     });
 
@@ -100,12 +100,12 @@ describe('Testing DELETE /v1/clear', () => {
 
       test('PUT /v1/admin/quiz/{quizid}/name should return an error after clear is called', () => {
         clearV1();
-        expect(quizNameUpdateV1(token, quizID, quiz1.name)).toStrictEqual(UNAUTHORISED_ERROR);
+        expect(quizNameUpdateV1(token, quizID, QUIZ1.name)).toStrictEqual(UNAUTHORISED_ERROR);
       });
 
       test('PUT /v1/admin/quiz/{quizid}/description should return an error after clear is called', () => {
         clearV1();
-        expect(quizDescriptionUpdateV1(token, quizID, quiz1.description)).toStrictEqual(UNAUTHORISED_ERROR);
+        expect(quizDescriptionUpdateV1(token, quizID, QUIZ1.description)).toStrictEqual(UNAUTHORISED_ERROR);
       });
 
       test('GET /v1/admin/quiz/trash should return an error after clear is called', () => {
@@ -125,17 +125,17 @@ describe('Testing DELETE /v1/clear', () => {
 
       test('POST /v1/admin/quiz/{quizid}/transfer should return an error after clear is called', () => {
         clearV1();
-        expect(quizTransferV1(token, quizID, user1.email)).toStrictEqual(UNAUTHORISED_ERROR);
+        expect(quizTransferV1(token, quizID, USER1.email)).toStrictEqual(UNAUTHORISED_ERROR);
       });
 
       test('POST /v1/admin/quiz/{quizid}/question should return an error after clear is called', () => {
         clearV1();
-        expect(quizQuestionCreateV1(token, quizID, validQuestion1)).toStrictEqual(UNAUTHORISED_ERROR);
+        expect(quizQuestionCreateV1(token, quizID, VALID_QUESTION1)).toStrictEqual(UNAUTHORISED_ERROR);
       });
 
       test('PUT /v1/admin/quiz/{quizid}/question/{questionid} should return an error after clear is called', () => {
         clearV1();
-        expect(quizQuestionUpdateV1(token, quizID, 1, validQuestion1)).toStrictEqual(UNAUTHORISED_ERROR);
+        expect(quizQuestionUpdateV1(token, quizID, 1, VALID_QUESTION1)).toStrictEqual(UNAUTHORISED_ERROR);
       });
 
       test('DELETE /v1/admin/quiz/{quizid}/question/{questionid} should return an error after clear is called', () => {
