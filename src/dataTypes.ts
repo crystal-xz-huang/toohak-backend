@@ -1,23 +1,19 @@
-/**
- * List of all types and interfaces used in the project
- * NOTE: Types vs Interfaces
- * - Types cannot be extended or modified after declaration
- * - Interfaces can be extended and re-opened to add new properties
- */
+// ====================================================================
+// DATA STORE
+// ====================================================================
 
-// ====================================================================
-// DATA STORE TYPES
-// ====================================================================
-export type Data = {
+export interface Data {
   users: User[];
   quizzes: Quiz[];
-  sessions: Session[];
-  userId_counter: number;
-  quizId_counter: number;
-  sessionId_counter: number;
+  userSessions: UserSession[];
+  quizSessions: QuizSession[];
 }
 
-export type User = {
+// ====================================================================
+// USER TYPES
+// ====================================================================
+
+export interface User {
   authUserId: number;
   email: string;
   password: string;
@@ -27,14 +23,28 @@ export type User = {
   numFailedPasswordsSinceLastLogin: number;
 }
 
-export type AnswerBody = {
-  answerId: number;
-  answer: string;
-  colour: string; // randomly generated colour
-  correct: boolean;
+interface UserSession {
+  authUserId: number;
+  token: string;
+  valid: boolean;
 }
 
-export type QuestionBody = {
+export interface Quiz {
+  quizId: number;
+  sessionIds: number[]; // the ids of the sessions that are currently using the quiz
+  name: string;
+  authUserId: number; // the id of the user who created the quiz
+  description: string;
+  timeCreated: number;
+  timeLastEdited: number;
+  numQuestions: number;
+  questions: QuestionBody[];
+  duration: number;
+  thumbnailUrl?: string;
+  valid: boolean; // false if the quiz has been moved to the trash
+}
+
+interface QuestionBody {
   questionId: number;
   question: string;
   duration: number;
@@ -43,205 +53,64 @@ export type QuestionBody = {
   answers: AnswerBody[];
 }
 
-export type Quiz = {
-  quizId: number;
-  name: string;
-  authUserId: number; // the id of the user who created the quiz
-  description: string;
-  timeCreated: number; // Unix timestamp in seconds: Math.floor(Date.now() / 1000)
-  timeLastEdited: number; // Unix timestamp in seconds: Math.floor(Date.now() / 1000)
-  numQuestions: number;
-  questions: QuestionBody[];
-  duration: number;
-  valid: boolean; // false if the quiz has been moved to the trash
-}
-
-export type Session = {
-  token: string; // the session token (identifies the session)
-  sessionId: number;
-  adminUserId: number; // the user id of the admin user
-  valid: boolean; // true if the session is logged in
-}
-
-// ====================================================================
-// GLOBAL TYPES
-// ====================================================================
-
-export type EmptyObject = Record<string, never>;
-
-export type Token = {
-  token: string;
-}
-
-// ====================================================================
-// RETURN TYPES - POST REQUESTS
-// ====================================================================
-
-export type Error = {
-  statusCode: number;
-  error: string;
-};
-
-export type ErrorMessage = {
-  error: string;
-};
-
-export type AdminAuthRegisterReturn = {
-  token: string;
-};
-
-export type AdminAuthLoginReturn = {
-  token: string;
-};
-
-export type AdminUserDetailsReturn = {
-  user: {
-    userId: number;
-    name: string;
-    email: string;
-    numSuccessfulLogins: number;
-    numFailedPasswordsSinceLastLogin: number;
-  }
-};
-
-export type QuizDetails = {
-  quizId: number;
-  name: string;
-};
-
-export type AdminQuizListReturn = {
-  quizzes: QuizDetails[];
-};
-
-export type AdminQuizCreateReturn = {
-  quizId: number;
-}
-
-export type AdminQuizInfoReturn = {
-  quizId: number;
-  name: string;
-  timeCreated: number;
-  timeLastEdited: number;
-  description: string;
-  numQuestions: number;
-  questions: QuestionBody[];
-  duration: number;
-}
-
-export type AdminQuizTrashViewReturn = {
-  quizzes: QuizDetails[];
-}
-
-export type AdminQuizQuestionCreateReturn = {
-  questionId: number;
-}
-
-export type QuestionBodyInput = {
-  question: string;
-  duration: number;
-  points: number;
-  answers: Array<{ answer: string; correct: boolean }>;
-}
-
-export type AdminQuizQuestionDuplicateReturn = {
-  newQuestionId: number;
-}
-
-export type AdminQuizSessionListReturn = {
-  activeSessions: number[],
-  inactiveSessions: number[],
-}
-
-export type AdminQuizSessionStartReturn = {
-  sessionId: number;
-}
-
-type QuizMetadata = {
-  quizId: number;
-  name: string;
-  timeCreated: number;
-  timeLastEdited: number;
-  description: string;
-  numQuestions: number;
-  questions: QuestionBody[];
-  duration: number;
-  thumbnailUrl: string;
-}
-
-export type AdminQuizSessionStatusReturn = {
-  state: string;
-  atQuestion: number;
-  players: string[];
-  metadata: QuizMetadata;
-}
-
-export type AdminQuizSessionResultsReturn = {
-  usersRankedByScore: UserScore[];
-  questionResults: PlayerQuestionResultsReturn[];
-}
-
-export type AdminQuizSessionResultsCSVReturn = {
-  url: string;
-}
-
-export type PlayerJoinReturn = {
-  playerId: number;
-}
-
-export type PlayerStatusReturn = {
-  state: string;
-  numQuestions: number;
-  atQuestion: number;
-}
-
-type PlayerQuestionAnswerBody = {
+interface AnswerBody {
   answerId: number;
   answer: string;
   colour: string;
+  correct: boolean;
 }
 
-export type PlayerQuestionInfoReturn = {
-  questionId: number;
-  question: string;
-  duration: number;
-  points: number;
-  answers: PlayerQuestionAnswerBody[];
+interface QuizSession {
+  sessionId: number;
+  playerIds: number[]; // the ids of the players in the quiz session
+  autoStartNum: number; // number of players needed to auto start the quiz
+  state: State, // the current state of the quiz session
+  atQuestion: number; // the question the quiz session is currently at
+  metadata: Quiz; // a copy of the quiz being played
+  messages: Message[]; // messages sent by players
+  // questionCountDown?: NodeJS.Timeout;
+  // questionDuration?: NodeJS.Timeout;
 }
 
-export type PlayerQuestionAnswerReturn = {
-  answerIds: number[];
-}
-
-export type PlayerQuestionResultsReturn = {
-  questionId: number;
-  playersCorrectList: string[]; // array of strings in ascending order
-  averageAnswerTime: number;
-  percentCorrect: number;
-}
-
-type UserScore = {
+/*
+// This is a player in a quiz session
+interface Player {
+  playerId: number;
+  sessionId: number;
   name: string;
-  score: number;
+  answers: AnswerSubmission[];
 }
 
-export type PlayerFinalResultsReturn = {
-  usersRankedByScore: UserScore[];
-  questionResults: PlayerQuestionResultsReturn[];
+interface AnswerSubmission {
+  playerId: number;
+  questionId: number;
+  answerIds: number[];
+  answerTime: number;
 }
-
-type PlayerChatMessage = {
+*/
+interface Message {
   messageBody: string;
   playerId: number;
   playerName: string;
   timeSent: number;
 }
 
-export type PlayerChatListReturn = {
-  messages: PlayerChatMessage[];
+export enum State {
+  LOBBY = 'LOBBY', // players can join
+  QUESTION_COUNTDOWN = 'QUESTION_COUNTDOWN', // countdown to question open
+  QUESTION_OPEN = 'QUESTION_OPEN', // question is open for viewing and answering
+  QUESTION_CLOSE = 'QUESTION_CLOSE', // question is closed for answering (still open for viewing)
+  ANSWER_SHOW = 'ANSWER_SHOW', // correct answers are shown
+  FINAL_RESULTS = 'FINAL_RESULTS', // final results are shown
+  END = 'END', // quiz session has ended (inactive state)
 }
 
-export type ChatMessage = {
-  messageBody: string;
+export enum Action {
+  NEXT_QUESTION = 'NEXT_QUESTION',
+  SKIP_COUNTDOWN = 'SKIP_COUNTDOWN',
+  GO_TO_ANSWER = 'GO_TO_ANSWER',
+  GO_TO_FINAL_RESULTS = 'GO_TO_FINAL_RESULTS',
+  END = 'END',
 }
 
 // ====================================================================

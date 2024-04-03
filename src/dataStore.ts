@@ -2,15 +2,6 @@
 import { Data } from './dataTypes';
 import fs from 'fs';
 
-// let data: Data = {
-//   users: [],
-//   quizzes: [],
-//   sessions: [],
-//   userId_counter: 0,
-//   quizId_counter: 0,
-//   sessionId_counter: 0,
-// };
-
 // YOU SHOULD MODIFY THIS OBJECT ABOVE ONLY
 
 // YOU SHOULDNT NEED TO MODIFY THE FUNCTIONS BELOW IN ITERATION 1
@@ -38,10 +29,8 @@ export function getData(): Data {
     return {
       users: [],
       quizzes: [],
-      sessions: [],
-      userId_counter: 0,
-      quizId_counter: 0,
-      sessionId_counter: 0,
+      userSessions: [],
+      quizSessions: [],
     };
   }
 }

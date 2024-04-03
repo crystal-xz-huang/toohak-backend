@@ -1,7 +1,11 @@
+import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import crypto from 'crypto';
-import { Data, User, Quiz, ErrorMessage, QuestionBodyInput } from './dataTypes';
+import { ErrorMessage, QuestionBodyInput } from './functionTypes';
 import {
+  Data,
+  User,
+  Quiz,
   MIN_USER_NAME_LENGTH,
   MAX_USER_NAME_LENGTH,
   MIN_PASSWORD_LENGTH,
@@ -12,7 +16,6 @@ import {
   QUIZNAME_REGEX,
   MAX_QUIZ_DESCRIPTION_LENGTH,
 } from './dataTypes';
-
 
 /// ////////////////////////////////////////////////////////////////////////////////////
 /// //////////////////////////  GENERATE FUNCTIONS  ////////////////////////////////////
@@ -30,9 +33,8 @@ export function generateRandomColour(): string {
 /**
  * Generates a token for a new session (unique string each time)
  */
-export function generateToken(sessionId: number): string {
-  const token = `session-${sessionId}-${Date.now()}`;
-  return getHashOf(token);
+export function generateToken(): string {
+  return uuidv4();
 }
 
 /// ////////////////////////////////////////////////////////////////////////////////////
@@ -46,16 +48,10 @@ export function getCurrentTime(): number {
 }
 
 /**
- * Hashes a string using a simple hash function
+ * Hashes a string using SHA256
  */
-function getHashOf(str: string): string {
-  const baseStr = str + 'secret_key';
-  return crypto.createHash('sha256').update(baseStr).digest('hex');  
-  // let hash = 0;
-  // for (let i = 0; i < baseStr.length; i++) {
-  //   hash = Math.imul(31, hash) + baseStr.charCodeAt(i) | 0;
-  // }
-  // return hash.toString();
+export function getHashOf(plaintext: string): string {
+  return crypto.createHash('sha256').update(plaintext).digest('hex');
 }
 
 /**
@@ -99,7 +95,6 @@ export function getQuizIndex(quizId: number, data: Data): number | null {
 //   }
 // }
 
-
 /// ////////////////////////////////////////////////////////////////////////////////////
 /// //////////////////////////  FIND FUNCTIONS  ////////////////////////////////////////
 /// ////////////////////////////////////////////////////////////////////////////////////
@@ -109,11 +104,11 @@ export function getQuizIndex(quizId: number, data: Data): number | null {
  * Otherwise, returns null (if the token does not refer to a session)
  */
 export function findUserbyToken(token: string, data: Data): User | null {
-  const session = data.sessions.find(session => session.token === token);
-  if (session === undefined || session.valid === false) {
+  const userSession = data.userSessions.find(session => session.token === token);
+  if (userSession === undefined || userSession.valid === false) {
     return null;
   }
-  return findUserbyId(session.adminUserId, data);
+  return data.users.find(user => user.authUserId === userSession.authUserId) ?? null;
 }
 
 /**
@@ -126,18 +121,6 @@ export function findUserbyToken(token: string, data: Data): User | null {
  */
 export function findUserbyEmail(email: string, data: Data): User | null {
   return data.users.find(user => user.email === email) ?? null;
-}
-
-/**
- * Given a userID, returns the user object
- * Otherwise, returns undefined if userID is not found
- *
- * @param { number } authUserId
- * @param { object } data - the data object from getData()
- * @returns { User | null } - object containing the user's details
- */
-export function findUserbyId(authUserId: number, data: Data): User | null {
-  return data.users.find(user => user.authUserId === authUserId) ?? null;
 }
 
 /**
@@ -159,6 +142,18 @@ export function findQuestionIndex(data: Data, quizId: number, questionId: number
   const quiz: Quiz | undefined = data.quizzes.find(q => q.quizId === quizId);
   return quiz.questions.findIndex(q => q.questionId === questionId);
 }
+
+// /**
+//  * Given a userID, returns the user object
+//  * Otherwise, returns undefined if userID is not found
+//  *
+//  * @param { number } authUserId
+//  * @param { object } data - the data object from getData()
+//  * @returns { User | null } - object containing the user's details
+//  */
+// export function findUserbyId(authUserId: number, data: Data): User | null {
+//   return data.users.find(user => user.authUserId === authUserId) ?? null;
+// }
 
 // /**
 //  * Given a userId, return the token for a logged in user session
@@ -203,10 +198,8 @@ export function isValidToken(token: string, data: Data): ErrorMessage | null {
   if (token === '') {
     return createError('Token is empty');
   }
-  const session = data.sessions.find(session => session.token === token);
-  if (session === undefined) {
-    return createError('Invalid token');
-  } else if (session.valid === false) {
+  const session = data.userSessions.find(session => session.token === token);
+  if (session === undefined || session.valid === false) {
     return createError('Invalid token');
   }
   return null;
