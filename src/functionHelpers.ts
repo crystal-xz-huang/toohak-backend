@@ -1,4 +1,5 @@
 import validator from 'validator';
+import crypto from 'crypto';
 import { Data, User, Quiz, ErrorMessage, QuestionBodyInput } from './dataTypes';
 import {
   MIN_USER_NAME_LENGTH,
@@ -12,6 +13,28 @@ import {
   MAX_QUIZ_DESCRIPTION_LENGTH,
 } from './dataTypes';
 
+
+/// ////////////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////  GENERATE FUNCTIONS  ////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Generate a random colour
+ */
+export function generateRandomColour(): string {
+  const colours = [
+    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown', 'cyan', 'magenta', 'teal', 'lime', 'indigo',
+  ];
+  return colours[Math.floor(Math.random() * colours.length)];
+}
+
+/**
+ * Generates a token for a new session (unique string each time)
+ */
+export function generateToken(sessionId: number): string {
+  const token = `session-${sessionId}-${Date.now()}`;
+  return getHashOf(token);
+}
+
 /// ////////////////////////////////////////////////////////////////////////////////////
 /// //////////////////////////  GET FUNCTIONS  ////////////////////////////////////////
 /// ////////////////////////////////////////////////////////////////////////////////////
@@ -20,6 +43,19 @@ import {
  */
 export function getCurrentTime(): number {
   return Math.floor(Date.now() / 1000);
+}
+
+/**
+ * Hashes a string using a simple hash function
+ */
+function getHashOf(str: string): string {
+  const baseStr = str + 'secret_key';
+  return crypto.createHash('sha256').update(baseStr).digest('hex');  
+  // let hash = 0;
+  // for (let i = 0; i < baseStr.length; i++) {
+  //   hash = Math.imul(31, hash) + baseStr.charCodeAt(i) | 0;
+  // }
+  // return hash.toString();
 }
 
 /**
@@ -63,38 +99,6 @@ export function getQuizIndex(quizId: number, data: Data): number | null {
 //   }
 // }
 
-/// ////////////////////////////////////////////////////////////////////////////////////
-/// //////////////////////////  GENERATE FUNCTIONS  ////////////////////////////////////
-/// ////////////////////////////////////////////////////////////////////////////////////
-/**
- * Generate a random colour
- */
-export function generateRandomColour(): string {
-  const colours = [
-    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown', 'cyan', 'magenta', 'teal', 'lime', 'indigo',
-  ];
-  return colours[Math.floor(Math.random() * colours.length)];
-}
-
-/**
- * Hashes a string using a simple hash function
- */
-function hashOf(str: string): string {
-  const baseStr = str + 'hashed_secret';
-  let hash = 0;
-  for (let i = 0; i < baseStr.length; i++) {
-    hash = Math.imul(31, hash) + baseStr.charCodeAt(i) | 0;
-  }
-  return hash.toString();
-}
-
-/**
- * Generates a token for a new session (unique string each time)
- */
-export function generateToken(sessionId: number): string {
-  const token = `session-${sessionId}-${Date.now()}`;
-  return hashOf(token);
-}
 
 /// ////////////////////////////////////////////////////////////////////////////////////
 /// //////////////////////////  FIND FUNCTIONS  ////////////////////////////////////////
