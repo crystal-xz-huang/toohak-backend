@@ -1,39 +1,37 @@
 // ====================================================================
 // RETURN CONSTANTS
 // ====================================================================
-export const BAD_REQUEST_ERROR = { statusCode: 400, jsonBody: expect.any(String) };
-export const UNAUTHORISED_ERROR = { statusCode: 401, jsonBody: expect.any(String) };
-export const FORBIDDEN_ERROR = { statusCode: 403, jsonBody: expect.any(String) };
+export const BAD_REQUEST_ERROR = { statusCode: 400, error: expect.any(String) };
+export const UNAUTHORISED_ERROR = { statusCode: 401, error: expect.any(String) };
+export const FORBIDDEN_ERROR = { statusCode: 403, error: expect.any(String) };
 
-export const CLEAR_SUCCESS = { statusCode: 200, jsonBody: {} };
 export const TOKEN_SUCCESS = { statusCode: 200, jsonBody: { token: expect.any(String) } };
-export const QUIZLIST_SUCCESS = { statusCode: 200, jsonBody: { quizzes: expect.any(Array) } };
 
 // ====================================================================
 // USER CONSTANTS
 // ====================================================================
-export const user1 = {
+export const USER1 = {
   email: 'johnsmith@gmail.com',
   password: 'hashed_password1',
   nameFirst: 'John',
   nameLast: 'Smith',
 };
 
-export const user2 = {
+export const USER2 = {
   email: 'janedoe@gmail.com',
   password: 'hashed_password2',
   nameFirst: 'Jane',
   nameLast: 'Doe',
 };
 
-export const user3 = {
+export const USER3 = {
   email: 'hayden.smith@unsw.edu.au',
   password: 'haydensmith123',
   nameFirst: 'Hayden',
   nameLast: 'Smith',
 };
 
-export const invalidEmails = [
+export const INVALID_EMAILS = [
   { email: '' },
   { email: 'example.com' },
   { email: 'example@' },
@@ -43,7 +41,7 @@ export const invalidEmails = [
   { email: 'email' },
 ];
 
-export const invalidPasswords = [
+export const INVALID_PASSWORDS = [
   { password: '12345678' },
   { password: 'abcdefgh' },
 ];
@@ -51,28 +49,28 @@ export const invalidPasswords = [
 // ====================================================================
 // QUIZ CONSTANTS
 // ====================================================================
-export const quiz1 = {
+export const QUIZ1 = {
   name: 'Quiz 1',
   description: 'This is a quiz',
 };
 
-export const quiz2 = {
+export const QUIZ2 = {
   name: 'Quiz 2',
   description: 'This is another quiz',
 };
 
-export const quiz3 = {
+export const QUIZ3 = {
   name: 'Quiz 3',
   description: 'This is yet another quiz',
 };
 
-export const shortQuizNames = [
+export const SHORT_QUIZ_NAMES = [
   { name: '' },
   { name: 'a' },
   { name: 'ab' },
 ];
 
-export const invalidQuizNames = [
+export const INVALID_QUIZ_NAMES = [
   { name: '' },
   { name: 'a' },
   { name: 'ab' },
@@ -82,7 +80,7 @@ export const invalidQuizNames = [
 
 export const invalidQuizDescription = 'a'.repeat(101); // more than 100 characters
 
-export const validQuestion1 = {
+export const VALID_QUESTION1 = {
   question: 'Who is the Monarch of England?',
   duration: 4,
   points: 5,
@@ -92,7 +90,7 @@ export const validQuestion1 = {
   ]
 };
 
-export const validQuestion2 = {
+export const VALID_QUESTION2 = {
   question: 'What is the capital of Australia?',
   duration: 3,
   points: 5,
@@ -102,7 +100,7 @@ export const validQuestion2 = {
   ]
 };
 
-export const validQuestion3 = {
+export const VALID_QUESTION3 = {
   question: 'What is the capital of France?',
   duration: 2,
   points: 5,
@@ -112,7 +110,7 @@ export const validQuestion3 = {
   ]
 };
 
-export const validQuestion4 = {
+export const VALID_QUESTION4 = {
   question: 'What is the capital of Japan?',
   duration: 1,
   points: 5,
@@ -122,7 +120,7 @@ export const validQuestion4 = {
   ]
 };
 
-export const validQuestion5 = {
+export const VALID_QUESTION5 = {
   question: 'What is the capital of China?',
   duration: 5,
   points: 5,
@@ -132,7 +130,7 @@ export const validQuestion5 = {
   ]
 };
 // Question string is less than 5 characters in length
-export const shortQuestionString = [
+export const SHORT_QUESTION_STRING = [
   {
     question: '',
     duration: 4,
@@ -156,7 +154,7 @@ export const shortQuestionString = [
 ];
 
 // Question string is greater than 50 characters in length
-export const longQuestionString = {
+export const LONG_QUESTION_STRING = {
   question: 'a'.repeat(51),
   duration: 4,
   points: 5,
@@ -169,7 +167,7 @@ export const longQuestionString = {
 };
 
 // Question has more than 6 answers
-export const moreQuestionAnswers = {
+export const MORE_QUESTION_ANSWERS = {
   question: 'Who is the Monarch of England?',
   duration: 4,
   points: 5,
@@ -185,7 +183,7 @@ export const moreQuestionAnswers = {
 };
 
 // Question has less than 2 answers
-export const lessQuestionAnswers = [
+export const LESS_QUESTION_ANSWERS = [
   {
     question: 'Who is the Monarch of England?',
     duration: 4,
@@ -203,7 +201,7 @@ export const lessQuestionAnswers = [
 ];
 
 // Question duration is not a positive number
-export const negativeQuestionDuration = [
+export const NEGATIVE_QUESTION_DURATION = [
   {
     question: 'Who is the Monarch of England?',
     duration: 0,
@@ -229,7 +227,7 @@ export const negativeQuestionDuration = [
 ];
 
 // Sum of the question durations in the quiz exceeds 3 minutes
-export const moreQuestionDurationSum = [
+export const MORE_QUESTION_DURATION_SUM = [
   {
     question: 'Who is the Monarch of England?',
     duration: 60,
@@ -255,7 +253,7 @@ export const moreQuestionDurationSum = [
 ];
 
 // Points awarded for the question is less than 1
-export const lessQuestionPoints = {
+export const LESS_QUESTION_POINTS = {
   question: 'Who is the Monarch of England?',
   duration: 4,
   points: 0,
@@ -268,7 +266,7 @@ export const lessQuestionPoints = {
 };
 
 // Points awarded for the question is greater than 10
-export const moreQuestionPoints = {
+export const MORE_QUESTION_POINTS = {
   question: 'Who is the Monarch of England?',
   duration: 4,
   points: 11,
@@ -281,7 +279,7 @@ export const moreQuestionPoints = {
 };
 
 // Length of any answer is shorter than 1 character long
-export const shortQuestionAnswers = [
+export const SHORT_QUESTION_ANSWERS = [
   {
     question: 'Who is the Monarch of England?',
     duration: 4,
@@ -315,7 +313,7 @@ export const shortQuestionAnswers = [
 ];
 
 // Length of any answer is longer than 30 characters long
-export const longQuestionAnswers = [
+export const LONG_QUESTION_ANSWERS = [
   {
     question: 'Who is the Monarch of England?',
     duration: 4,
@@ -349,7 +347,7 @@ export const longQuestionAnswers = [
 ];
 
 // Any answer strings are duplicates of one another (within the same question)
-export const duplicateQuestionAnswers = {
+export const DUPLICATE_QUESTION_ANSWERS = {
   question: 'Who is the Monarch of England?',
   duration: 4,
   points: 5,
@@ -362,7 +360,7 @@ export const duplicateQuestionAnswers = {
 };
 
 // There are no correct answers
-export const falseQuestionAnswers = {
+export const FALSE_QUESTION_ANSWERS = {
   question: 'Who is the Monarch of England?',
   duration: 4,
   points: 5,

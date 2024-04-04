@@ -1,6 +1,11 @@
+import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
-import { Data, User, Quiz, Session, ErrorMessage, Token, QuestionBodyInput } from './dataTypes';
+import crypto from 'crypto';
+import { ErrorMessage, QuestionBodyInput } from './functionTypes';
 import {
+  Data,
+  User,
+  Quiz,
   MIN_USER_NAME_LENGTH,
   MAX_USER_NAME_LENGTH,
   MIN_PASSWORD_LENGTH,
@@ -12,151 +17,48 @@ import {
   MAX_QUIZ_DESCRIPTION_LENGTH,
 } from './dataTypes';
 
-// ====================================================================
-// TOKENS & SESSIONS
-// ====================================================================
+/// ////////////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////  GENERATE FUNCTIONS  ////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////////////
 /**
- * Tokens - Used by the client to identify their session to the server
- *
- * Sessions - Used by the server to identify the client's session
- *
- * Whenever we need to return a token, we should create a new session to pair it with.
- * The actions that trigger this are:
- * - Registering
- * - Logging in
- *
- * Method:
- * 1. Create a new sessionId with data.sessionId_counter + 1
- * 2. Generate a token with the function generateToken(sessionId: number)
- * 3. Create a new session object with the sessionId, authUserId, token, valid, and timeCreated
- * 4. Push the new session object to data.sessions
- * 5. Save the updated data object to the database with setData(data)
+ * Generate a random colour
  */
-
-/**
- * Hashes a string using a simple hash function
- */
-export function hashOf(str: string): string {
-  const baseStr = str + 'hashed_secret';
-  let hash = 0;
-  for (let i = 0; i < baseStr.length; i++) {
-    hash = Math.imul(31, hash) + baseStr.charCodeAt(i) | 0;
-  }
-  return hash.toString();
+export function generateRandomColour(): string {
+  const colours = [
+    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown', 'cyan', 'magenta', 'teal', 'lime', 'indigo',
+  ];
+  return colours[Math.floor(Math.random() * colours.length)];
 }
 
 /**
  * Generates a token for a new session (unique string each time)
  */
-export function generateToken(sessionId: number): string {
-  const token = `session-${sessionId}-${Date.now()}`;
-  return hashOf(token);
+export function generateToken(): string {
+  return uuidv4();
 }
 
 /**
- * Given a userId, return the token for a logged in user session
+ * Generate a random 6-digit number
  */
-export function findTokenforUser(authUserId: number, data: Data): Token | null {
-  const session = data.sessions.find(session => session.adminUserId === authUserId);
-  if (session === undefined || session.valid === false) {
-    return null;
-  }
-  return { token: session.token };
+export function generateRandomNumber(): number {
+  return Math.floor(Math.random() * 900000) + 100000;
 }
 
-/**
- * Given a token, returns the session object
- * Otherwise, returns null (if the token is not found)
- */
-export function findSessionbyToken(token: string, data: Data): Session | null {
-  return data.sessions.find(session => session.token === token) ?? null;
-}
-
-/**
- * Given a token, returns the user associated with the token
- * Otherwise, returns null (if the token does not refer to a session)
- */
-export function findUserbyToken(token: string, data: Data): User | null {
-  const session = findSessionbyToken(token, data);
-  if (session === null || session.valid === false) {
-    return null;
-  }
-  return findUserbyId(session.adminUserId, data);
-}
-
-/**
- * Given the authUserId, returns all the valid logged-in sessions for the user
- */
-export function findValidSessionsforUser(authUserId: number, data: Data): Array<Session> | [] {
-  const sessions = data.sessions.filter(session => session.adminUserId === authUserId);
-  // return only the valid sessions
-  return sessions.filter(session => session.valid === true);
-}
-
-export function getSessionIndex(token: string, data: Data): number | null {
-  const index = data.sessions.findIndex(session => session.token === token);
-  if (index === -1) {
-    return null;
-  }
-}
-/// /////////////////////////////////////////////////////////////////////////////////////
-/// ////////////////////////  GLOBAL HELPER FUNCTIONS  //////////////////////////////////
-/// /////////////////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////  GET FUNCTIONS  ////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////////////
 /**
  * Returns the Unix timestamp in seconds
  */
 export function getCurrentTime(): number {
   return Math.floor(Date.now() / 1000);
 }
-/**
- * Given a registered user's email, returns the user object
- * Otherwise, returns null
- *
- * @param { string }  email
- * @param { object } data - the data object from getData()
- * @returns { User | null } - object containing the user's details
- */
-export function findUserbyEmail(email: string, data: Data): User | null {
-  return data.users.find(user => user.email === email) ?? null;
-}
 
 /**
- * Given a userID, returns the user object
- * Otherwise, returns undefined if userID is not found
- *
- * @param { number } authUserId
- * @param { object } data - the data object from getData()
- * @returns { User | null } - object containing the user's details
+ * Hashes a string using SHA256
  */
-export function findUserbyId(authUserId: number, data: Data): User | null {
-  return data.users.find(user => user.authUserId === authUserId) ?? null;
-}
-
-/**
- * Given a quizId, returns the quiz object
- * Otherwise, returns null if quizId is not found
- *
- * @param { number } quizId
- * @param { object } data - the data object from getData()
- * @returns { object | null } - object containing the quiz details
- */
-export function findQuizbyId(quizId: number, data: Data): Quiz | null {
-  return data.quizzes.find(quiz => quiz.quizId === quizId) ?? null;
-}
-
-/**
- * Returns the index of the user with the given authUserId's in data.users array
- * Otherwise, returns null if the user is not found
- *
- * @param { number } authUserId
- * @param { object } data - the data object from getData()
- * @returns { number | null } - the index of the user in data.users array
- */
-export function getUserIndex(authUserId: number, data: Data): number | null {
-  const index = data.users.findIndex(user => user.authUserId === authUserId);
-  if (index === -1) {
-    return null;
-  }
+export function getHashOf(plaintext: string): string {
+  return crypto.createHash('sha256').update(plaintext).digest('hex');
 }
 
 /**
@@ -174,31 +76,61 @@ export function getQuizIndex(quizId: number, data: Data): number | null {
   }
 }
 
+/// ////////////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////  FIND FUNCTIONS  ////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////////////
+
 /**
- * Returns an array containing the quizzes of the user with the given authUserId
- * Otherwise, returns an empty array if no quizzes are found
- *
- * @param { number } authUserId - the id of registered user
- * @param { object } data - the data object from getData()
- * @returns { Array<Quiz> | [] } - array containing the quizzes of the user
+ * Given a token, returns the user associated with the token
+ * Otherwise, returns null (if the token does not refer to a session)
  */
-export function getUserQuizzes(authUserId: number, data: Data): Array<Quiz> | [] {
-  return data.quizzes.filter(quiz => quiz.authUserId === authUserId);
+export function findUserbyToken(token: string, data: Data): User | null {
+  const userSession = data.userSessions.find(session => session.token === token);
+  if (userSession === undefined || userSession.valid === false) {
+    return null;
+  }
+  return data.users.find(user => user.authUserId === userSession.authUserId) ?? null;
+}
+
+/**
+ * Given a registered user's email, returns the user object
+ * Otherwise, returns null
+ *
+ * @param { string }  email
+ * @param { object } data - the data object from getData()
+ * @returns { User | null } - object containing the user's details
+ */
+export function findUserbyEmail(email: string, data: Data): User | null {
+  return data.users.find(user => user.email === email) ?? null;
+}
+
+/**
+ * Given a quizId, returns the quiz object
+ * Otherwise, returns null if quizId is not found
+ *
+ * @param { number } quizId
+ * @param { object } data - the data object from getData()
+ * @returns { object | null } - object containing the quiz details
+ */
+export function findQuizbyId(quizId: number, data: Data): Quiz | null {
+  return data.quizzes.find(quiz => quiz.quizId === quizId) ?? null;
+}
+
+/**
+ * Return index of particular questionId
+ */
+export function findQuestionIndex(data: Data, quizId: number, questionId: number): number {
+  const quiz: Quiz | undefined = data.quizzes.find(q => q.quizId === quizId);
+  return quiz.questions.findIndex(q => q.questionId === questionId);
 }
 
 /// ////////////////////////////////////////////////////////////////////////////////////
-/// ///////////////////////////  ERROR CHECKING  ////////////////////////////////////////
-/// /////////////////////////////////////////////////////////////////////////////////////
-/**
- * Create a new error object with the given message
- *
- * @param { string } message - the error message
- * @returns { ErrorMessage } - error message if invalid
- */
-export function createError(message: string): ErrorMessage {
+/// ////////////////////////  IS VALID FUNCTIONS  //////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////////////
+function createError(message: string): ErrorMessage {
   return { error: message };
 }
-/// //////////////////////////////// TOKENS & SESSIONS ///////////////////////////////////
+
 /**
  * Given a token, returns an error message if the token is invalid (does not refer to a valid logged-in session)
  * Otherwise, returns null
@@ -207,16 +139,13 @@ export function isValidToken(token: string, data: Data): ErrorMessage | null {
   if (token === '') {
     return createError('Token is empty');
   }
-  const session = data.sessions.find(session => session.token === token);
-  if (session === undefined) {
-    return createError('Invalid token');
-  } else if (session.valid === false) {
+  const session = data.userSessions.find(session => session.token === token);
+  if (session === undefined || session.valid === false) {
     return createError('Invalid token');
   }
   return null;
 }
 
-/// /////////////////////////////////// AUTH ADMIN ///////////////////////////////////////
 /**
  * Check if a string is a valid first or last name
  * Returns an error message if invalid, or null if valid
@@ -311,18 +240,6 @@ export function isValidUserEmail(email: string, data: Data, authUserId: number):
 }
 
 /**
- * Check if the authUserId is valid
- * Returns null if the authUserId is valid, otherwise returns an error object
- */
-export function isValidAuthUserId(authUserId: number, data: Data): ErrorMessage | null {
-  if (findUserbyId(authUserId, data) === undefined) {
-    return createError('AuthUserId is not a valid user');
-  }
-  return null;
-}
-
-/// //////////////////////////////////// QUIZZES ///////////////////////////////////////
-/**
  * Check if the quiz name is valid:
  * 1. Name is not empty
  * 2. Name is between 3 and 30 characters
@@ -369,7 +286,7 @@ export function isValidQuizDescription(description: string): ErrorMessage | null
  * @returns { ErrorMessage | null } - error message if invalid, or null if valid
  */
 export function isQuizNameUsed(name: string, authUserId: number, data: Data): ErrorMessage | null {
-  const userQuizzes: Array<Quiz> = getUserQuizzes(authUserId, data);
+  const userQuizzes = data.quizzes.filter(quiz => quiz.authUserId === authUserId);
   // Check if the name is already used by another quiz and that the quiz with the same name is valid
   if (userQuizzes.some(quiz => quiz.valid === true && quiz.name === name)) {
     return createError('Name is already used by another quiz');
@@ -398,16 +315,6 @@ export function isValidQuizIdForUser(authUserId: number, quizId: number, data: D
   } else {
     return null;
   }
-}
-
-/**
- * Generate a random colour
- */
-export function generateRandomColour(): string {
-  const colours = [
-    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown', 'cyan', 'magenta', 'teal', 'lime', 'indigo',
-  ];
-  return colours[Math.floor(Math.random() * colours.length)];
 }
 
 /**
@@ -456,12 +363,4 @@ export function isValidQuestion(quiz: Quiz, question: QuestionBodyInput): ErrorM
   } else {
     return null;
   }
-}
-
-/**
- * Return index of particular questionId
- */
-export function findQuestionIndex(data: Data, quizId: number, questionId: number): number {
-  const quiz: Quiz | undefined = data.quizzes.find(q => q.quizId === quizId);
-  return quiz.questions.findIndex(q => q.questionId === questionId);
 }
