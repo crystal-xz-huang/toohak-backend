@@ -11,6 +11,7 @@ import {
   AdminQuizQuestionDuplicateReturn
 } from './functionTypes';
 import {
+  generateRandomNumber,
   generateRandomColour,
   getCurrentTime,
   getQuizIndex,
@@ -76,9 +77,9 @@ export function adminQuizCreate(token: string, name: string, description: string
     throw HTTPError(400, inputError.error);
   }
 
-  const quizId = data.quizIdCounter++;
+  const quizId = generateRandomNumber();
   data.quizzes.push({
-    quizId: quizId, // need to store the hash of the quizId ??
+    quizId: quizId,
     sessionIds: [],
     name: name,
     authUserId: authUserId,
