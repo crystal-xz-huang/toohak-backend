@@ -18,7 +18,6 @@ import {
   findUserbyEmail,
   findUserbyToken,
 } from './functionHelpers';
-import { randomUUID } from 'crypto';
 
 /**
   * Register a user with an email, password, and first and last name.

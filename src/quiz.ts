@@ -93,7 +93,7 @@ export function adminQuizCreate(token: string, name: string, description: string
   });
 
   setData(data);
-  return { quizId: quizId }; 
+  return { quizId: quizId };
 }
 
 /**

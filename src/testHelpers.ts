@@ -38,9 +38,8 @@ function requestHelper(method: HttpVerb, path: string, payload: object, headers?
 
   const res = request(method, SERVER_URL + path, { qs, json, timeout: TIMEOUT_MS, headers: headers });
   const bodyString = res.body as string;
-  let parsedBody: Record<string, any>;
   try {
-    parsedBody = JSON.parse(bodyString);
+    const parsedBody = JSON.parse(bodyString);
     if (parsedBody.error) {
       return { statusCode: res.statusCode, error: parsedBody.error };
     } else {
