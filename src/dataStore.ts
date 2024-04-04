@@ -31,6 +31,7 @@ export function getData(): Data {
       quizzes: [],
       userSessions: [],
       quizSessions: [],
+      quizIdCounter: 0,
     };
   }
 }

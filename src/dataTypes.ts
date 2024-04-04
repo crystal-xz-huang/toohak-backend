@@ -7,6 +7,7 @@ export interface Data {
   quizzes: Quiz[];
   userSessions: UserSession[];
   quizSessions: QuizSession[];
+  quizIdCounter: number;
 }
 
 // ====================================================================
@@ -68,8 +69,8 @@ export interface QuizSession {
   atQuestion: number; // the question the quiz session is currently at
   metadata: Quiz; // a copy of the quiz being played
   messages: Message[]; // messages sent by players
-  // questionCountDown?: NodeJS.Timeout;
-  // questionDuration?: NodeJS.Timeout;
+  questionCountDown?: NodeJS.Timeout;
+  questionDuration?: NodeJS.Timeout;
 }
 
 /*

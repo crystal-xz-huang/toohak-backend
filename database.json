@@ -6,5 +6,6 @@
   "quizId_counter": 0,
   "sessionId_counter": 0,
   "userSessions": [],
-  "quizSessions": []
+  "quizSessions": [],
+  "quizIdCounter": 273
 }

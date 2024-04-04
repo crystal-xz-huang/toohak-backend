@@ -76,9 +76,9 @@ export function adminQuizCreate(token: string, name: string, description: string
     throw HTTPError(400, inputError.error);
   }
 
-  const quizId = data.quizzes.length + 1; // modify this to use a more unique id thats 4 digits long
+  const quizId = data.quizIdCounter++;
   data.quizzes.push({
-    quizId: quizId,
+    quizId: quizId, // need to store the hash of the quizId ??
     sessionIds: [],
     name: name,
     authUserId: authUserId,
@@ -93,7 +93,7 @@ export function adminQuizCreate(token: string, name: string, description: string
   });
 
   setData(data);
-  return { quizId: quizId };
+  return { quizId: quizId }; 
 }
 
 /**

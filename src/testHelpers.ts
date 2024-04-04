@@ -4,7 +4,8 @@ const SERVER_URL = `${url}:${port}`;
 
 // ========================================================================= //
 
-// This is the return type of the requestHelper function
+const TIMEOUT_MS = 2000;
+
 interface RequestResponse {
   statusCode: number;
   jsonBody?: Record<string, any>;
@@ -29,29 +30,23 @@ interface RequestResponse {
 function requestHelper(method: HttpVerb, path: string, payload: object, headers?: { token: string }): RequestResponse {
   let qs = {};
   let json = {};
-
   if (['GET', 'DELETE'].includes(method)) {
-    // If the request is a GET or DELETE request, the payload is a query string
     qs = payload;
   } else {
-    // If the request is a POST or PUT request, the payload is a request body
     json = payload;
   }
 
-  // Send the request to the server with a timeout
-  const res = request(method, SERVER_URL + path, { qs, json, timeout: 2000, headers: headers });
+  const res = request(method, SERVER_URL + path, { qs, json, timeout: TIMEOUT_MS, headers: headers });
   const bodyString = res.body as string;
-
+  let parsedBody: Record<string, any>;
   try {
-    // Try to parse the server's response as JSON
-    const parsedBody = JSON.parse(bodyString);
+    parsedBody = JSON.parse(bodyString);
     if (parsedBody.error) {
       return { statusCode: res.statusCode, error: parsedBody.error };
     } else {
       return { statusCode: res.statusCode, jsonBody: parsedBody };
     }
   } catch (error) {
-    // If JSON.parse fails, the server's response is not JSON so we return the response as a custom error message instead
     return {
       statusCode: res.statusCode,
       error: `Server returned an invalid JSON response with error: ${error.message}`,
