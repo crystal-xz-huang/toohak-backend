@@ -7,7 +7,6 @@ export interface Data {
   quizzes: Quiz[];
   userSessions: UserSession[];
   quizSessions: QuizSession[];
-  quizIdCounter: number;
 }
 
 // ====================================================================
