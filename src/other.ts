@@ -13,10 +13,7 @@ export function clear(): EmptyObject {
   data.quizzes = [];
   data.userSessions = [];
   data.quizSessions = [];
-  // data.sessions = [];
-  // data.userId_counter = 0;
-  // data.quizId_counter = 0;
-  // data.sessionId_counter = 0;
+  data.quizIdCounter = 0;
   setData(data);
   return {};
 }
