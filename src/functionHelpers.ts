@@ -61,20 +61,20 @@ export function getHashOf(plaintext: string): string {
   return crypto.createHash('sha256').update(plaintext).digest('hex');
 }
 
-/**
- * Returns the index of the quiz with the given quizId's in data.quizzes array
- * Otherwise, returns null if the quiz is not found
- *
- * @param { number}  quizId
- * @param { object } data - the data object from getData()
- * @returns { number | null } - the index of the quiz in data.quizzes array
- */
-export function getQuizIndex(quizId: number, data: Data): number | null {
-  const index = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-  if (index === -1) {
-    return null;
-  }
-}
+// /**
+//  * Returns the index of the quiz with the given quizId's in data.quizzes array
+//  * Otherwise, returns null if the quiz is not found
+//  *
+//  * @param { number}  quizId
+//  * @param { object } data - the data object from getData()
+//  * @returns { number | null } - the index of the quiz in data.quizzes array
+//  */
+// export function getQuizIndex(quizId: number, data: Data): number | null {
+//   const index = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+//   if (index === -1) {
+//     return null;
+//   }
+// }
 
 /// ////////////////////////////////////////////////////////////////////////////////////
 /// //////////////////////////  FIND FUNCTIONS  ////////////////////////////////////////
@@ -82,26 +82,28 @@ export function getQuizIndex(quizId: number, data: Data): number | null {
 
 /**
  * Given a token, returns the user associated with the token
- * Otherwise, returns null (if the token does not refer to a session)
+ * If the token refers to a VALID session, returns the user object
+ * Otherwise, returns undefined
  */
-export function findUserbyToken(token: string, data: Data): User | null {
-  const userSession = data.userSessions.find(session => session.token === token);
-  if (userSession === undefined || userSession.valid === false) {
-    return null;
-  }
-  return data.users.find(user => user.authUserId === userSession.authUserId) ?? null;
+export function findUserbyToken(token: string, data: Data): User | undefined {
+  const userSession = data.userSessions.find(session => session.token === token && session.valid);
+  return data.users.find(user => user.authUserId === userSession.authUserId);
 }
 
 /**
  * Given a registered user's email, returns the user object
- * Otherwise, returns null
- *
- * @param { string }  email
- * @param { object } data - the data object from getData()
- * @returns { User | null } - object containing the user's details
+ * Otherwise, returns undefined if the email is not found
+*/
+export function findUserbyEmail(email: string, data: Data): User {
+  return data.users.find(user => user.email === email);
+}
+
+/**
+ * Return index of particular questionId
  */
-export function findUserbyEmail(email: string, data: Data): User | null {
-  return data.users.find(user => user.email === email) ?? null;
+export function findQuestionIndex(data: Data, quizId: number, questionId: number): number {
+  const quiz: Quiz | undefined = data.quizzes.find(q => q.quizId === quizId);
+  return quiz.questions.findIndex(q => q.questionId === questionId);
 }
 
 /**
@@ -116,17 +118,10 @@ export function findQuizbyId(quizId: number, data: Data): Quiz | null {
   return data.quizzes.find(quiz => quiz.quizId === quizId) ?? null;
 }
 
-/**
- * Return index of particular questionId
- */
-export function findQuestionIndex(data: Data, quizId: number, questionId: number): number {
-  const quiz: Quiz | undefined = data.quizzes.find(q => q.quizId === quizId);
-  return quiz.questions.findIndex(q => q.questionId === questionId);
-}
-
 /// ////////////////////////////////////////////////////////////////////////////////////
 /// ////////////////////////  IS VALID FUNCTIONS  //////////////////////////////////////
 /// ////////////////////////////////////////////////////////////////////////////////////
+
 function createError(message: string): ErrorMessage {
   return { error: message };
 }
@@ -180,8 +175,6 @@ export function isValidName(name: string, type: string): ErrorMessage | null {
 export function isValidPassword(password: string, name: string): ErrorMessage | null {
   if (password === '') {
     return createError(`${name} is empty`);
-  } else if (typeof password !== 'string') {
-    return createError(`${name} is not a string`);
   } else if (password.length < MIN_PASSWORD_LENGTH) {
     return createError(`${name} is less than 8 characters`);
   } else if (!PASSWORD_REGEX.test(password)) {
@@ -200,7 +193,7 @@ export function isValidRegisterEmail(email: string, data: Data): ErrorMessage | 
     return createError('Email is empty');
   } else if (!validator.isEmail(email)) {
     return createError('Email is invalid');
-  } else if (findUserbyEmail(email, data) !== null) {
+  } else if (findUserbyEmail(email, data)) {
     return createError('Email is currently used by another user');
   } else {
     return null;
@@ -216,7 +209,7 @@ export function isValidLoginEmail(email: string, data: Data): ErrorMessage | nul
     return createError('Email is empty');
   } else if (!validator.isEmail(email)) {
     return createError('Email is invalid');
-  } else if (findUserbyEmail(email, data) === null) {
+  } else if (!findUserbyEmail(email, data)) {
     return createError('Email does not exist');
   } else {
     return null;
@@ -232,7 +225,7 @@ export function isValidUserEmail(email: string, data: Data, authUserId: number):
     return createError('Email is empty');
   } else if (!validator.isEmail(email)) {
     return createError('Email is invalid');
-  } else if (findUserbyEmail(email, data) !== null && findUserbyEmail(email, data).authUserId !== authUserId) {
+  } else if (findUserbyEmail(email, data) && findUserbyEmail(email, data).authUserId !== authUserId) {
     return createError('Email is currently used by another user');
   } else {
     return null;
@@ -278,7 +271,7 @@ export function isValidQuizDescription(description: string): ErrorMessage | null
 }
 
 /**
- * Check if quiz name is already used by another quiz
+ * Check if quiz name is already used by another valid quiz for the same user
  * Returns null if the name is not used, otherwise returns an error object
  *
  * @param { string } name - the name of the quiz
@@ -286,12 +279,10 @@ export function isValidQuizDescription(description: string): ErrorMessage | null
  * @returns { ErrorMessage | null } - error message if invalid, or null if valid
  */
 export function isQuizNameUsed(name: string, authUserId: number, data: Data): ErrorMessage | null {
-  const userQuizzes = data.quizzes.filter(quiz => quiz.authUserId === authUserId);
-  // Check if the name is already used by another quiz and that the quiz with the same name is valid
-  if (userQuizzes.some(quiz => quiz.valid === true && quiz.name === name)) {
+  const userQuizzes = data.quizzes.filter(quiz => quiz.authUserId === authUserId && quiz.valid);
+  if (userQuizzes.some(quiz => quiz.name === name)) {
     return createError('Name is already used by another quiz');
   }
-
   return null;
 }
 
