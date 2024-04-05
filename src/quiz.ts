@@ -14,7 +14,6 @@ import {
   generateRandomNumber,
   generateRandomColour,
   getCurrentTime,
-  getQuizIndex,
   findUserbyToken,
   findQuizbyId,
   findQuestionIndex,
@@ -98,14 +97,14 @@ export function adminQuizCreate(token: string, name: string, description: string
 }
 
 /**
-  * Given a particular quiz, permanently remove the quiz.
+  * Given a particular quiz, send it to the trash.
   *
   * @param { number } quizId - the id of the quiz
   * @param { string } token - the token that corresponds to a user session
   * @returns { EmptyObject } - returns an empty object if successful
   * @throws { HTTPError } - throws either a HTTP 401 or 403 error
 */
-export function adminQuizRemove(token: string, quizId: number): EmptyObject {
+export function adminQuizTrash(token: string, quizId: number): EmptyObject {
   const data = getData();
 
   const tokenError = isValidToken(token, data);
@@ -285,10 +284,8 @@ export function adminQuizRestore(token: string, quizId: number): EmptyObject {
     throw HTTPError(400, 'Quiz ID refers to a quiz that is not currently invalid or in the trash');
   }
 
-  const quizNameExists = data.quizzes
-    .filter(q => q.authUserId === authUserId && q.valid) // only check active quizzes of the user
-    .some(q => q.name === quiz.name); // check if the name is already used
-  if (quizNameExists) {
+  const quizNameUsed = isQuizNameUsed(quiz.name, authUserId, data);
+  if (quizNameUsed) {
     throw HTTPError(400, 'Quiz name of the restored quiz is already used by another active quiz');
   }
 
@@ -322,13 +319,13 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
       throw HTTPError(403, `User does not own the quiz with ID: ${quizId}`);
     }
     const quiz = findQuizbyId(quizId, data);
-    if (quiz.valid) {
+    if (!quiz || quiz.valid) {
       throw HTTPError(400, 'One or more of the Quiz IDs is not currently in the trash');
     }
   }
 
   for (const quizId of quizIds) {
-    const quizIndex = getQuizIndex(quizId, data);
+    const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
     data.quizzes.splice(quizIndex, 1);
   }
   setData(data);
@@ -338,9 +335,9 @@ export function adminQuizTrashEmpty(token: string, quizIds: number[]): EmptyObje
 /**
  * Transfer ownership of a quiz to another user
  *
- * @param { string } token
- * @param { number } quizId
- * @param { string } userEmail
+ * @param { string } token - the token that corresponds to a user session
+ * @param { number } quizId - the id of the quiz to transfer
+ * @param { string } userEmail - the email of the user to transfer the quiz to
  * @returns { EmptyObject } - returns an empty object if successful
  * @throws { HTTPError } - throws an HTTP 401, 403 or 400 error
  */
@@ -352,27 +349,26 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
     throw HTTPError(401, tokenError.error);
   }
 
-  const authUserId = findUserbyToken(token, data).authUserId;
-  const userError = isValidQuizIdForUser(authUserId, quizId, data);
+  const ownerId = findUserbyToken(token, data).authUserId;
+  const userError = isValidQuizIdForUser(ownerId, quizId, data);
   if (userError) {
     throw HTTPError(403, userError.error);
   }
 
-  const user = findUserbyEmail(userEmail, data);
-  if (!user) {
+  const targetUser = findUserbyEmail(userEmail, data);
+  if (!targetUser) {
     throw HTTPError(400, 'User email is not the real user');
   }
 
-  const name = findQuizbyId(quizId, data).name;
-  const userId = user.authUserId;
-  const QuizNameError = isQuizNameUsed(name, userId, data);
-  if (QuizNameError) {
+  const quizName = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.authUserId === ownerId).name;
+  const targetUserId = targetUser.authUserId;
+  const quizNameUsedError = isQuizNameUsed(quizName, targetUserId, data);
+  if (quizNameUsedError) {
     throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
   }
 
-  const EmailId = user.authUserId;
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
-  data.quizzes[quizIndex].authUserId = EmailId;
+  data.quizzes[quizIndex].authUserId = targetUserId;
   data.quizzes[quizIndex].timeLastEdited = getCurrentTime();
 
   setData(data);

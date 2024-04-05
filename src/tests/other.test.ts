@@ -9,7 +9,7 @@ import {
   userPasswordUpdateV1,
   quizListV1,
   quizInfoV1,
-  quizRemoveV1,
+  quizTrashV1,
   quizNameUpdateV1,
   quizDescriptionUpdateV1,
   quizTrashViewV1,
@@ -95,7 +95,7 @@ describe('Testing DELETE /v1/clear', () => {
 
       test('DELETE /v1/admin/quiz/{quidid} should return an error after clear is called', () => {
         clearV1();
-        expect(quizRemoveV1(token, quizID)).toStrictEqual(UNAUTHORISED_ERROR);
+        expect(quizTrashV1(token, quizID)).toStrictEqual(UNAUTHORISED_ERROR);
       });
 
       test('PUT /v1/admin/quiz/{quizid}/name should return an error after clear is called', () => {

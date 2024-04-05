@@ -12,6 +12,7 @@ import {
 } from '../testHelpers';
 
 import {
+  OK_SUCCESS,
   BAD_REQUEST_ERROR,
   UNAUTHORISED_ERROR,
   FORBIDDEN_ERROR,
@@ -27,6 +28,7 @@ import {
   MORE_QUESTION_ANSWERS,
   LESS_QUESTION_ANSWERS,
   NEGATIVE_QUESTION_DURATION,
+  LONG_QUESTION_DURATION,
   MORE_QUESTION_DURATION_SUM,
   LESS_QUESTION_POINTS,
   MORE_QUESTION_POINTS,
@@ -42,6 +44,232 @@ beforeEach(() => {
 
 afterEach(() => {
   clearV1();
+});
+
+describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
+  let token: string;
+  let quizId: number;
+  beforeEach(() => {
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV1(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+  });
+
+  test('Correct status code and return value', () => {
+    const response = quizQuestionCreateV1(token, quizId, VALID_QUESTION1);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({ questionId: expect.any(Number) });
+  });
+
+  test('Creates a new stub question for the quiz', () => {
+    quizQuestionCreateV1(token, quizId, VALID_QUESTION1);
+    const response = quizInfoV1(token, quizId).jsonBody;
+    const expectedQuestion = {
+      questionId: expect.any(Number),
+      question: VALID_QUESTION1.question,
+      duration: VALID_QUESTION1.duration,
+      points: VALID_QUESTION1.points,
+      answers: [
+        {
+          answerId: expect.any(Number),
+          answer: VALID_QUESTION1.answers[0].answer,
+          colour: expect.any(String),
+          correct: VALID_QUESTION1.answers[0].correct
+        },
+        {
+          answerId: expect.any(Number),
+          answer: VALID_QUESTION1.answers[1].answer,
+          colour: expect.any(String),
+          correct: VALID_QUESTION1.answers[1].correct
+        }
+      ]
+    };
+    expect(response.questions).toStrictEqual([expectedQuestion]);
+    expect(response.duration).toStrictEqual(VALID_QUESTION1.duration);
+    expect(response.numQuestions).toStrictEqual(1);
+  });
+
+  test('Successfully creates 2 new stub questions for the quiz', () => {
+    quizQuestionCreateV1(token, quizId, VALID_QUESTION1);
+    quizQuestionCreateV1(token, quizId, VALID_QUESTION2);
+    const response = quizInfoV1(token, quizId).jsonBody;
+    const expected = {
+      quizId: expect.any(Number),
+      name: QUIZ1.name,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: QUIZ1.description,
+      numQuestions: 2,
+      questions: [
+        {
+          questionId: expect.any(Number),
+          question: VALID_QUESTION1.question,
+          duration: VALID_QUESTION1.duration,
+          points: VALID_QUESTION1.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: VALID_QUESTION1.answers[0].answer,
+              colour: expect.any(String),
+              correct: VALID_QUESTION1.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: VALID_QUESTION1.answers[1].answer,
+              colour: expect.any(String),
+              correct: VALID_QUESTION1.answers[1].correct
+            }
+          ]
+        },
+        {
+          questionId: expect.any(Number),
+          question: VALID_QUESTION2.question,
+          duration: VALID_QUESTION2.duration,
+          points: VALID_QUESTION2.points,
+          answers: [
+            {
+              answerId: expect.any(Number),
+              answer: VALID_QUESTION2.answers[0].answer,
+              colour: expect.any(String),
+              correct: VALID_QUESTION2.answers[0].correct
+            },
+            {
+              answerId: expect.any(Number),
+              answer: VALID_QUESTION2.answers[1].answer,
+              colour: expect.any(String),
+              correct: VALID_QUESTION2.answers[1].correct
+            }
+          ]
+        }
+      ],
+      duration: VALID_QUESTION1.duration + VALID_QUESTION2.duration
+    };
+    expect(response).toStrictEqual(expected);
+  });
+
+  test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
+    const expectedTime = Math.floor(Date.now() / 1000);
+    quizQuestionCreateV1(token, quizId, VALID_QUESTION1);
+    const response2 = quizInfoV1(token, quizId).jsonBody;
+    const timeLastEdited = response2.timeLastEdited as number;
+    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
+    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+  });
+
+  describe('Unauthorised errors', () => {
+    test('Token is empty', () => {
+      expect(quizQuestionCreateV1('', quizId, VALID_QUESTION1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid user session', () => {
+      expect(quizQuestionCreateV1(token + 'random', quizId, VALID_QUESTION1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a logged in user session', () => {
+      authLogoutV1(token);
+      expect(quizQuestionCreateV1(token, quizId, VALID_QUESTION1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+  });
+
+  describe('Forbidden errors', () => {
+    test('Valid token but invalid quizId', () => {
+      const response = quizQuestionCreateV1(token, quizId + 1, VALID_QUESTION1);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+
+    test('Valid token but user does not own the quiz', () => {
+      const invalidUser = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
+      const token2 = invalidUser.token as string;
+      const response = quizQuestionCreateV1(token2, quizId, VALID_QUESTION1);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+  });
+
+  describe('Bad request errors', () => {
+    test.each(SHORT_QUESTION_STRING)('Question string is less than 5 characters', (question) => {
+      const response = quizQuestionCreateV1(token, quizId, question);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Question string is more than 100 characters', () => {
+      const response = quizQuestionCreateV1(token, quizId, LONG_QUESTION_STRING);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Question has more than 6 answers', () => {
+      const response = quizQuestionCreateV1(token, quizId, MORE_QUESTION_ANSWERS);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test.each(LESS_QUESTION_ANSWERS)('Question has less than 2 answers', (question) => {
+      const response = quizQuestionCreateV1(token, quizId, question);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test.each(NEGATIVE_QUESTION_DURATION)('Question duration is not a positive number', (question) => {
+      const response = quizQuestionCreateV1(token, quizId, question);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Sum of the question durations in the quiz exceeds 3 minutes', () => {
+      const response = quizQuestionCreateV1(token, quizId, LONG_QUESTION_DURATION);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Points awarded for the question are less than 1', () => {
+      const response = quizQuestionCreateV1(token, quizId, LESS_QUESTION_POINTS);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Points awarded for the question are more than 10', () => {
+      const response = quizQuestionCreateV1(token, quizId, MORE_QUESTION_POINTS);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test.each(SHORT_QUESTION_ANSWERS)('Length of any answer is shorter than 1 character', (question) => {
+      const response = quizQuestionCreateV1(token, quizId, question);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test.each(LONG_QUESTION_ANSWERS)('Length of any answer is longer than 30 characters', (question) => {
+      const response = quizQuestionCreateV1(token, quizId, question);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Any answer strings are duplicates of one another within the same question', () => {
+      const response = quizQuestionCreateV1(token, quizId, DUPLICATE_QUESTION_ANSWERS);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('No correct answers', () => {
+      const response = quizQuestionCreateV1(token, quizId, FALSE_QUESTION_ANSWERS);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+
+  describe('Errors are returned in the correct order', () => {
+    const invalidToken = token + 'random';
+    const invalidQuizId = -1;
+    let notOwnerToken: string;
+    beforeEach(() => {
+      const invalidUser = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
+      notOwnerToken = invalidUser.token as string;
+    });
+
+    test('Unauthorised status code 401 first', () => {
+      const response1 = quizQuestionCreateV1(invalidToken, invalidQuizId, VALID_QUESTION1);
+      expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Forbidden status code 403 second', () => {
+      const response = quizQuestionCreateV1(notOwnerToken, invalidQuizId, VALID_QUESTION1);
+      expect(response).toStrictEqual(FORBIDDEN_ERROR);
+    });
+
+    test('Bad request status code 400 last', () => {
+      const response = quizQuestionCreateV1(token, quizId, LONG_QUESTION_STRING);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
 });
 
 describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
@@ -246,10 +474,18 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test('Sum of the question durations in the quiz exceeds 3 minutes after update', () => {
-      quizQuestionUpdateV1(token, quizId, questionId1, MORE_QUESTION_DURATION_SUM[0]);
-      const response = quizQuestionUpdateV1(token, quizId, questionId2, MORE_QUESTION_DURATION_SUM[1]);
-      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    describe('Sum of the question durations in the quiz exceeds 3 minutes after update', () => {
+      test('1 question with a duration of more than 3 minutes', () => {
+        const response = quizQuestionUpdateV1(token, quizId, questionId1, LONG_QUESTION_DURATION);
+        expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+      });
+
+      test('2 questions with a sum of durations more than 3 minutes', () => {
+        const response1 = quizQuestionUpdateV1(token, quizId, questionId1, MORE_QUESTION_DURATION_SUM[0]);
+        expect(response1).toStrictEqual(OK_SUCCESS);
+        const response2 = quizQuestionUpdateV1(token, quizId, questionId2, MORE_QUESTION_DURATION_SUM[1]);
+        expect(response2).toStrictEqual(BAD_REQUEST_ERROR);
+      });
     });
 
     test('Points awarded for the question are less than 1', () => {
@@ -383,9 +619,6 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
       const response = quizQuestionRemoveV1(token, quizId, questionId + 1);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
-
-    // test('Any session for this quiz is not in END state', () => {
-    // });
   });
 
   describe('Unauthorised errors', () => {

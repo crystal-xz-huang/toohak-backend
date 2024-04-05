@@ -5,6 +5,7 @@ export const BAD_REQUEST_ERROR = { statusCode: 400, error: expect.any(String) };
 export const UNAUTHORISED_ERROR = { statusCode: 401, error: expect.any(String) };
 export const FORBIDDEN_ERROR = { statusCode: 403, error: expect.any(String) };
 
+export const OK_SUCCESS = { statusCode: 200, jsonBody: expect.anything() };
 export const TOKEN_SUCCESS = { statusCode: 200, jsonBody: { token: expect.any(String) } };
 
 // ====================================================================
@@ -77,8 +78,6 @@ export const INVALID_QUIZ_NAMES = [
   { name: 'Quiz 1&!' },
   { name: 'a'.repeat(31) },
 ];
-
-export const invalidQuizDescription = 'a'.repeat(101); // more than 100 characters
 
 export const VALID_QUESTION1 = {
   question: 'Who is the Monarch of England?',
@@ -225,6 +224,18 @@ export const NEGATIVE_QUESTION_DURATION = [
     ]
   },
 ];
+
+export const LONG_QUESTION_DURATION = {
+  question: 'Who is the Monarch of England?',
+  duration: 181,
+  points: 5,
+  answers: [
+    { answer: 'Prince Charles', correct: true },
+    { answer: 'Queen Elizabeth II', correct: false },
+    { answer: 'Prince William', correct: false },
+    { answer: 'Prince Harry', correct: false },
+  ]
+};
 
 // Sum of the question durations in the quiz exceeds 3 minutes
 export const MORE_QUESTION_DURATION_SUM = [
