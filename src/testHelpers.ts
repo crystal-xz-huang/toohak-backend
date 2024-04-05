@@ -85,7 +85,7 @@ export function quizCreateV1(token: string, name: string, description: string): 
   return requestHelper('POST', '/v1/admin/quiz', { token, name, description });
 }
 
-export function quizRemoveV1(token: string, quizId: number): RequestResponse {
+export function quizTrashV1(token: string, quizId: number): RequestResponse {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { token });
 }
 
@@ -168,7 +168,7 @@ export function quizCreateV2(token: string, name: string, description: string): 
   return requestHelper('POST', '/v2/admin/quiz', { name, description }, { token });
 }
 
-export function quizRemoveV2(token: string, quizId: number): RequestResponse {
+export function quizTrashV2(token: string, quizId: number): RequestResponse {
   return requestHelper('DELETE', `/v2/admin/quiz/${quizId}`, {}, { token });
 }
 

@@ -13,7 +13,7 @@ import process from 'process';
 // import { getData, setData } from './dataStore';
 import { clear } from './other';
 import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate, adminAuthLogout } from './auth';
-import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView, adminQuizRestore, adminQuizTrashEmpty, adminQuizTransfer, adminQuizQuestionCreate, adminQuizQuestionUpdate, adminQuizQuestionRemove, adminQuizQuestionMove, adminQuizQuestionDuplicate, adminQuizThumbnailUpdate } from './quiz';
+import { adminQuizList, adminQuizCreate, adminQuizTrash, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate, adminQuizTrashView, adminQuizRestore, adminQuizTrashEmpty, adminQuizTransfer, adminQuizQuestionCreate, adminQuizQuestionUpdate, adminQuizQuestionRemove, adminQuizQuestionMove, adminQuizQuestionDuplicate, adminQuizThumbnailUpdate } from './quiz';
 import { adminQuizSessionList, adminQuizSessionStatus, adminQuizSessionUpdate, adminQuizSessionResults, adminQuizSessionResultsCSV, adminQuizSessionStart } from './quizSession';
 import { playerJoin, playerStatus, playerQuestionInfo, playerQuestionAnswer, playerQuestionResults, playerFinalResults, playerChatList, playerChatSend } from './player';
 
@@ -37,6 +37,8 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
+
+// Check if database file exists
 
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
@@ -100,7 +102,7 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   const token = req.query.token as string;
-  const response = adminQuizRemove(token, quizId);
+  const response = adminQuizTrash(token, quizId);
   res.json(response);
 });
 
@@ -245,7 +247,7 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
 app.delete('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   const token = req.header('token');
-  const response = adminQuizRemove(token, quizId);
+  const response = adminQuizTrash(token, quizId);
   res.json(response);
 });
 
