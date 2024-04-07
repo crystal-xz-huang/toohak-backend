@@ -45,7 +45,7 @@ export const invalidEmails = [
 
 export const invalidPasswords = [
   { password: '12345678' },
-  { password: 'abcdefgh' },
+  { password: 'abcdefghi' },
 ];
 
 // ====================================================================
