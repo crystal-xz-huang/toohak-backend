@@ -7,12 +7,13 @@ export interface Data {
   quizzes: Quiz[];
   userSessions: UserSession[];
   quizSessions: QuizSession[];
+  players: Player[];
+  messages: Message[];
 }
 
 // ====================================================================
 // USER TYPES
 // ====================================================================
-
 export interface User {
   authUserId: number;
   email: string;
@@ -31,7 +32,6 @@ export interface UserSession {
 
 export interface Quiz {
   quizId: number;
-  sessionIds: number[]; // the ids of the sessions that are currently using the quiz
   name: string;
   authUserId: number; // the id of the user who created the quiz
   description: string;
@@ -62,38 +62,43 @@ interface AnswerBody {
 
 export interface QuizSession {
   sessionId: number;
-  playerIds: number[]; // the ids of the players in the quiz session
   autoStartNum: number; // number of players needed to auto start the quiz
   state: State, // the current state of the quiz session
   atQuestion: number; // the question the quiz session is currently at
   metadata: Quiz; // a copy of the quiz being played
-  messages: Message[]; // messages sent by players
-  // questionCountDown?: NodeJS.Timeout;
-  // questionDuration?: NodeJS.Timeout;
+  questionCountDown?: NodeJS.Timeout;
+  questionDuration?: NodeJS.Timeout;
 }
 
-/*
-// This is a player in a quiz session
 interface Player {
   playerId: number;
   sessionId: number;
   name: string;
-  answers: AnswerSubmission[];
+  score: number;
 }
 
-interface AnswerSubmission {
-  playerId: number;
-  questionId: number;
-  answerIds: number[];
-  answerTime: number;
-}
-*/
 interface Message {
   messageBody: string;
   playerId: number;
   playerName: string;
   timeSent: number;
 }
+
+/*
+interface AnswerSubmission {
+  playerId: number;
+  questionId: number;
+  answerIds: number[];
+  answerTime: number;
+}
+
+interface Result {
+  questionId: number;
+  playersCorrectList: string[];
+  averageAnswerTime: number;
+  percentCorrect: number;
+}
+*/
 
 export enum State {
   LOBBY = 'LOBBY', // players can join

@@ -2,5 +2,7 @@
   "users": [],
   "quizzes": [],
   "userSessions": [],
-  "quizSessions": []
+  "quizSessions": [],
+  "players": [],
+  "messages": []
 }

@@ -7,6 +7,8 @@ let data: Data = {
   quizzes: [],
   userSessions: [],
   quizSessions: [],
+  players: [],
+  messages: [],
 };
 
 // YOU SHOULD MODIFY THIS OBJECT ABOVE ONLY
@@ -29,11 +31,17 @@ Example usage
 
 // Use get() to access the data
 export function getData(): Data {
-  if (fs.existsSync('./database.json')) {
-    const file = fs.readFileSync('./database.json', { flag: 'r' });
-    return JSON.parse(file.toString());
+  if (!fs.existsSync('./database.json')) {
+    return data;
   }
-  return data;
+  const file = fs.readFileSync('./database.json', { flag: 'r' });
+  return JSON.parse(file.toString());
+
+  // if (fs.existsSync('./database.json')) {
+  //   const file = fs.readFileSync('./database.json', { flag: 'r' });
+  //   return JSON.parse(file.toString());
+  // }
+  // return data;
 }
 
 // Use set(newData) to pass in the entire data object, with modifications made

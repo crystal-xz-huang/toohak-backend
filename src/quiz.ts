@@ -80,7 +80,6 @@ export function adminQuizCreate(token: string, name: string, description: string
   const quizId = generateRandomNumber();
   data.quizzes.push({
     quizId: quizId,
-    sessionIds: [],
     name: name,
     authUserId: authUserId,
     description: description,
@@ -369,9 +368,8 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
   }
 
   // check if any session for the quiz is not in END state
-  const quizSessionIds = quiz.sessionIds;
-  const endSessionFound = data.quizSessions.some(session => quizSessionIds.includes(session.sessionId) && session.state !== 'END');
-  if (endSessionFound) {
+  const endSessions = data.quizSessions.filter((s) => s.metadata.quizId === quizId && s.state !== 'END');
+  if (endSessions.length > 0) {
     throw HTTPError(400, 'Quiz ID refers to a quiz that has an active session');
   }
 
