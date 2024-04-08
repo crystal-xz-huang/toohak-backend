@@ -231,6 +231,7 @@ describe.skip('Testing GET /v2/admin/quiz/{quizid}', () => {
       numQuestions: 0,
       questions: [],
       duration: 0,
+      thumbnailUrl: expect.any(String),
     };
     const response = quizInfoV2(token, quizId).jsonBody;
     expect(response).toStrictEqual(expected);

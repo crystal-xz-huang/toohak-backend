@@ -28,7 +28,7 @@ import {
   UNAUTHORISED_ERROR,
   USER1,
   QUIZ1,
-  VALID_QUESTION1,
+  QUESTION_BODY1,
 } from '../testTypes';
 
 beforeEach(() => {
@@ -49,10 +49,11 @@ describe('Testing DELETE /v1/clear', () => {
     let quizID: number;
     let token: string;
     let questionID: number;
+
     beforeEach(() => {
       token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token;
       quizID = quizCreateV1(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId;
-      questionID = quizQuestionCreateV1(token, quizID, VALID_QUESTION1).jsonBody.questionId;
+      questionID = quizQuestionCreateV1(token, quizID, QUESTION_BODY1).jsonBody.questionId;
     });
 
     describe('All registered users are removed', () => {
@@ -130,12 +131,12 @@ describe('Testing DELETE /v1/clear', () => {
 
       test('POST /v1/admin/quiz/{quizid}/question should return an error after clear is called', () => {
         clearV1();
-        expect(quizQuestionCreateV1(token, quizID, VALID_QUESTION1)).toStrictEqual(UNAUTHORISED_ERROR);
+        expect(quizQuestionCreateV1(token, quizID, QUESTION_BODY1)).toStrictEqual(UNAUTHORISED_ERROR);
       });
 
       test('PUT /v1/admin/quiz/{quizid}/question/{questionid} should return an error after clear is called', () => {
         clearV1();
-        expect(quizQuestionUpdateV1(token, quizID, 1, VALID_QUESTION1)).toStrictEqual(UNAUTHORISED_ERROR);
+        expect(quizQuestionUpdateV1(token, quizID, 1, QUESTION_BODY1)).toStrictEqual(UNAUTHORISED_ERROR);
       });
 
       test('DELETE /v1/admin/quiz/{quizid}/question/{questionid} should return an error after clear is called', () => {
