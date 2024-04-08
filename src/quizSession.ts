@@ -15,8 +15,6 @@ import {
   isValidQuizIdForUser,
   isValidToken
 } from './functionHelpers';
-import { set } from 'yaml/dist/schema/yaml-1.1/set';
-
 
 /**
  * Retrieves active and inactive session ids (sorted in ascending order) for a quiz
@@ -164,7 +162,7 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
       session.questionDuration = setTimeout(() => {
         session.state = State.QUESTION_CLOSE;
         setData(data);
-      }, question.duration * 1000); 
+      }, question.duration * 1000);
     }, 3 * 1000);
   } else if (action === Action.SKIP_COUNTDOWN) {
     // only valid in QUESTION_COUNTDOWN
@@ -198,7 +196,7 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
     }
     session.state = State.FINAL_RESULTS;
     setData(data);
-  } else if (action ===  Action.END) {
+  } else if (action === Action.END) {
     // valid in all states except END itself
     if (session.state === State.END) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);

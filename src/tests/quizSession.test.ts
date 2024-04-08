@@ -14,7 +14,6 @@ import {
   quizQuestionRemoveV2,
   quizQuestionMoveV2,
   // quizQuestionDuplicateV2,
-  // quizSessionListV1,
   quizSessionStartV1,
   quizSessionUpdateV1,
   quizSessionListV1,
@@ -312,8 +311,8 @@ describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
       Action.SKIP_COUNTDOWN,
       Action.GO_TO_FINAL_RESULTS,
     ])('%s action cannot be applied in the QUESTION_OPEN state', (InvalidAction) => {
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION)
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.SKIP_COUNTDOWN)
+      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION);
+      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.SKIP_COUNTDOWN);
       expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_OPEN);
       expect(quizSessionUpdateV1(token1, quizId1, sessionId1, InvalidAction)).toStrictEqual(BAD_REQUEST_ERROR);
     });
@@ -353,6 +352,11 @@ describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
       expect(quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS)).toStrictEqual(OK_SUCCESS);
       expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.FINAL_RESULTS);
       expect(quizSessionUpdateV1(token1, quizId1, sessionId1, InvalidAction)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('END action cannot be applied in the END state', () => {
+      expect(quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END)).toStrictEqual(OK_SUCCESS);
+      expect(quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END)).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 
@@ -482,4 +486,3 @@ describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
     });
   });
 });
-

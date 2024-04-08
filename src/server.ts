@@ -12,49 +12,49 @@ import process from 'process';
 
 // import { getData, setData } from './dataStore';
 import { clear } from './other';
-import { 
-  adminAuthRegister, 
-  adminAuthLogin, 
-  adminUserDetails, 
-  adminUserDetailsUpdate, 
-  adminUserPasswordUpdate, 
-  adminAuthLogout 
+import {
+  adminAuthRegister,
+  adminAuthLogin,
+  adminUserDetails,
+  adminUserDetailsUpdate,
+  adminUserPasswordUpdate,
+  adminAuthLogout
 } from './auth';
-import { 
-  adminQuizList, 
-  adminQuizCreate, 
-  adminQuizTrash, 
-  adminQuizInfo, 
-  adminQuizNameUpdate, 
-  adminQuizDescriptionUpdate, 
-  adminQuizTrashView, 
-  adminQuizRestore, 
-  adminQuizTrashEmpty, 
-  adminQuizTransfer, 
-  adminQuizQuestionCreate, 
-  adminQuizQuestionUpdate, 
-  adminQuizQuestionRemove, 
-  adminQuizQuestionMove, 
-  adminQuizQuestionDuplicate, 
-  adminQuizThumbnailUpdate 
+import {
+  adminQuizList,
+  adminQuizCreate,
+  adminQuizTrash,
+  adminQuizInfo,
+  adminQuizNameUpdate,
+  adminQuizDescriptionUpdate,
+  adminQuizTrashView,
+  adminQuizRestore,
+  adminQuizTrashEmpty,
+  adminQuizTransfer,
+  adminQuizQuestionCreate,
+  adminQuizQuestionUpdate,
+  adminQuizQuestionRemove,
+  adminQuizQuestionMove,
+  adminQuizQuestionDuplicate,
+  adminQuizThumbnailUpdate
 } from './quiz';
-import { 
-  adminQuizSessionList, 
-  adminQuizSessionStatus, 
-  adminQuizSessionUpdate, 
-  adminQuizSessionResults, 
-  adminQuizSessionResultsCSV, 
-  adminQuizSessionStart 
+import {
+  adminQuizSessionList,
+  adminQuizSessionStatus,
+  adminQuizSessionUpdate,
+  adminQuizSessionResults,
+  adminQuizSessionResultsCSV,
+  adminQuizSessionStart
 } from './quizSession';
-import { 
-  playerJoin, 
-  playerStatus, 
-  playerQuestionInfo, 
-  playerQuestionAnswer, 
-  playerQuestionResults, 
-  playerFinalResults, 
-  playerChatList, 
-  playerChatSend 
+import {
+  playerJoin,
+  playerStatus,
+  playerQuestionInfo,
+  playerQuestionAnswer,
+  playerQuestionResults,
+  playerFinalResults,
+  playerChatList,
+  playerChatSend
 } from './player';
 
 // Set up web app
