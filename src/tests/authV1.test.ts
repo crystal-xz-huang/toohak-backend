@@ -6,7 +6,7 @@ import {
   userDetailsUpdateV1,
   userPasswordUpdateV1,
   authLogoutV1,
-} from '../testHelpers';
+} from '../httpHelpers';
 
 import {
   BAD_REQUEST_ERROR,

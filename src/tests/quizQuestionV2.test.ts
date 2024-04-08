@@ -9,6 +9,11 @@ import {
   quizQuestionRemoveV2,
   quizQuestionMoveV2,
   quizQuestionDuplicateV2,
+} from '../httpHelpers';
+
+import {
+  getTimeStamp,
+  checkTimeStamp,
 } from '../testHelpers';
 
 import {
@@ -160,12 +165,10 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question', () => {
   });
 
   test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
-    const expectedTime = Math.floor(Date.now() / 1000);
+    const expectedTime = getTimeStamp();
     quizQuestionCreateV2(token, quizId, QUESTION_BODY1);
-    const response2 = quizInfoV2(token, quizId).jsonBody;
-    const timeLastEdited = response2.timeLastEdited as number;
-    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
-    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+    const timeLastEdited = quizInfoV2(token, quizId).jsonBody.timeLastEdited as number;
+    checkTimeStamp(timeLastEdited, expectedTime);
   });
 
   describe('Unauthorised errors', () => {
@@ -426,12 +429,11 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
   });
 
   test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
-    const expectedTime = Math.floor(Date.now() / 1000);
+    const expectedTime = getTimeStamp();
     quizQuestionUpdateV2(token, quizId, questionId1, QUESTION_BODY2);
     const response2 = quizInfoV2(token, quizId).jsonBody;
     const timeLastEdited = response2.timeLastEdited as number;
-    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
-    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+    checkTimeStamp(timeLastEdited, expectedTime);
   });
 
   describe('Unauthorised errors', () => {
@@ -627,11 +629,10 @@ describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', ()
   });
 
   test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
-    const expectedTime = Math.floor(Date.now() / 1000);
+    const expectedTime = getTimeStamp();
     quizQuestionRemoveV2(token, quizId, questionId);
     const timeLastEdited = quizInfoV2(token, quizId).jsonBody.timeLastEdited as number;
-    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
-    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+    checkTimeStamp(timeLastEdited, expectedTime);
   });
 
   describe('Bad request errors', () => {
@@ -783,12 +784,11 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}/move', 
   });
 
   test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
-    const expectedTime = Math.floor(Date.now() / 1000);
+    const expectedTime = getTimeStamp();
     quizQuestionMoveV2(token, quizId, quesId1, 1);
     const response = quizInfoV2(token, quizId).jsonBody;
     const timeLastEdited = response.timeLastEdited as number;
-    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
-    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+    checkTimeStamp(timeLastEdited, expectedTime);
   });
 
   describe('Bad request errors', () => {
@@ -1151,9 +1151,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
     quizQuestionDuplicateV2(token, quizId, questionId1);
     const response2 = quizInfoV2(token, quizId).jsonBody;
     const timeLastEdited = response2.timeLastEdited as number;
-    // Check if the timeLastEdited are within a 1 second range of the current time
-    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
-    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+    checkTimeStamp(timeLastEdited, expectedTime);
   });
 
   describe('Unauthorised errors', () => {

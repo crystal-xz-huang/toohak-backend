@@ -10,7 +10,7 @@ import {
   // quizSessionStatusV1,
   // quizSessionResultsV1,
   // quizSessionCSVResultsV1,
-} from '../testHelpers';
+} from '../httpHelpers';
 
 import {
   BAD_REQUEST_ERROR,

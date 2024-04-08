@@ -8,7 +8,7 @@ import {
   quizNameUpdateV2,
   quizDescriptionUpdateV2,
   quizTransferV2,
-} from '../testHelpers';
+} from '../httpHelpers';
 
 import {
   BAD_REQUEST_ERROR,
@@ -23,6 +23,11 @@ import {
   SHORT_QUIZ_NAMES,
   INVALID_QUIZ_NAMES,
 } from '../testTypes';
+
+import {
+  getTimeStamp,
+  checkTimeStamp,
+} from '../testHelpers';
 
 import { AdminQuizListReturn, AdminQuizInfoReturn } from '../functionTypes';
 
@@ -115,14 +120,12 @@ describe.skip('Testing POST /v2/admin/quiz', () => {
   });
 
   test('timeCreated and timeLastEdited are within a 1 second range of the current time', () => {
-    const expectedTime = Math.floor(Date.now() / 1000);
-    const response = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody;
-    const timeCreated = quizInfoV2(token, response.quizId as number).jsonBody.timeCreated as number;
-    const timeLastEdited = quizInfoV2(token, response.quizId as number).jsonBody.timeLastEdited as number;
-    expect(timeCreated).toBeGreaterThanOrEqual(expectedTime);
-    expect(timeCreated).toBeLessThanOrEqual(expectedTime + 1);
-    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
-    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+    const expectedTime = getTimeStamp();
+    const quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    const timeCreated = quizInfoV2(token, quizId).jsonBody.timeCreated as number;
+    const timeLastEdited = quizInfoV2(token, quizId).jsonBody.timeLastEdited as number;
+    checkTimeStamp(timeCreated, expectedTime);
+    checkTimeStamp(timeLastEdited, expectedTime);
   });
 
   describe('Unauthorised errors', () => {
@@ -528,7 +531,6 @@ describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
 
   test('Successful quiz transfer', () => {
     quizTransferV2(tokenUser1, quizId1, USER2.email);
-    // Check if the quiz has been transferred to the target user
     const response2 = quizListV2(tokenUser2).jsonBody;
     const expected = { quizzes: [{ quizId: quizId1, name: QUIZ1.name }] };
     expect(response2).toStrictEqual(expected);
