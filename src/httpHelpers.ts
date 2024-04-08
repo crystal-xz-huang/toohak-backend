@@ -3,7 +3,6 @@ import { port, url } from './config.json';
 const SERVER_URL = `${url}:${port}`;
 
 // ========================================================================= //
-
 const TIMEOUT_MS = 2000;
 
 interface RequestResponse {
