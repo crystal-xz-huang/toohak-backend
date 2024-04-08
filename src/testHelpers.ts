@@ -1,7 +1,6 @@
 /**
  * Helper functions for testing
 */
-
 export const getTimeStamp = () => Math.floor(Date.now() / 1000);
 
 export function checkTimeStamp(timeStamp: number, expectedTimeStamp: number) {

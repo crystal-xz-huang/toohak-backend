@@ -21,7 +21,6 @@ import {
   // quizSessionResultsV1,
   // quizSessionCSVResultsV1,
 } from '../httpHelpers';
-
 import {
   BAD_REQUEST_ERROR,
   UNAUTHORISED_ERROR,
@@ -34,17 +33,13 @@ import {
   QUESTION_BODY2,
   OK_SUCCESS,
 } from '../testTypes';
-
 import {
   State,
   Action
 } from '../dataTypes';
-
 import { QuizMetadata } from '../functionTypes';
-import { sortArray } from '../testHelpers'
-
+import { sortArray } from '../testHelpers';
 import sleep from 'atomic-sleep';
-import exp from 'constants';
 
 beforeEach(() => {
   clearV1();
@@ -119,7 +114,7 @@ describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
   test('Correct status code and return value', () => {
     const response = quizSessionListV1(token1, quizId1);
     expect(response.statusCode).toStrictEqual(200);
-    expect(response.jsonBody).toStrictEqual({ 
+    expect(response.jsonBody).toStrictEqual({
       activeSessions: expect.any(Array),
       inactiveSessions: expect.any(Array),
     });
@@ -562,4 +557,3 @@ describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
     });
   });
 });
-
