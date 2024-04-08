@@ -15,6 +15,8 @@ import {
   MAX_QUIZ_NAME_LENGTH,
   QUIZNAME_REGEX,
   MAX_QUIZ_DESCRIPTION_LENGTH,
+  URL_PROTOCOL,
+  URL_FILETYPE,
 } from './dataTypes';
 
 /// ////////////////////////////////////////////////////////////////////////////////////
@@ -354,4 +356,25 @@ export function isValidQuestion(quiz: Quiz, question: QuestionBodyInput): ErrorM
   } else {
     return null;
   }
+}
+
+/**
+ * Check if thumbnailURL is a valid URL
+ * Invalid if:
+ * - an empty string
+ * - does not end with one of the following filetypes (case insensitive): jpg, jpeg, png
+ * - does not begin with 'http://' or 'https://'
+ */
+export function isValidImgURL(url: string): ErrorMessage | null {
+  if (url === '') {
+    return createError('URL is empty');
+  } else if (!URL_FILETYPE.test(url)) {
+    return createError('URL does not end with a valid filetype');
+  } else if (!URL_PROTOCOL.test(url)) {
+    return createError('URL does not begin with http:// or https://');
+  }
+  // else if (!validator.isURL(url, { protocols: ['http', 'https'], require_protocol: true, require_valid_protocol: true })) {
+  //   return createError('URL is not a valid URL');
+  // }
+  return null;
 }

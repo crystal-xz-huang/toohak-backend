@@ -40,7 +40,7 @@ export interface Quiz {
   numQuestions: number;
   questions: QuestionBody[];
   duration: number;
-  thumbnailUrl?: string;
+  thumbnailUrl: string;
   valid: boolean; // false if the quiz has been moved to the trash
 }
 
@@ -48,7 +48,7 @@ interface QuestionBody {
   questionId: number;
   question: string;
   duration: number;
-  thumbnailUrl?: string;
+  thumbnailUrl: string;
   points: number;
   answers: AnswerBody[];
 }
@@ -131,3 +131,7 @@ export const MIN_QUIZ_NAME_LENGTH = 3;
 export const MAX_QUIZ_NAME_LENGTH = 30;
 export const QUIZNAME_REGEX = /^[a-zA-Z0-9\s]+$/;
 export const MAX_QUIZ_DESCRIPTION_LENGTH = 100;
+
+// URLS
+export const URL_PROTOCOL = /^(http|https):\/\//;
+export const URL_FILETYPE = /\.(jpg|jpeg|png)$/i;

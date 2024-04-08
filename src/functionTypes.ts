@@ -70,14 +70,11 @@ export type AdminQuizInfoReturn = {
   numQuestions: number;
   questions: QuestionBody[];
   duration: number;
+  thumbnailUrl: string;
 }
 
 export type AdminQuizTrashViewReturn = {
   quizzes: QuizDetails[];
-}
-
-export type AdminQuizQuestionCreateReturn = {
-  questionId: number;
 }
 
 export type QuestionBodyInput = {
@@ -85,6 +82,11 @@ export type QuestionBodyInput = {
   duration: number;
   points: number;
   answers: Array<{ answer: string; correct: boolean }>;
+  thumbnailUrl: string;
+}
+
+export type AdminQuizQuestionCreateReturn = {
+  questionId: number;
 }
 
 export type AdminQuizQuestionDuplicateReturn = {
