@@ -19,10 +19,10 @@ import {
   USER1,
   USER2,
   QUIZ1,
-  VALID_QUESTION1,
-  VALID_QUESTION2,
-  VALID_QUESTION3,
-  VALID_QUESTION4,
+  QUESTION_BODY1,
+  QUESTION_BODY2,
+  QUESTION_BODY3,
+  QUESTION_BODY4,
   SHORT_QUESTION_STRING,
   LONG_QUESTION_STRING,
   MORE_QUESTION_ANSWERS,
@@ -36,6 +36,7 @@ import {
   LONG_QUESTION_ANSWERS,
   DUPLICATE_QUESTION_ANSWERS,
   FALSE_QUESTION_ANSWERS,
+  INVALID_IMG_URLS,
 } from '../testTypes';
 
 beforeEach(() => {
@@ -51,7 +52,7 @@ afterEach(() => {
 // Use .only to run only that block of tests
 //= =============================================================================
 
-describe.skip('Testing POST /v2/admin/quiz/{quizid}/question', () => {
+describe('Testing POST /v2/admin/quiz/{quizid}/question', () => {
   let token: string;
   let quizId: number;
   beforeEach(() => {
@@ -60,100 +61,107 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question', () => {
   });
 
   test('Correct status code and return value', () => {
-    const response = quizQuestionCreateV2(token, quizId, VALID_QUESTION1);
+    const response = quizQuestionCreateV2(token, quizId, QUESTION_BODY1);
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual({ questionId: expect.any(Number) });
   });
 
   test('Creates a new stub question for the quiz', () => {
-    quizQuestionCreateV2(token, quizId, VALID_QUESTION1);
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY1);
     const response = quizInfoV2(token, quizId).jsonBody;
     const expectedQuestion = {
       questionId: expect.any(Number),
-      question: VALID_QUESTION1.question,
-      duration: VALID_QUESTION1.duration,
-      points: VALID_QUESTION1.points,
+      question: QUESTION_BODY1.question,
+      duration: QUESTION_BODY1.duration,
+      thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
+      points: QUESTION_BODY1.points,
       answers: [
         {
           answerId: expect.any(Number),
-          answer: VALID_QUESTION1.answers[0].answer,
+          answer: QUESTION_BODY1.answers[0].answer,
           colour: expect.any(String),
-          correct: VALID_QUESTION1.answers[0].correct
+          correct: QUESTION_BODY1.answers[0].correct
         },
         {
           answerId: expect.any(Number),
-          answer: VALID_QUESTION1.answers[1].answer,
+          answer: QUESTION_BODY1.answers[1].answer,
           colour: expect.any(String),
-          correct: VALID_QUESTION1.answers[1].correct
+          correct: QUESTION_BODY1.answers[1].correct
         }
       ]
     };
+    expect(response.quizId).toStrictEqual(quizId);
     expect(response.questions).toStrictEqual([expectedQuestion]);
-    expect(response.duration).toStrictEqual(VALID_QUESTION1.duration);
+    expect(response.duration).toStrictEqual(QUESTION_BODY1.duration);
     expect(response.numQuestions).toStrictEqual(1);
   });
 
   test('Successfully creates 2 new stub questions for the quiz', () => {
-    quizQuestionCreateV2(token, quizId, VALID_QUESTION1);
-    quizQuestionCreateV2(token, quizId, VALID_QUESTION2);
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY1);
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY2);
     const response = quizInfoV2(token, quizId).jsonBody;
-    const expected = {
-      quizId: expect.any(Number),
-      name: QUIZ1.name,
-      timeCreated: expect.any(Number),
-      timeLastEdited: expect.any(Number),
-      description: QUIZ1.description,
-      numQuestions: 2,
-      questions: [
+    const expectedQuestion1 = {
+      questionId: expect.any(Number),
+      question: QUESTION_BODY1.question,
+      duration: QUESTION_BODY1.duration,
+      thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
+      points: QUESTION_BODY1.points,
+      answers: [
         {
-          questionId: expect.any(Number),
-          question: VALID_QUESTION1.question,
-          duration: VALID_QUESTION1.duration,
-          points: VALID_QUESTION1.points,
-          answers: [
-            {
-              answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[0].answer,
-              colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[0].correct
-            },
-            {
-              answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[1].answer,
-              colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[1].correct
-            }
-          ]
+          answerId: expect.any(Number),
+          answer: QUESTION_BODY1.answers[0].answer,
+          colour: expect.any(String),
+          correct: QUESTION_BODY1.answers[0].correct
         },
         {
-          questionId: expect.any(Number),
-          question: VALID_QUESTION2.question,
-          duration: VALID_QUESTION2.duration,
-          points: VALID_QUESTION2.points,
-          answers: [
-            {
-              answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[0].answer,
-              colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[0].correct
-            },
-            {
-              answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[1].answer,
-              colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[1].correct
-            }
-          ]
+          answerId: expect.any(Number),
+          answer: QUESTION_BODY1.answers[1].answer,
+          colour: expect.any(String),
+          correct: QUESTION_BODY1.answers[1].correct
         }
-      ],
-      duration: VALID_QUESTION1.duration + VALID_QUESTION2.duration
+      ]
     };
-    expect(response).toStrictEqual(expected);
+    const expectedQuestion2 = {
+      questionId: expect.any(Number),
+      question: QUESTION_BODY2.question,
+      duration: QUESTION_BODY2.duration,
+      thumbnailUrl: QUESTION_BODY2.thumbnailUrl,
+      points: QUESTION_BODY2.points,
+      answers: [
+        {
+          answerId: expect.any(Number),
+          answer: QUESTION_BODY2.answers[0].answer,
+          colour: expect.any(String),
+          correct: QUESTION_BODY2.answers[0].correct
+        },
+        {
+          answerId: expect.any(Number),
+          answer: QUESTION_BODY2.answers[1].answer,
+          colour: expect.any(String),
+          correct: QUESTION_BODY2.answers[1].correct
+        }
+      ]
+    };
+    expect(response.quizId).toStrictEqual(quizId);
+    expect(response.questions).toStrictEqual([expectedQuestion1, expectedQuestion2]);
+    expect(response.duration).toStrictEqual(QUESTION_BODY1.duration + QUESTION_BODY2.duration);
+    expect(response.numQuestions).toStrictEqual(2);
+  });
+
+  test('No duplicate questionIds are created for the same quiz', () => {
+    const response1 = quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody;
+    const response2 = quizQuestionCreateV2(token, quizId, QUESTION_BODY2).jsonBody;
+    const response3 = quizQuestionCreateV2(token, quizId, QUESTION_BODY3).jsonBody;
+    const response4 = quizQuestionCreateV2(token, quizId, QUESTION_BODY4).jsonBody;
+
+    expect(response1.questionId).not.toStrictEqual(response2.questionId);
+    expect(response2.questionId).not.toStrictEqual(response3.questionId);
+    expect(response3.questionId).not.toStrictEqual(response4.questionId);
   });
 
   test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
     const expectedTime = Math.floor(Date.now() / 1000);
-    quizQuestionCreateV2(token, quizId, VALID_QUESTION1);
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY1);
     const response2 = quizInfoV2(token, quizId).jsonBody;
     const timeLastEdited = response2.timeLastEdited as number;
     expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
@@ -162,29 +170,29 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question', () => {
 
   describe('Unauthorised errors', () => {
     test('Token is empty', () => {
-      expect(quizQuestionCreateV2('', quizId, VALID_QUESTION1)).toStrictEqual(UNAUTHORISED_ERROR);
+      expect(quizQuestionCreateV2('', quizId, QUESTION_BODY1)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
     test('Token does not refer to a valid user session', () => {
-      expect(quizQuestionCreateV2(token + 'random', quizId, VALID_QUESTION1)).toStrictEqual(UNAUTHORISED_ERROR);
+      expect(quizQuestionCreateV2(token + 'random', quizId, QUESTION_BODY1)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
     test('Token does not refer to a logged in user session', () => {
       authLogoutV2(token);
-      expect(quizQuestionCreateV2(token, quizId, VALID_QUESTION1)).toStrictEqual(UNAUTHORISED_ERROR);
+      expect(quizQuestionCreateV2(token, quizId, QUESTION_BODY1)).toStrictEqual(UNAUTHORISED_ERROR);
     });
   });
 
   describe('Forbidden errors', () => {
     test('Valid token but invalid quizId', () => {
-      const response = quizQuestionCreateV2(token, quizId + 1, VALID_QUESTION1);
+      const response = quizQuestionCreateV2(token, quizId + 1, QUESTION_BODY1);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
 
     test('Valid token but user does not own the quiz', () => {
       const invalidUser = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
       const token2 = invalidUser.token as string;
-      const response = quizQuestionCreateV2(token2, quizId, VALID_QUESTION1);
+      const response = quizQuestionCreateV2(token2, quizId, QUESTION_BODY1);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
   });
@@ -249,6 +257,13 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question', () => {
       const response = quizQuestionCreateV2(token, quizId, FALSE_QUESTION_ANSWERS);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
+
+    test.each(INVALID_IMG_URLS)('Invalid thumbnail URL: "%s"', (thumbnailUrl) => {
+      const newQuestion = QUESTION_BODY1;
+      newQuestion.thumbnailUrl = thumbnailUrl;
+      const response = quizQuestionCreateV2(token, quizId, newQuestion);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
   });
 
   describe('Errors are returned in the correct order', () => {
@@ -261,12 +276,12 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question', () => {
     });
 
     test('Unauthorised status code 401 first', () => {
-      const response1 = quizQuestionCreateV2(invalidToken, invalidQuizId, VALID_QUESTION1);
+      const response1 = quizQuestionCreateV2(invalidToken, invalidQuizId, QUESTION_BODY1);
       expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
     test('Forbidden status code 403 second', () => {
-      const response = quizQuestionCreateV2(notOwnerToken, invalidQuizId, VALID_QUESTION1);
+      const response = quizQuestionCreateV2(notOwnerToken, invalidQuizId, QUESTION_BODY1);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
 
@@ -285,18 +300,18 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
   beforeEach(() => {
     token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
-    questionId1 = quizQuestionCreateV2(token, quizId, VALID_QUESTION1).jsonBody.questionId as number;
-    questionId2 = quizQuestionCreateV2(token, quizId, VALID_QUESTION2).jsonBody.questionId as number;
+    questionId1 = quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody.questionId as number;
+    questionId2 = quizQuestionCreateV2(token, quizId, QUESTION_BODY2).jsonBody.questionId as number;
   });
 
   test('Correct status code and return value', () => {
-    const response = quizQuestionUpdateV2(token, quizId, questionId1, VALID_QUESTION3);
+    const response = quizQuestionUpdateV2(token, quizId, questionId1, QUESTION_BODY3);
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual({});
   });
 
   test('Successfully updates a question', () => {
-    quizQuestionUpdateV2(token, quizId, questionId1, VALID_QUESTION2);
+    quizQuestionUpdateV2(token, quizId, questionId1, QUESTION_BODY2);
     const response = quizInfoV2(token, quizId).jsonBody;
     const expected = {
       quizId: expect.any(Number),
@@ -308,53 +323,53 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
       questions: [
         {
           questionId: questionId1,
-          question: VALID_QUESTION2.question,
-          duration: VALID_QUESTION2.duration,
-          points: VALID_QUESTION2.points,
+          question: QUESTION_BODY2.question,
+          duration: QUESTION_BODY2.duration,
+          points: QUESTION_BODY2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[0].answer,
+              answer: QUESTION_BODY2.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[0].correct
+              correct: QUESTION_BODY2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[1].answer,
+              answer: QUESTION_BODY2.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[1].correct
+              correct: QUESTION_BODY2.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId2,
-          question: VALID_QUESTION2.question,
-          duration: VALID_QUESTION2.duration,
-          points: VALID_QUESTION2.points,
+          question: QUESTION_BODY2.question,
+          duration: QUESTION_BODY2.duration,
+          points: QUESTION_BODY2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[0].answer,
+              answer: QUESTION_BODY2.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[0].correct
+              correct: QUESTION_BODY2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[1].answer,
+              answer: QUESTION_BODY2.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[1].correct
+              correct: QUESTION_BODY2.answers[1].correct
             }
           ]
         }
       ],
-      duration: VALID_QUESTION2.duration * 2
+      duration: QUESTION_BODY2.duration * 2
     };
     expect(response).toStrictEqual(expected);
   });
 
   test('Successfully updates 2 questions', () => {
-    quizQuestionUpdateV2(token, quizId, questionId1, VALID_QUESTION3);
-    quizQuestionUpdateV2(token, quizId, questionId2, VALID_QUESTION4);
+    quizQuestionUpdateV2(token, quizId, questionId1, QUESTION_BODY3);
+    quizQuestionUpdateV2(token, quizId, questionId2, QUESTION_BODY4);
     const response = quizInfoV2(token, quizId).jsonBody;
     const expected = {
       quizId: expect.any(Number),
@@ -366,53 +381,53 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
       questions: [
         {
           questionId: questionId1,
-          question: VALID_QUESTION3.question,
-          duration: VALID_QUESTION3.duration,
-          points: VALID_QUESTION3.points,
+          question: QUESTION_BODY3.question,
+          duration: QUESTION_BODY3.duration,
+          points: QUESTION_BODY3.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION3.answers[0].answer,
+              answer: QUESTION_BODY3.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION3.answers[0].correct
+              correct: QUESTION_BODY3.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION3.answers[1].answer,
+              answer: QUESTION_BODY3.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION3.answers[1].correct
+              correct: QUESTION_BODY3.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId2,
-          question: VALID_QUESTION4.question,
-          duration: VALID_QUESTION4.duration,
-          points: VALID_QUESTION4.points,
+          question: QUESTION_BODY4.question,
+          duration: QUESTION_BODY4.duration,
+          points: QUESTION_BODY4.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION4.answers[0].answer,
+              answer: QUESTION_BODY4.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION4.answers[0].correct
+              correct: QUESTION_BODY4.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION4.answers[1].answer,
+              answer: QUESTION_BODY4.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION4.answers[1].correct
+              correct: QUESTION_BODY4.answers[1].correct
             }
           ]
         }
       ],
-      duration: VALID_QUESTION3.duration + VALID_QUESTION4.duration
+      duration: QUESTION_BODY3.duration + QUESTION_BODY4.duration
     };
     expect(response).toStrictEqual(expected);
   });
 
   test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
     const expectedTime = Math.floor(Date.now() / 1000);
-    quizQuestionUpdateV2(token, quizId, questionId1, VALID_QUESTION2);
+    quizQuestionUpdateV2(token, quizId, questionId1, QUESTION_BODY2);
     const response2 = quizInfoV2(token, quizId).jsonBody;
     const timeLastEdited = response2.timeLastEdited as number;
     expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
@@ -421,36 +436,36 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
 
   describe('Unauthorised errors', () => {
     test('Token is empty', () => {
-      expect(quizQuestionUpdateV2('', quizId, questionId1, VALID_QUESTION2)).toStrictEqual(UNAUTHORISED_ERROR);
+      expect(quizQuestionUpdateV2('', quizId, questionId1, QUESTION_BODY2)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
     test('Token does not refer to a valid user session', () => {
-      expect(quizQuestionUpdateV2(token + 'random', quizId, questionId1, VALID_QUESTION2)).toStrictEqual(UNAUTHORISED_ERROR);
+      expect(quizQuestionUpdateV2(token + 'random', quizId, questionId1, QUESTION_BODY2)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
     test('Token does not refer to a logged in user session', () => {
       authLogoutV2(token);
-      expect(quizQuestionUpdateV2(token, quizId, questionId1, VALID_QUESTION2)).toStrictEqual(UNAUTHORISED_ERROR);
+      expect(quizQuestionUpdateV2(token, quizId, questionId1, QUESTION_BODY2)).toStrictEqual(UNAUTHORISED_ERROR);
     });
   });
 
   describe('Forbidden errors', () => {
     test('Valid token but invalid quizId', () => {
-      const response = quizQuestionUpdateV2(token, -1, questionId1, VALID_QUESTION2);
+      const response = quizQuestionUpdateV2(token, -1, questionId1, QUESTION_BODY2);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
 
     test('Valid token but user does not own the quiz', () => {
       const invalidUser = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
       const token2 = invalidUser.token as string;
-      const response = quizQuestionUpdateV2(token2, quizId, questionId1, VALID_QUESTION2);
+      const response = quizQuestionUpdateV2(token2, quizId, questionId1, QUESTION_BODY2);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
   });
 
   describe('Bad request errors', () => {
     test('Question Id does not refer to a valid question within this quiz', () => {
-      const response = quizQuestionUpdateV2(token, quizId, -1, VALID_QUESTION2);
+      const response = quizQuestionUpdateV2(token, quizId, -1, QUESTION_BODY2);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
@@ -530,17 +545,17 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
     const invalidQuestionId = -1;
 
     test('Unauthorised status code 401 first', () => {
-      const response1 = quizQuestionUpdateV2(invalidToken, invalidQuizId, invalidQuestionId, VALID_QUESTION2);
+      const response1 = quizQuestionUpdateV2(invalidToken, invalidQuizId, invalidQuestionId, QUESTION_BODY2);
       expect(response1).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
     test('Forbidden status code 403 second', () => {
-      const response = quizQuestionUpdateV2(token, invalidQuizId, invalidQuestionId, VALID_QUESTION2);
+      const response = quizQuestionUpdateV2(token, invalidQuizId, invalidQuestionId, QUESTION_BODY2);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
 
     test('Bad request status code 400 last', () => {
-      const response = quizQuestionUpdateV2(token, quizId, invalidQuestionId, VALID_QUESTION2);
+      const response = quizQuestionUpdateV2(token, quizId, invalidQuestionId, QUESTION_BODY2);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
@@ -555,7 +570,7 @@ describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', ()
     token = user.token;
     const quiz = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody;
     quizId = quiz.quizId;
-    const question = quizQuestionCreateV2(token, quizId, VALID_QUESTION1).jsonBody;
+    const question = quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody;
     questionId = question.questionId;
   });
 
@@ -575,7 +590,7 @@ describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', ()
     quizQuestionRemoveV2(token, quizId, questionId);
     const response1 = quizInfoV2(token, quizId).jsonBody;
     expect(response1.questions).toStrictEqual([]);
-    quizQuestionCreateV2(token, quizId, VALID_QUESTION1);
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY1);
     const response2 = quizInfoV2(token, quizId).jsonBody;
     const expected = {
       quizId: expect.any(Number),
@@ -587,21 +602,21 @@ describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', ()
       questions: [
         {
           questionId: expect.any(Number),
-          question: VALID_QUESTION1.question,
-          duration: VALID_QUESTION1.duration,
-          points: VALID_QUESTION1.points,
+          question: QUESTION_BODY1.question,
+          duration: QUESTION_BODY1.duration,
+          points: QUESTION_BODY1.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[0].answer,
+              answer: QUESTION_BODY1.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[0].correct
+              correct: QUESTION_BODY1.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[1].answer,
+              answer: QUESTION_BODY1.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[1].correct
+              correct: QUESTION_BODY1.answers[1].correct
             }
           ]
         }
@@ -694,13 +709,13 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}/move', 
     token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
 
-    const q1 = quizQuestionCreateV2(token, quizId, VALID_QUESTION1).jsonBody;
+    const q1 = quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody;
     quesId1 = q1.questionId as number;
 
-    const q2 = quizQuestionCreateV2(token, quizId, VALID_QUESTION2).jsonBody;
+    const q2 = quizQuestionCreateV2(token, quizId, QUESTION_BODY2).jsonBody;
     quesId2 = q2.questionId as number;
 
-    const q3 = quizQuestionCreateV2(token, quizId, VALID_QUESTION3).jsonBody;
+    const q3 = quizQuestionCreateV2(token, quizId, QUESTION_BODY3).jsonBody;
     quesId3 = q3.questionId as number;
   });
 
@@ -869,8 +884,8 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
   beforeEach(() => {
     token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
-    questionId1 = quizQuestionCreateV2(token, quizId, VALID_QUESTION1).jsonBody.questionId as number;
-    questionId2 = quizQuestionCreateV2(token, quizId, VALID_QUESTION2).jsonBody.questionId as number;
+    questionId1 = quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody.questionId as number;
+    questionId2 = quizQuestionCreateV2(token, quizId, QUESTION_BODY2).jsonBody.questionId as number;
   });
 
   test('Correct status code and return value', () => {
@@ -892,72 +907,72 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
       questions: [
         {
           questionId: questionId1,
-          question: VALID_QUESTION1.question,
-          duration: VALID_QUESTION1.duration,
-          points: VALID_QUESTION1.points,
+          question: QUESTION_BODY1.question,
+          duration: QUESTION_BODY1.duration,
+          points: QUESTION_BODY1.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[0].answer,
+              answer: QUESTION_BODY1.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[0].correct
+              correct: QUESTION_BODY1.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[1].answer,
+              answer: QUESTION_BODY1.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[1].correct
+              correct: QUESTION_BODY1.answers[1].correct
             }
           ]
         },
         {
           questionId: newQuestionId,
-          question: VALID_QUESTION1.question,
-          duration: VALID_QUESTION1.duration,
-          points: VALID_QUESTION1.points,
+          question: QUESTION_BODY1.question,
+          duration: QUESTION_BODY1.duration,
+          points: QUESTION_BODY1.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[0].answer,
+              answer: QUESTION_BODY1.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[0].correct
+              correct: QUESTION_BODY1.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[1].answer,
+              answer: QUESTION_BODY1.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[1].correct
+              correct: QUESTION_BODY1.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId2,
-          question: VALID_QUESTION2.question,
-          duration: VALID_QUESTION2.duration,
-          points: VALID_QUESTION2.points,
+          question: QUESTION_BODY2.question,
+          duration: QUESTION_BODY2.duration,
+          points: QUESTION_BODY2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[0].answer,
+              answer: QUESTION_BODY2.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[0].correct
+              correct: QUESTION_BODY2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[1].answer,
+              answer: QUESTION_BODY2.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[1].correct
+              correct: QUESTION_BODY2.answers[1].correct
             }
           ]
         },
       ],
-      duration: VALID_QUESTION1.duration * 2 + VALID_QUESTION2.duration
+      duration: QUESTION_BODY1.duration * 2 + QUESTION_BODY2.duration
     };
     expect(response).toStrictEqual(expected);
   });
 
   test('Successfully duplicates the middle question', () => {
-    const questionId3 = quizQuestionCreateV2(token, quizId, VALID_QUESTION3).jsonBody.questionId as number;
+    const questionId3 = quizQuestionCreateV2(token, quizId, QUESTION_BODY3).jsonBody.questionId as number;
     const newQuestionId = quizQuestionDuplicateV2(token, quizId, questionId2).jsonBody.newQuestionId as number;
     const response = quizInfoV2(token, quizId).jsonBody;
     const expected = {
@@ -970,86 +985,86 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
       questions: [
         {
           questionId: questionId1,
-          question: VALID_QUESTION1.question,
-          duration: VALID_QUESTION1.duration,
-          points: VALID_QUESTION1.points,
+          question: QUESTION_BODY1.question,
+          duration: QUESTION_BODY1.duration,
+          points: QUESTION_BODY1.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[0].answer,
+              answer: QUESTION_BODY1.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[0].correct
+              correct: QUESTION_BODY1.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[1].answer,
+              answer: QUESTION_BODY1.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[1].correct
+              correct: QUESTION_BODY1.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId2,
-          question: VALID_QUESTION2.question,
-          duration: VALID_QUESTION2.duration,
-          points: VALID_QUESTION2.points,
+          question: QUESTION_BODY2.question,
+          duration: QUESTION_BODY2.duration,
+          points: QUESTION_BODY2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[0].answer,
+              answer: QUESTION_BODY2.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[0].correct
+              correct: QUESTION_BODY2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[1].answer,
+              answer: QUESTION_BODY2.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[1].correct
+              correct: QUESTION_BODY2.answers[1].correct
             }
           ]
         },
         {
           questionId: newQuestionId,
-          question: VALID_QUESTION2.question,
-          duration: VALID_QUESTION2.duration,
-          points: VALID_QUESTION2.points,
+          question: QUESTION_BODY2.question,
+          duration: QUESTION_BODY2.duration,
+          points: QUESTION_BODY2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[0].answer,
+              answer: QUESTION_BODY2.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[0].correct
+              correct: QUESTION_BODY2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[1].answer,
+              answer: QUESTION_BODY2.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[1].correct
+              correct: QUESTION_BODY2.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId3,
-          question: VALID_QUESTION3.question,
-          duration: VALID_QUESTION3.duration,
-          points: VALID_QUESTION3.points,
+          question: QUESTION_BODY3.question,
+          duration: QUESTION_BODY3.duration,
+          points: QUESTION_BODY3.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION3.answers[0].answer,
+              answer: QUESTION_BODY3.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION3.answers[0].correct
+              correct: QUESTION_BODY3.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION3.answers[1].answer,
+              answer: QUESTION_BODY3.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION3.answers[1].correct
+              correct: QUESTION_BODY3.answers[1].correct
             }
           ]
         }
       ],
-      duration: VALID_QUESTION1.duration + VALID_QUESTION2.duration * 2 + VALID_QUESTION3.duration
+      duration: QUESTION_BODY1.duration + QUESTION_BODY2.duration * 2 + QUESTION_BODY3.duration
     };
     expect(response).toStrictEqual(expected);
   });
@@ -1067,66 +1082,66 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
       questions: [
         {
           questionId: questionId1,
-          question: VALID_QUESTION1.question,
-          duration: VALID_QUESTION1.duration,
-          points: VALID_QUESTION1.points,
+          question: QUESTION_BODY1.question,
+          duration: QUESTION_BODY1.duration,
+          points: QUESTION_BODY1.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[0].answer,
+              answer: QUESTION_BODY1.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[0].correct
+              correct: QUESTION_BODY1.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION1.answers[1].answer,
+              answer: QUESTION_BODY1.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION1.answers[1].correct
+              correct: QUESTION_BODY1.answers[1].correct
             }
           ]
         },
         {
           questionId: questionId2,
-          question: VALID_QUESTION2.question,
-          duration: VALID_QUESTION2.duration,
-          points: VALID_QUESTION2.points,
+          question: QUESTION_BODY2.question,
+          duration: QUESTION_BODY2.duration,
+          points: QUESTION_BODY2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[0].answer,
+              answer: QUESTION_BODY2.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[0].correct
+              correct: QUESTION_BODY2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[1].answer,
+              answer: QUESTION_BODY2.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[1].correct
+              correct: QUESTION_BODY2.answers[1].correct
             }
           ]
         },
         {
           questionId: newQuestionId,
-          question: VALID_QUESTION2.question,
-          duration: VALID_QUESTION2.duration,
-          points: VALID_QUESTION2.points,
+          question: QUESTION_BODY2.question,
+          duration: QUESTION_BODY2.duration,
+          points: QUESTION_BODY2.points,
           answers: [
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[0].answer,
+              answer: QUESTION_BODY2.answers[0].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[0].correct
+              correct: QUESTION_BODY2.answers[0].correct
             },
             {
               answerId: expect.any(Number),
-              answer: VALID_QUESTION2.answers[1].answer,
+              answer: QUESTION_BODY2.answers[1].answer,
               colour: expect.any(String),
-              correct: VALID_QUESTION2.answers[1].correct
+              correct: QUESTION_BODY2.answers[1].correct
             }
           ]
         }
       ],
-      duration: VALID_QUESTION1.duration + VALID_QUESTION2.duration * 2
+      duration: QUESTION_BODY1.duration + QUESTION_BODY2.duration * 2
     };
     expect(response).toStrictEqual(expected);
   });
