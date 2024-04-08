@@ -557,3 +557,99 @@ describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
     });
   });
 });
+
+describe('Testing GET /v1/admin/quiz/:quizid/session/:sessionid', () => {
+  let token1: string;
+  let quizId1: number;
+  let questionId1: number;
+  let sessionId1: number;
+  beforeEach(() => {
+    token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY1).jsonBody.questionId as number;
+    sessionId1 = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
+  });
+
+  test('Correct status code and return value', () => {
+    const response = quizSessionStatusV1(token1, quizId1, sessionId1);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({
+      state: expect.any(String),
+      atQuestion: expect.any(Number),
+      players: expect.any(Array) as string[],
+      metadata: expect.any(Object) as QuizMetadata,
+    });
+  });
+
+  test.skip('Names of all the players in the quiz session are ordered in ascending order of player name', () => {
+    // TODO:
+    // Add players to the session
+    // Check if the names are sorted with sortArray()
+  });
+
+  test('Correct state, atQuestion, players and metadata values', () => {
+    const response = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody;
+    expect(response.state).toStrictEqual(State.LOBBY);
+    expect(response.atQuestion).toStrictEqual(0);
+    expect(response.players).toStrictEqual([]);
+    expect(response.metadata).toStrictEqual({
+      quizId: quizId1,
+      name: QUIZ1.name,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: QUIZ1.description,
+      numQuestions: 1,
+      questions: [
+        {
+          questionId: questionId1,
+          question: QUESTION_BODY1.question,
+          duration: QUESTION_BODY1.duration,
+          thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
+          points: QUESTION_BODY1.points,
+          answers: expect.any(Array),
+        },
+      ],
+      duration: QUESTION_BODY1.duration,
+      thumbnailUrl: expect.any(String),
+    });
+  });
+
+  describe('Unauthorised errors', () => {
+    test('Token is empty', () => {
+      expect(quizSessionStatusV1('', quizId1, sessionId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid user session', () => {
+      expect(quizSessionStatusV1(token1 + 'random', quizId1, sessionId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid looged in user session', () => {
+      authLogoutV1(token1);
+      expect(quizSessionStatusV1(token1, quizId1, sessionId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+  });
+
+  describe('Forbidden errors', () => {
+    test('Valid token but invalid quizId', () => {
+      expect(quizSessionStatusV1(token1, -1, sessionId1)).toStrictEqual(FORBIDDEN_ERROR);
+    });
+
+    test('Valid token but user does not own the quiz', () => {
+      const token2 = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody.token as string;
+      expect(quizSessionStatusV1(token2, quizId1, sessionId1)).toStrictEqual(FORBIDDEN_ERROR);
+    });
+  });
+
+  describe('Bad request errors', () => {
+    test('Invalid sessionId', () => {
+      expect(quizSessionStatusV1(token1, quizId1, -1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('SessionId does not refer to a valid session within this quiz', () => {
+      const quizId2 = quizCreateV2(token1, QUIZ2.name, QUIZ2.description).jsonBody.quizId as number;
+      quizQuestionCreateV2(token1, quizId2, QUESTION_BODY1).jsonBody.questionId as number;
+      const sessionId2 = quizSessionStartV1(token1, quizId2, 0).jsonBody.sessionId as number;
+      expect(quizSessionStatusV1(token1, quizId1, sessionId2)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+});
