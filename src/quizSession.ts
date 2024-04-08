@@ -1,5 +1,9 @@
-// import { getData, setData } from './dataStore';
-// import HTTPError from 'http-errors';
+import { getData, setData } from './dataStore';
+import {
+  State,
+  // Action
+} from './dataTypes';
+import HTTPError from 'http-errors';
 import {
   EmptyObject,
   AdminQuizSessionListReturn,
@@ -8,6 +12,12 @@ import {
   AdminQuizSessionResultsReturn,
   AdminQuizSessionResultsCSVReturn
 } from './functionTypes';
+import {
+  findUserbyToken,
+  generateRandomNumber,
+  isValidQuizIdForUser,
+  isValidToken
+} from './functionHelpers';
 
 /**
  * Retrieves active and inactive session ids (sorted in ascending order) for a quiz
@@ -26,6 +36,7 @@ export function adminQuizSessionList(token: string, quizId: number): AdminQuizSe
 /**
  * Starts a new session for a quiz
  * This copies the quiz, so that any edits whilst a session is running does not affect active session
+ * If autostart number is 0, then no auto start will occur
  *
  * @param { string } token
  * @param { number } quizId
@@ -33,7 +44,47 @@ export function adminQuizSessionList(token: string, quizId: number): AdminQuizSe
  * @returns { AdminQuizSessionStartReturn } - the session ID of the new session
  */
 export function adminQuizSessionStart(token: string, quizId: number, autoStartNum: number): AdminQuizSessionStartReturn {
-  return { sessionId: 0 };
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError);
+  }
+
+  const user = findUserbyToken(token, data);
+  const userError = isValidQuizIdForUser(user.authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError);
+  }
+
+  if (autoStartNum < 0 || autoStartNum > 50) {
+    throw HTTPError(400, 'autoStartNum must be a number between 0 and 50');
+  }
+
+  const quiz = data.quizzes.find((q) => q.quizId === quizId && q.authUserId === user.authUserId);
+  if (!quiz || !quiz.valid) {
+    throw HTTPError(400, 'Quiz is in the trash');
+  } else if (quiz.numQuestions === 0) {
+    throw HTTPError(400, 'Quiz does not have any questions');
+  }
+
+  const sessions = data.quizSessions.filter((s) => s.metadata.quizId === quizId && s.state !== State.END);
+  if (sessions.length >= 10) {
+    throw HTTPError(400, 'A maximum of 10 sessions that are not in END state currently exist for this quiz');
+  }
+
+  const newSessionId = generateRandomNumber();
+  data.quizSessions.push({
+    sessionId: newSessionId,
+    autoStartNum: autoStartNum,
+    state: State.LOBBY,
+    atQuestion: 0,
+    metadata: { ...quiz }, // copy the quiz
+    questionCountDown: undefined,
+    questionDuration: undefined
+  });
+  setData(data);
+  return { sessionId: newSessionId };
 }
 
 /**
