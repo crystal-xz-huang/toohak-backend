@@ -90,7 +90,6 @@ export function adminQuizSessionStart(token: string, quizId: number, autoStartNu
     throw HTTPError(400, 'A maximum of 10 sessions that are not in END state currently exist for this quiz');
   }
 
-  // create a copy of the quiz but without the authUserId and valid fields
   const quizCopy = { ...quiz };
   delete quizCopy.authUserId;
   delete quizCopy.valid;
