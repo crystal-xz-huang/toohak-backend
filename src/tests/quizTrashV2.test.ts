@@ -244,7 +244,7 @@ describe('Testing POST /v2/admin/quiz/{quizid}/restore', () => {
   });
 
   test('timeLastEdited is updated', () => {
-    quizRestoreV2(tokenUser1, quizId1).jsonBody;
+    quizRestoreV2(tokenUser1, quizId1);
     const expectedTime = getTimeStamp();
     const timeLastEdited = quizInfoV2(tokenUser1, quizId1).jsonBody.timeLastEdited as number;
     checkTimeStamp(timeLastEdited, expectedTime);
