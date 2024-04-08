@@ -22,3 +22,8 @@ export function sleepSync(ms: number) {
     // zzzZZ - comment needed so eslint doesn't complain
   }
 }
+
+// Sort an array of numbers in ascending order
+export function sortArray(arr: number[]): number[] {
+  return arr.sort((a, b) => a - b);
+}

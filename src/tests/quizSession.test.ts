@@ -41,8 +41,10 @@ import {
 } from '../dataTypes';
 
 import { QuizMetadata } from '../functionTypes';
+import { sortArray } from '../testHelpers'
 
 import sleep from 'atomic-sleep';
+import exp from 'constants';
 
 beforeEach(() => {
   clearV1();
@@ -97,6 +99,80 @@ describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
     expect(response.statusCode).toStrictEqual(200);
     expect(quizListV2(token1).jsonBody).toStrictEqual({ quizzes: [] });
     expect(quizListV2(token2).jsonBody).toStrictEqual({ quizzes: [{ quizId: quizId1, name: QUIZ1.name }] });
+  });
+});
+
+describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
+  let token1: string;
+  let quizId1: number;
+  let sessionId1: number, sessionId2: number, sessionId3: number, sessionId4: number;
+  beforeEach(() => {
+    token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    quizQuestionCreateV2(token1, quizId1, QUESTION_BODY1).jsonBody.questionId as number;
+    sessionId1 = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
+    sessionId2 = quizSessionStartV1(token1, quizId1, 1).jsonBody.sessionId as number;
+    sessionId3 = quizSessionStartV1(token1, quizId1, 2).jsonBody.sessionId as number;
+    sessionId4 = quizSessionStartV1(token1, quizId1, 3).jsonBody.sessionId as number;
+  });
+
+  test('Correct status code and return value', () => {
+    const response = quizSessionListV1(token1, quizId1);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({ 
+      activeSessions: expect.any(Array),
+      inactiveSessions: expect.any(Array),
+    });
+  });
+
+  test('Retrieves active and inactive session ids (sorted in ascending order) for a quiz', () => {
+    const response = quizSessionListV1(token1, quizId1).jsonBody;
+    expect(response.activeSessions).toStrictEqual(sortArray([sessionId1, sessionId2, sessionId3, sessionId4]));
+    expect(response.inactiveSessions).toStrictEqual([]);
+  });
+
+  test('Quiz has both active and inactive sessions', () => {
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END);
+    quizSessionUpdateV1(token1, quizId1, sessionId2, Action.END);
+    const response = quizSessionListV1(token1, quizId1).jsonBody;
+    expect(response.activeSessions).toStrictEqual(sortArray([sessionId3, sessionId4]));
+    expect(response.inactiveSessions).toStrictEqual(sortArray([sessionId1, sessionId2]));
+  });
+
+  test('Quiz has only inactive sessions', () => {
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END);
+    quizSessionUpdateV1(token1, quizId1, sessionId2, Action.END);
+    quizSessionUpdateV1(token1, quizId1, sessionId3, Action.END);
+    quizSessionUpdateV1(token1, quizId1, sessionId4, Action.END);
+    const response = quizSessionListV1(token1, quizId1).jsonBody;
+    expect(response.activeSessions).toStrictEqual([]);
+    expect(response.inactiveSessions).toStrictEqual(sortArray([sessionId1, sessionId2, sessionId3, sessionId4]));
+  });
+
+  describe('Unauthorised errors', () => {
+    test('Token is empty', () => {
+      expect(quizSessionListV1('', quizId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid user session', () => {
+      expect(quizSessionListV1(token1 + 'random', quizId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid looged in user session', () => {
+      authLogoutV1(token1);
+      expect(quizSessionListV1(token1, quizId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+  });
+
+  describe('Forbidden errors', () => {
+    test('Valid token but invalid quizId', () => {
+      expect(quizSessionListV1(token1, -1)).toStrictEqual(FORBIDDEN_ERROR);
+    });
+
+    test('Valid token but user does not own the quiz', () => {
+      const token2 = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody.token as string;
+      expect(quizSessionListV1(token2, quizId1)).toStrictEqual(FORBIDDEN_ERROR);
+    });
   });
 });
 
@@ -486,3 +562,4 @@ describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
     });
   });
 });
+
