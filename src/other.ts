@@ -15,6 +15,8 @@ export function clear(): EmptyObject {
   data.quizSessions.forEach((session) => {
     clearTimeout(session.questionCountDown);
     clearTimeout(session.questionDuration);
+    session.questionCountDown = null;
+    session.questionDuration = null;
   });
   data.quizSessions = [];
   data.players = [];

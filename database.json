@@ -1,8 +1,158 @@
 {
-  "users": [],
-  "quizzes": [],
-  "userSessions": [],
-  "quizSessions": [],
+  "users": [
+    {
+      "authUserId": 1,
+      "email": "johnsmith@gmail.com",
+      "password": "fcf16261e5da4c913baa070a33ee125bda503021da7ddc870d5f4b3a73e2a755",
+      "nameFirst": "John",
+      "nameLast": "Smith",
+      "numSuccessfulLogins": 1,
+      "numFailedPasswordsSinceLastLogin": 0
+    }
+  ],
+  "quizzes": [
+    {
+      "quizId": 488131,
+      "name": "Quiz 1",
+      "authUserId": 1,
+      "description": "This is a quiz",
+      "timeCreated": 1712610435,
+      "timeLastEdited": 1712610436,
+      "numQuestions": 2,
+      "questions": [
+        {
+          "questionId": 400244,
+          "question": "Who is the Monarch of England?",
+          "duration": 4,
+          "thumbnailUrl": "http://google.com/some/image/path.jpg",
+          "points": 5,
+          "answers": [
+            {
+              "answerId": 0,
+              "answer": "Prince Charles",
+              "colour": "pink",
+              "correct": true
+            },
+            {
+              "answerId": 1,
+              "answer": "Queen Elizabeth II",
+              "colour": "purple",
+              "correct": false
+            }
+          ]
+        },
+        {
+          "questionId": 191577,
+          "question": "What is the capital of Australia?",
+          "duration": 10,
+          "thumbnailUrl": "https://google.com/some/image/path.jpg",
+          "points": 5,
+          "answers": [
+            {
+              "answerId": 0,
+              "answer": "Canberra",
+              "colour": "blue",
+              "correct": true
+            },
+            {
+              "answerId": 1,
+              "answer": "Sydney",
+              "colour": "red",
+              "correct": false
+            }
+          ]
+        }
+      ],
+      "duration": 14,
+      "thumbnailUrl": "",
+      "valid": true
+    }
+  ],
+  "userSessions": [
+    {
+      "authUserId": 1,
+      "token": "8225a59c-656f-46c9-989e-f9dd91660cc8",
+      "valid": true
+    }
+  ],
+  "quizSessions": [
+    {
+      "sessionId": 882563,
+      "autoStartNum": 0,
+      "state": "QUESTION_CLOSE",
+      "atQuestion": 2,
+      "metadata": {
+        "quizId": 488131,
+        "name": "Quiz 1",
+        "description": "This is a quiz",
+        "timeCreated": 1712610435,
+        "timeLastEdited": 1712610436,
+        "numQuestions": 2,
+        "questions": [
+          {
+            "questionId": 400244,
+            "question": "Who is the Monarch of England?",
+            "duration": 4,
+            "thumbnailUrl": "http://google.com/some/image/path.jpg",
+            "points": 5,
+            "answers": [
+              {
+                "answerId": 0,
+                "answer": "Prince Charles",
+                "colour": "pink",
+                "correct": true
+              },
+              {
+                "answerId": 1,
+                "answer": "Queen Elizabeth II",
+                "colour": "purple",
+                "correct": false
+              }
+            ]
+          },
+          {
+            "questionId": 191577,
+            "question": "What is the capital of Australia?",
+            "duration": 10,
+            "thumbnailUrl": "https://google.com/some/image/path.jpg",
+            "points": 5,
+            "answers": [
+              {
+                "answerId": 0,
+                "answer": "Canberra",
+                "colour": "blue",
+                "correct": true
+              },
+              {
+                "answerId": 1,
+                "answer": "Sydney",
+                "colour": "red",
+                "correct": false
+              }
+            ]
+          }
+        ],
+        "duration": 14,
+        "thumbnailUrl": ""
+      },
+      "questionCountDown": {
+        "_idleTimeout": 3000,
+        "_idlePrev": null,
+        "_idleNext": null,
+        "_idleStart": 73377,
+        "_repeat": null,
+        "_destroyed": true
+      },
+      "questionDuration": {
+        "_idleTimeout": 10000,
+        "_idlePrev": null,
+        "_idleNext": null,
+        "_idleStart": 76379,
+        "_repeat": null,
+        "_destroyed": false
+      }
+    }
+  ],
   "players": [],
   "messages": []
 }

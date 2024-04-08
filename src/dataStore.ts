@@ -31,17 +31,11 @@ Example usage
 
 // Use get() to access the data
 export function getData(): Data {
-  if (!fs.existsSync('./database.json')) {
-    return data;
+  if (fs.existsSync('./database.json')) {
+    const file = fs.readFileSync('./database.json', { flag: 'r' });
+    return JSON.parse(file.toString());
   }
-  const file = fs.readFileSync('./database.json', { flag: 'r' });
-  return JSON.parse(file.toString());
-
-  // if (fs.existsSync('./database.json')) {
-  //   const file = fs.readFileSync('./database.json', { flag: 'r' });
-  //   return JSON.parse(file.toString());
-  // }
-  // return data;
+  return data;
 }
 
 // Use set(newData) to pass in the entire data object, with modifications made

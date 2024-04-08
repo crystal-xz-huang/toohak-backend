@@ -60,14 +60,26 @@ interface AnswerBody {
   correct: boolean;
 }
 
+export interface QuizMetadata {
+  quizId: number;
+  name: string;
+  timeCreated: number;
+  timeLastEdited: number;
+  description: string;
+  numQuestions: number;
+  questions: QuestionBody[];
+  duration: number;
+  thumbnailUrl: string;
+}
+
 export interface QuizSession {
   sessionId: number;
   autoStartNum: number; // number of players needed to auto start the quiz
   state: State, // the current state of the quiz session
   atQuestion: number; // the question the quiz session is currently at
-  metadata: Quiz; // a copy of the quiz being played
-  questionCountDown?: NodeJS.Timeout;
-  questionDuration?: NodeJS.Timeout;
+  metadata: QuizMetadata; // the metadata of the quiz
+  questionCountDown: ReturnType<typeof setTimeout> | null;
+  questionDuration: ReturnType<typeof setTimeout> | null;
 }
 
 interface Player {

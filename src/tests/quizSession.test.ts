@@ -54,8 +54,6 @@ afterEach(() => {
 });
 
 //= =============================================================================
-// POST /v2/admin/quiz/{quizid}/transfer waiting on quizSessionStartV1 and quizSessionUpdateV1 to be implemented
-// POST /v1/admin/quiz/:quizid/session/start waiting on quizSessionListV1, quizSessionStatusV1 and quizInfoV2 to be implemented
 //= =============================================================================
 describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   let token1: string;
@@ -229,7 +227,7 @@ describe('Testing POST /v1/admin/quiz/:quizid/session/start', () => {
   });
 });
 
-describe.only('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
+describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
   let token1: string;
   let quizId1: number;
   let sessionId1: number;
@@ -242,6 +240,7 @@ describe.only('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
   });
 
   test('Correct status code and return value', () => {
+    sessionId1 = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
     const response = quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END);
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual({});
@@ -304,8 +303,7 @@ describe.only('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
       Action.GO_TO_FINAL_RESULTS,
     ])('%s action cannot be applied in the QUESTION_COUNTDOWN state', (InvalidAction) => {
       quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION);
-      const response = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody;
-      expect(response.state).toStrictEqual(State.QUESTION_COUNTDOWN);
+      expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_COUNTDOWN);
       expect(quizSessionUpdateV1(token1, quizId1, sessionId1, InvalidAction)).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
@@ -321,7 +319,6 @@ describe.only('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
     });
 
     test.each([
-      Action.NEXT_QUESTION,
       Action.SKIP_COUNTDOWN,
     ])('%s action cannot be applied in the QUESTION_CLOSE state', (InvalidAction) => {
       expect(quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION)).toStrictEqual(OK_SUCCESS);
@@ -332,7 +329,6 @@ describe.only('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
     });
 
     test.each([
-      Action.NEXT_QUESTION,
       Action.SKIP_COUNTDOWN,
       Action.GO_TO_ANSWER,
     ])('%s action cannot be applied in the ANSWER_SHOW state', (InvalidAction) => {
@@ -486,3 +482,4 @@ describe.only('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
     });
   });
 });
+

@@ -1,9 +1,6 @@
-import { getData, setData } from './dataStore';
-import {
-  State,
-  // Action
-} from './dataTypes';
 import HTTPError from 'http-errors';
+import { getData, setData } from './dataStore';
+import { Action, State } from './dataTypes';
 import {
   EmptyObject,
   AdminQuizSessionListReturn,
@@ -18,6 +15,8 @@ import {
   isValidQuizIdForUser,
   isValidToken
 } from './functionHelpers';
+import { set } from 'yaml/dist/schema/yaml-1.1/set';
+
 
 /**
  * Retrieves active and inactive session ids (sorted in ascending order) for a quiz
@@ -27,10 +26,30 @@ import {
  * @returns { AdminQuizSessionListReturn } - an object containing the active and inactive session ids
  */
 export function adminQuizSessionList(token: string, quizId: number): AdminQuizSessionListReturn {
-  return {
-    activeSessions: [0],
-    inactiveSessions: [0],
-  };
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError);
+  }
+
+  const user = findUserbyToken(token, data);
+  const userError = isValidQuizIdForUser(user.authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError);
+  }
+
+  const activeSessions = data.quizSessions
+    .filter((s) => s.metadata.quizId === quizId && s.state !== State.END)
+    .map((s) => s.sessionId)
+    .sort((a, b) => a - b);
+
+  const inactiveSessions = data.quizSessions
+    .filter((s) => s.metadata.quizId === quizId && s.state === State.END)
+    .map((s) => s.sessionId)
+    .sort((a, b) => a - b);
+
+  return { activeSessions, inactiveSessions };
 }
 
 /**
@@ -73,15 +92,20 @@ export function adminQuizSessionStart(token: string, quizId: number, autoStartNu
     throw HTTPError(400, 'A maximum of 10 sessions that are not in END state currently exist for this quiz');
   }
 
+  // create a copy of the quiz but without the authUserId and valid fields
+  const quizCopy = { ...quiz };
+  delete quizCopy.authUserId;
+  delete quizCopy.valid;
+
   const newSessionId = generateRandomNumber();
   data.quizSessions.push({
     sessionId: newSessionId,
     autoStartNum: autoStartNum,
     state: State.LOBBY,
     atQuestion: 0,
-    metadata: { ...quiz }, // copy the quiz
-    questionCountDown: undefined,
-    questionDuration: undefined
+    metadata: quizCopy,
+    questionCountDown: null,
+    questionDuration: null,
   });
   setData(data);
   return { sessionId: newSessionId };
@@ -97,6 +121,95 @@ export function adminQuizSessionStart(token: string, quizId: number, autoStartNu
  * @returns { EmptyObject }
  */
 export function adminQuizSessionUpdate(token: string, quizId: number, sessionId: number, action: string): EmptyObject {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError);
+  }
+
+  const user = findUserbyToken(token, data);
+  const userError = isValidQuizIdForUser(user.authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError);
+  }
+
+  const session = data.quizSessions.find((s) => s.sessionId === sessionId && s.metadata.quizId === quizId);
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+
+  if (!Object.values(Action).includes(action as Action)) {
+    throw HTTPError(400, 'Action provided is not a valid Action enum');
+  }
+
+  const questions = session.metadata.questions;
+  if (action === Action.NEXT_QUESTION) {
+    // only valid in LOBBY, QUESTION_CLOSE and ANSWER_SHOW
+    if (![State.LOBBY, State.QUESTION_CLOSE, State.ANSWER_SHOW].includes(session.state as State)) {
+      throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
+    }
+
+    if (session.atQuestion >= questions.length) {
+      throw HTTPError(400, 'Cannot move to the next question as there are no more questions');
+    }
+
+    session.atQuestion++;
+    session.state = State.QUESTION_COUNTDOWN;
+    const question = questions[session.atQuestion - 1];
+    setData(data);
+    session.questionCountDown = setTimeout(() => {
+      session.state = State.QUESTION_OPEN;
+      setData(data);
+      session.questionDuration = setTimeout(() => {
+        session.state = State.QUESTION_CLOSE;
+        setData(data);
+      }, question.duration * 1000); 
+    }, 3 * 1000);
+  } else if (action === Action.SKIP_COUNTDOWN) {
+    // only valid in QUESTION_COUNTDOWN
+    if (session.state !== State.QUESTION_COUNTDOWN) {
+      throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
+    }
+
+    clearTimeout(session.questionCountDown);
+    clearTimeout(session.questionDuration);
+    session.questionCountDown = null;
+    session.questionDuration = null;
+    session.state = State.QUESTION_OPEN;
+    setData(data);
+    session.questionDuration = setTimeout(() => {
+      session.state = State.QUESTION_CLOSE;
+      setData(data);
+    }, questions[session.atQuestion - 1].duration * 1000);
+  } else if (action === Action.GO_TO_ANSWER) {
+    // only valid in QUESTION_OPEN and QUESTION_CLOSE
+    if (![State.QUESTION_OPEN, State.QUESTION_CLOSE].includes(session.state as State)) {
+      throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
+    }
+    clearTimeout(session.questionDuration);
+    session.questionDuration = null;
+    session.state = State.ANSWER_SHOW;
+    setData(data);
+  } else if (action === Action.GO_TO_FINAL_RESULTS) {
+    // only valid in ANSWER_SHOW and QUESTION_CLOSE
+    if (![State.ANSWER_SHOW, State.QUESTION_CLOSE].includes(session.state)) {
+      throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
+    }
+    session.state = State.FINAL_RESULTS;
+    setData(data);
+  } else if (action ===  Action.END) {
+    // valid in all states except END itself
+    if (session.state === State.END) {
+      throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
+    }
+    clearTimeout(session.questionCountDown);
+    clearTimeout(session.questionDuration);
+    session.questionCountDown = null;
+    session.questionDuration = null;
+    session.state = State.END;
+    setData(data);
+  }
   return {};
 }
 
@@ -109,37 +222,34 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
  * @returns { AdminQuizSessionStatusReturn } - an object containing the status of the quiz session
  */
 export function adminQuizSessionStatus(token: string, quizId: number, sessionId: number): AdminQuizSessionStatusReturn {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError);
+  }
+
+  const user = findUserbyToken(token, data);
+  const userError = isValidQuizIdForUser(user.authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError);
+  }
+
+  const session = data.quizSessions.find((s) => s.sessionId === sessionId && s.metadata.quizId === quizId);
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+
+  // find the players in the session
+  const players = data.players
+    .filter((p) => p.sessionId === sessionId)
+    .map((p) => p.name);
+
   return {
-    state: 'LOBBY',
-    atQuestion: 3,
-    players: ['Hayden'],
-    metadata: {
-      quizId: 5546,
-      name: 'This is the name of the quiz',
-      timeCreated: 1683019484,
-      timeLastEdited: 1683019484,
-      description: 'This quiz is so we can have a lot of fun',
-      numQuestions: 1,
-      questions: [
-        {
-          questionId: 5546,
-          question: 'Who is the Monarch of England?',
-          duration: 4,
-          thumbnailUrl: 'http://google.com/some/image/path.jpg',
-          points: 5,
-          answers: [
-            {
-              answerId: 2384,
-              answer: 'Prince Charles',
-              colour: 'red',
-              correct: true
-            }
-          ]
-        }
-      ],
-      duration: 44,
-      thumbnailUrl: 'http://google.com/some/image/path.jpg'
-    }
+    state: session.state,
+    atQuestion: session.atQuestion,
+    players: players,
+    metadata: session.metadata
   };
 }
 
