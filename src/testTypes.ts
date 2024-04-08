@@ -339,7 +339,7 @@ export const FALSE_QUESTION_ANSWERS = {
 //= ====================================================================
 export const QUESTION_BODY1 = {
   question: 'Who is the Monarch of England?',
-  duration: 4,
+  duration: 4, // 4 seconds
   points: 5,
   answers: [
     { answer: 'Prince Charles', correct: true },
@@ -350,7 +350,7 @@ export const QUESTION_BODY1 = {
 
 export const QUESTION_BODY2 = {
   question: 'What is the capital of Australia?',
-  duration: 3,
+  duration: 10,
   points: 5,
   answers: [
     { answer: 'Canberra', correct: true },
