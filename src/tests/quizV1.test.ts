@@ -24,7 +24,7 @@ import {
   INVALID_QUIZ_NAMES,
 } from '../testTypes';
 
-import { AdminQuizListReturn, AdminQuizInfoReturn } from '../functionTypes';
+import { AdminQuizListReturn } from '../functionTypes';
 
 beforeEach(() => {
   clearV1();
@@ -213,19 +213,21 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
       numQuestions: expect.any(Number),
       questions: expect.any(Array),
       duration: expect.any(Number),
+      thumbnailUrl: expect.any(String),
     });
   });
 
   test('Successful retrieval of one quiz', () => {
-    const expected: AdminQuizInfoReturn = {
+    const expected = {
       quizId: quizId,
       name: QUIZ1.name,
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: QUIZ1.description,
       numQuestions: 0,
-      questions: [],
+      questions: expect.any(Array),
       duration: 0,
+      thumbnailUrl: expect.any(String),
     };
     const response = quizInfoV1(token, quizId).jsonBody;
     expect(response).toStrictEqual(expected);

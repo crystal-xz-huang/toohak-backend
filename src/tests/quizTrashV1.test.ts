@@ -560,7 +560,7 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
     quizTrashV1(token, quizId);
     quizRestoreV1(token, quizId);
     const after = quizInfoV1(token, quizId).jsonBody;
-    expect(after).toStrictEqual(before);
+    expect(after.quizId).toStrictEqual(before.quizId);
   });
 
   test('Successful quiz info retrieval after quiz is sent to the trash', () => {

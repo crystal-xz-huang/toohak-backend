@@ -79,55 +79,6 @@ export const INVALID_QUIZ_NAMES = [
   { name: 'a'.repeat(31) },
 ];
 
-export const VALID_QUESTION1 = {
-  question: 'Who is the Monarch of England?',
-  duration: 4,
-  points: 5,
-  answers: [
-    { answer: 'Prince Charles', correct: true },
-    { answer: 'Queen Elizabeth II', correct: false },
-  ]
-};
-
-export const VALID_QUESTION2 = {
-  question: 'What is the capital of Australia?',
-  duration: 3,
-  points: 5,
-  answers: [
-    { answer: 'Canberra', correct: true },
-    { answer: 'Sydney', correct: false },
-  ]
-};
-
-export const VALID_QUESTION3 = {
-  question: 'What is the capital of France?',
-  duration: 2,
-  points: 5,
-  answers: [
-    { answer: 'Paris', correct: true },
-    { answer: 'Lyon', correct: false },
-  ]
-};
-
-export const VALID_QUESTION4 = {
-  question: 'What is the capital of Japan?',
-  duration: 1,
-  points: 5,
-  answers: [
-    { answer: 'Tokyo', correct: true },
-    { answer: 'Osaka', correct: false },
-  ]
-};
-
-export const VALID_QUESTION5 = {
-  question: 'What is the capital of China?',
-  duration: 5,
-  points: 5,
-  answers: [
-    { answer: 'Beijing', correct: true },
-    { answer: 'Shanghai', correct: false },
-  ]
-};
 // Question string is less than 5 characters in length
 export const SHORT_QUESTION_STRING = [
   {
@@ -382,3 +333,66 @@ export const FALSE_QUESTION_ANSWERS = {
     { answer: 'Prince Harry', correct: false },
   ]
 };
+
+//= ====================================================================
+// NEW QUESTION BODY FOR ITERATION 3
+//= ====================================================================
+export const QUESTION_BODY1 = {
+  question: 'Who is the Monarch of England?',
+  duration: 4,
+  points: 5,
+  answers: [
+    { answer: 'Prince Charles', correct: true },
+    { answer: 'Queen Elizabeth II', correct: false },
+  ],
+  thumbnailUrl: 'http://google.com/some/image/path.jpg'
+};
+
+export const QUESTION_BODY2 = {
+  question: 'What is the capital of Australia?',
+  duration: 3,
+  points: 5,
+  answers: [
+    { answer: 'Canberra', correct: true },
+    { answer: 'Sydney', correct: false },
+  ],
+  thumbnailUrl: 'https://google.com/some/image/path.jpg'
+};
+
+export const QUESTION_BODY3 = {
+  question: 'What is the capital of France?',
+  duration: 2,
+  points: 5,
+  answers: [
+    { answer: 'Paris', correct: true },
+    { answer: 'Lyon', correct: false },
+  ],
+  thumbnailUrl: 'https://google.com/some/image/path.jpeg'
+};
+
+export const QUESTION_BODY4 = {
+  question: 'What is the capital of Japan?',
+  duration: 1,
+  points: 5,
+  answers: [
+    { answer: 'Tokyo', correct: true },
+    { answer: 'Osaka', correct: false },
+  ],
+  thumbnailUrl: 'https://google.com/some/image/path.png'
+};
+
+// does not end with one of the following filetypes (case insensitive): jpg, jpeg, png
+// does not begin with 'http://' or 'https://'
+export const INVALID_IMG_URLS = [
+  '',
+  'google.com/some/image/path.jpg',
+  'http://google.com/some/image/path',
+  'http://google.com/some/image/path.gif',
+  'https://google.com/some/image/path',
+  'https://google.com/some/image/path.gif',
+  'www.google.com/some/image/path.jpg',
+  'http:google.com/some/image/path.jpg',
+  'https:google.com/some/image/path.jpg',
+  'HTTP://google.com/some/image/path.jpg',
+  'HTTPS://google.com/some/image/path.jpg',
+];

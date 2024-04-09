@@ -25,6 +25,7 @@ import {
   isValidQuizIdForUser,
   isValidQuestionIdForQuiz,
   isValidQuestion,
+  isValidImgURL,
 } from './functionHelpers';
 
 /**
@@ -88,7 +89,7 @@ export function adminQuizCreate(token: string, name: string, description: string
     numQuestions: 0,
     questions: [],
     duration: 0,
-    // thumbnailUrl: '',
+    thumbnailUrl: '',
     valid: true
   });
 
@@ -159,7 +160,7 @@ export function adminQuizInfo(token: string, quizId: number): AdminQuizInfoRetur
     numQuestions: quiz.numQuestions,
     questions: quiz.questions,
     duration: quiz.duration,
-    // thumbnailUrl: quiz.thumbnailUrl,
+    thumbnailUrl: quiz.thumbnailUrl,
   };
 }
 
@@ -404,14 +405,20 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
     throw HTTPError(400, questionError.error);
   }
 
+  const thumbnailUrlError = isValidImgURL(questionBody.thumbnailUrl);
+  if (thumbnailUrlError) {
+    throw HTTPError(400, thumbnailUrlError.error);
+  }
+
+  const questionId = generateRandomNumber();
   quiz.numQuestions = quiz.numQuestions + 1;
   quiz.timeLastEdited = getCurrentTime();
   quiz.duration = quiz.duration + questionBody.duration;
   quiz.questions.push({
-    questionId: quiz.numQuestions,
+    questionId: questionId,
     question: questionBody.question,
     duration: questionBody.duration,
-    // thumbnailUrl: '',
+    thumbnailUrl: questionBody.thumbnailUrl,
     points: questionBody.points,
     answers: questionBody.answers.map((answer, index) => ({
       answerId: index,
@@ -422,7 +429,7 @@ export function adminQuizQuestionCreate(token: string, quizId: number, questionB
   });
 
   setData(data);
-  return { questionId: quiz.numQuestions };
+  return { questionId: questionId };
 }
 
 /**
@@ -562,10 +569,12 @@ export function adminQuizQuestionDuplicate(token: string, quizId: number, questi
 
   // duplicate the question to immediately after where the source question is
   const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
+  const newQuestionId = generateRandomNumber();
   const newQuestion = {
-    questionId: quiz.numQuestions + 1,
+    questionId: newQuestionId,
     question: question.question,
     duration: question.duration,
+    thumbnailUrl: question.thumbnailUrl,
     points: question.points,
     answers: question.answers.map(answer => ({
       answerId: answer.answerId,
@@ -580,7 +589,7 @@ export function adminQuizQuestionDuplicate(token: string, quizId: number, questi
   quiz.questions.splice(questionIndex + 1, 0, newQuestion);
 
   setData(data);
-  return { newQuestionId: newQuestion.questionId };
+  return { newQuestionId: newQuestionId };
 }
 
 /**
