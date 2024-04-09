@@ -48,7 +48,7 @@ type QuestionBody = {
   questionId: number;
   question: string;
   duration: number;
-  thumbnailUrl?: string;
+  thumbnailUrl?: string; // remove the ?
   points: number;
   answers: AnswerBody[];
 }
@@ -102,7 +102,7 @@ export type AdminQuizSessionStartReturn = {
   sessionId: number;
 }
 
-type QuizMetadata = {
+export type QuizMetadata = {
   quizId: number;
   name: string;
   timeCreated: number;

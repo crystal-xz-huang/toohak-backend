@@ -12,7 +12,13 @@ export function clear(): EmptyObject {
   data.users = [];
   data.quizzes = [];
   data.userSessions = [];
+  data.quizSessions.forEach((session) => {
+    clearTimeout(session.questionCountDown);
+    clearTimeout(session.questionDuration);
+  });
   data.quizSessions = [];
+  data.players = [];
+  data.messages = [];
   setData(data);
   return {};
 }
