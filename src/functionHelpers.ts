@@ -378,3 +378,13 @@ export function isValidImgURL(url: string): ErrorMessage | null {
   // }
   return null;
 }
+
+// export function isValidSessionIdforQuiz(quizId: number, sessionId: number, data: Data): ErrorMessage | null {
+//   const session = data.quizSessions
+//     .filter((s) => s.metadata.quizId === quizId)
+//     .find((s) => s.sessionId === sessionId);
+
+//   if (!session) {
+//     return createError('SessionId does not refer to a valid session within the quiz');
+//   }
+// }

@@ -24,8 +24,7 @@
   "globals": {
     "document": "readonly",
     "navigator": "readonly",
-    "window": "readonly",
-    "NodeJS": true
+    "window": "readonly"
   },
   "rules": {
     "@typescript-eslint/no-var-requires": 0,

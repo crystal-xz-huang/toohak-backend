@@ -48,7 +48,7 @@ type QuestionBody = {
   questionId: number;
   question: string;
   duration: number;
-  thumbnailUrl?: string; // remove the ?
+  thumbnailUrl: string;
   points: number;
   answers: AnswerBody[];
 }
