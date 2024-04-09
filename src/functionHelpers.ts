@@ -365,15 +365,15 @@ export function isValidQuestion(quiz: Quiz, question: QuestionBodyInput): ErrorM
  * - does not end with one of the following filetypes (case insensitive): jpg, jpeg, png
  * - does not begin with 'http://' or 'https://'
  */
-export function isValidImgURL(url: string): ErrorMessage | null {
-  if (url === '') {
+export function isValidImgURL(imgUrl: string): ErrorMessage | null {
+  if (imgUrl === '') {
     return createError('URL is empty');
-  } else if (!URL_FILETYPE.test(url)) {
+  } else if (!URL_FILETYPE.test(imgUrl)) {
     return createError('URL does not end with a valid filetype');
-  } else if (!URL_PROTOCOL.test(url)) {
+  } else if (!URL_PROTOCOL.test(imgUrl)) {
     return createError('URL does not begin with http:// or https://');
   }
-  // else if (!validator.isURL(url, { protocols: ['http', 'https'], require_protocol: true, require_valid_protocol: true })) {
+  // else if (!validator.isURL(imgUrl, { protocols: ['http', 'https'], require_protocol: true, require_valid_protocol: true })) {
   //   return createError('URL is not a valid URL');
   // }
   return null;

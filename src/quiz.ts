@@ -648,5 +648,27 @@ export function adminQuizQuestionRemove(token: string, quizId: number, questionI
  * @returns { EmptyObject }
  */
 export function adminQuizThumbnailUpdate(token: string, quizId: number, imgUrl: string): EmptyObject {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const authUserId = findUserbyToken(token, data).authUserId;
+  const userError = isValidQuizIdForUser(authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError.error);
+  }
+
+  const imgUrlError = isValidImgURL(imgUrl);
+  if (imgUrlError) {
+    throw HTTPError(400, imgUrlError.error);
+  }
+
+  const quiz = findQuizbyId(quizId, data);
+  quiz.thumbnailUrl = imgUrl;
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+
   return {};
 }
