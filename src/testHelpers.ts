@@ -1,7 +1,6 @@
 /**
  * Helper functions for testing
 */
-
 export const getTimeStamp = () => Math.floor(Date.now() / 1000);
 
 export function checkTimeStamp(timeStamp: number, expectedTimeStamp: number) {
@@ -21,4 +20,9 @@ export function sleepSync(ms: number) {
   while (new Date().getTime() - startTime < ms) {
     // zzzZZ - comment needed so eslint doesn't complain
   }
+}
+
+// Sort an array of numbers in ascending order
+export function sortArray(arr: number[]): number[] {
+  return arr.sort((a, b) => a - b);
 }

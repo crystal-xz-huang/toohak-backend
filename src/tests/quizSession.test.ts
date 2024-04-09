@@ -21,7 +21,6 @@ import {
   // quizSessionResultsV1,
   // quizSessionCSVResultsV1,
 } from '../httpHelpers';
-
 import {
   BAD_REQUEST_ERROR,
   UNAUTHORISED_ERROR,
@@ -34,14 +33,12 @@ import {
   QUESTION_BODY2,
   OK_SUCCESS,
 } from '../testTypes';
-
 import {
   State,
   Action
 } from '../dataTypes';
-
 import { QuizMetadata } from '../functionTypes';
-
+import { sortArray } from '../testHelpers';
 import sleep from 'atomic-sleep';
 
 beforeEach(() => {
@@ -97,6 +94,80 @@ describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
     expect(response.statusCode).toStrictEqual(200);
     expect(quizListV2(token1).jsonBody).toStrictEqual({ quizzes: [] });
     expect(quizListV2(token2).jsonBody).toStrictEqual({ quizzes: [{ quizId: quizId1, name: QUIZ1.name }] });
+  });
+});
+
+describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
+  let token1: string;
+  let quizId1: number;
+  let sessionId1: number, sessionId2: number, sessionId3: number, sessionId4: number;
+  beforeEach(() => {
+    token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    quizQuestionCreateV2(token1, quizId1, QUESTION_BODY1).jsonBody.questionId as number;
+    sessionId1 = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
+    sessionId2 = quizSessionStartV1(token1, quizId1, 1).jsonBody.sessionId as number;
+    sessionId3 = quizSessionStartV1(token1, quizId1, 2).jsonBody.sessionId as number;
+    sessionId4 = quizSessionStartV1(token1, quizId1, 3).jsonBody.sessionId as number;
+  });
+
+  test('Correct status code and return value', () => {
+    const response = quizSessionListV1(token1, quizId1);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({
+      activeSessions: expect.any(Array),
+      inactiveSessions: expect.any(Array),
+    });
+  });
+
+  test('Retrieves active and inactive session ids (sorted in ascending order) for a quiz', () => {
+    const response = quizSessionListV1(token1, quizId1).jsonBody;
+    expect(response.activeSessions).toStrictEqual(sortArray([sessionId1, sessionId2, sessionId3, sessionId4]));
+    expect(response.inactiveSessions).toStrictEqual([]);
+  });
+
+  test('Quiz has both active and inactive sessions', () => {
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END);
+    quizSessionUpdateV1(token1, quizId1, sessionId2, Action.END);
+    const response = quizSessionListV1(token1, quizId1).jsonBody;
+    expect(response.activeSessions).toStrictEqual(sortArray([sessionId3, sessionId4]));
+    expect(response.inactiveSessions).toStrictEqual(sortArray([sessionId1, sessionId2]));
+  });
+
+  test('Quiz has only inactive sessions', () => {
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END);
+    quizSessionUpdateV1(token1, quizId1, sessionId2, Action.END);
+    quizSessionUpdateV1(token1, quizId1, sessionId3, Action.END);
+    quizSessionUpdateV1(token1, quizId1, sessionId4, Action.END);
+    const response = quizSessionListV1(token1, quizId1).jsonBody;
+    expect(response.activeSessions).toStrictEqual([]);
+    expect(response.inactiveSessions).toStrictEqual(sortArray([sessionId1, sessionId2, sessionId3, sessionId4]));
+  });
+
+  describe('Unauthorised errors', () => {
+    test('Token is empty', () => {
+      expect(quizSessionListV1('', quizId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid user session', () => {
+      expect(quizSessionListV1(token1 + 'random', quizId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid looged in user session', () => {
+      authLogoutV1(token1);
+      expect(quizSessionListV1(token1, quizId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+  });
+
+  describe('Forbidden errors', () => {
+    test('Valid token but invalid quizId', () => {
+      expect(quizSessionListV1(token1, -1)).toStrictEqual(FORBIDDEN_ERROR);
+    });
+
+    test('Valid token but user does not own the quiz', () => {
+      const token2 = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody.token as string;
+      expect(quizSessionListV1(token2, quizId1)).toStrictEqual(FORBIDDEN_ERROR);
+    });
   });
 });
 
@@ -483,6 +554,102 @@ describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
       expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.FINAL_RESULTS);
       expect(quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END)).toStrictEqual(OK_SUCCESS);
       expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.END);
+    });
+  });
+});
+
+describe('Testing GET /v1/admin/quiz/:quizid/session/:sessionid', () => {
+  let token1: string;
+  let quizId1: number;
+  let questionId1: number;
+  let sessionId1: number;
+  beforeEach(() => {
+    token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY1).jsonBody.questionId as number;
+    sessionId1 = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
+  });
+
+  test('Correct status code and return value', () => {
+    const response = quizSessionStatusV1(token1, quizId1, sessionId1);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({
+      state: expect.any(String),
+      atQuestion: expect.any(Number),
+      players: expect.any(Array) as string[],
+      metadata: expect.any(Object) as QuizMetadata,
+    });
+  });
+
+  test.skip('Names of all the players in the quiz session are ordered in ascending order of player name', () => {
+    // TODO:
+    // Add players to the session
+    // Check if the names are sorted with sortArray()
+  });
+
+  test('Correct state, atQuestion, players and metadata values', () => {
+    const response = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody;
+    expect(response.state).toStrictEqual(State.LOBBY);
+    expect(response.atQuestion).toStrictEqual(0);
+    expect(response.players).toStrictEqual([]);
+    expect(response.metadata).toStrictEqual({
+      quizId: quizId1,
+      name: QUIZ1.name,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: QUIZ1.description,
+      numQuestions: 1,
+      questions: [
+        {
+          questionId: questionId1,
+          question: QUESTION_BODY1.question,
+          duration: QUESTION_BODY1.duration,
+          thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
+          points: QUESTION_BODY1.points,
+          answers: expect.any(Array),
+        },
+      ],
+      duration: QUESTION_BODY1.duration,
+      thumbnailUrl: expect.any(String),
+    });
+  });
+
+  describe('Unauthorised errors', () => {
+    test('Token is empty', () => {
+      expect(quizSessionStatusV1('', quizId1, sessionId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid user session', () => {
+      expect(quizSessionStatusV1(token1 + 'random', quizId1, sessionId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid looged in user session', () => {
+      authLogoutV1(token1);
+      expect(quizSessionStatusV1(token1, quizId1, sessionId1)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+  });
+
+  describe('Forbidden errors', () => {
+    test('Valid token but invalid quizId', () => {
+      expect(quizSessionStatusV1(token1, -1, sessionId1)).toStrictEqual(FORBIDDEN_ERROR);
+    });
+
+    test('Valid token but user does not own the quiz', () => {
+      const token2 = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody.token as string;
+      expect(quizSessionStatusV1(token2, quizId1, sessionId1)).toStrictEqual(FORBIDDEN_ERROR);
+    });
+  });
+
+  describe('Bad request errors', () => {
+    test('Invalid sessionId', () => {
+      expect(quizSessionStatusV1(token1, quizId1, -1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('SessionId does not refer to a valid session within this quiz', () => {
+      const quizId2 = quizCreateV2(token1, QUIZ2.name, QUIZ2.description).jsonBody.quizId as number;
+      quizQuestionCreateV2(token1, quizId2, QUESTION_BODY1).jsonBody.questionId as number;
+      const sessionId2 = quizSessionStartV1(token1, quizId2, 0).jsonBody.sessionId as number;
+      expect(quizSessionStatusV1(token1, quizId1, sessionId2)).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 });
