@@ -1758,7 +1758,6 @@ paths:
             - userEmail is not a real user
             - userEmail is the current logged in user
             - Quiz ID refers to a quiz that has a name that is already used by the target user
-            - Any session for this quiz is not in END state
           schema:
             $ref: '#/components/return/Error'
   /v2/admin/quiz/{quizid}/transfer:
@@ -1945,7 +1944,6 @@ paths:
           description: |
             If any of the following are true:
             - Question Id does not refer to a valid question within this quiz
-            - Any session for this quiz is not in END state
           schema:
             $ref: '#/components/return/Error'
   /v2/admin/quiz/{quizid}/question/{questionid}:
@@ -2450,7 +2448,7 @@ paths:
             - If player ID does not exist
             - If question position is not valid for the session this player is in
             - If session is not currently on this question
-            - Session is in LOBBY, QUESTION_COUNTDOWN, orEND state
+            - Session is in LOBBY, QUESTION_COUNTDOWN, or END state
           schema:
             $ref: '#/components/return/Error'
   /v1/player/{playerid}/question/{questionposition}/answer:
