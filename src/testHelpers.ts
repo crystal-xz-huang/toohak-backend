@@ -238,7 +238,7 @@ export function quizSessionStartV1(token: string, quizId: number, autoStartNum: 
   return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
 }
 
-export function adminQuizSessionUpdateV1(token: string, quizId: number, sessionId: number, action: string): RequestResponse {
+export function quizSessionUpdateV1(token: string, quizId: number, sessionId: number, action: string): RequestResponse {
   return requestHelper('PUT', `/v1/admin/quiz/${quizId}/session/${sessionId}`, { action }, { token });
 }
 

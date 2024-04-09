@@ -504,7 +504,7 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/description', () => {
   });
 });
 
-describe.skip('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
+describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   let tokenUser1: string;
   let tokenUser2: string;
   let quizId1: number;
@@ -577,13 +577,9 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
 
     test('Quiz ID refers to a quiz that has a name that is already used by the target user', () => {
       quizCreateV2(tokenUser2, QUIZ1.name, QUIZ2.description);
-
       const response = quizTransferV2(tokenUser1, quizId1, USER2.email);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
-
-    // test('Any session for this quiz is not in END state', () => {
-    // });
   });
 
   describe('Errors are returned in the correct order', () => {

@@ -361,11 +361,18 @@ export function adminQuizTransfer(token: string, quizId: number, userEmail: stri
     throw HTTPError(400, 'User email is not the real user');
   }
 
-  const quizName = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.authUserId === ownerId).name;
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.authUserId === ownerId);
   const targetUserId = targetUser.authUserId;
-  const quizNameUsedError = isQuizNameUsed(quizName, targetUserId, data);
+  const quizNameUsedError = isQuizNameUsed(quiz.name, targetUserId, data);
   if (quizNameUsedError) {
     throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
+  }
+
+  // check if any session for the quiz is not in END state
+  const quizSessionIds = quiz.sessionIds;
+  const endSessionFound = data.quizSessions.some(session => quizSessionIds.includes(session.sessionId) && session.state !== 'END');
+  if (endSessionFound) {
+    throw HTTPError(400, 'Quiz ID refers to a quiz that has an active session');
   }
 
   const quizIndex = data.quizzes.findIndex((quiz) => quiz.quizId === quizId);
