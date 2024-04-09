@@ -8,7 +8,7 @@ import {
   quizNameUpdateV1,
   quizDescriptionUpdateV1,
   quizTransferV1,
-} from '../testHelpers';
+} from '../httpHelpers';
 
 import {
   BAD_REQUEST_ERROR,

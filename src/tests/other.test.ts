@@ -21,7 +21,7 @@ import {
   quizQuestionRemoveV1,
   quizQuestionMoveV1,
   quizQuestionDuplicateV1,
-} from '../testHelpers';
+} from '../httpHelpers';
 
 import {
   BAD_REQUEST_ERROR,

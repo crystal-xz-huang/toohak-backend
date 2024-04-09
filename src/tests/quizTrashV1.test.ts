@@ -11,7 +11,7 @@ import {
   quizTrashViewV1,
   quizRestoreV1,
   quizTrashEmptyV1,
-} from '../testHelpers';
+} from '../httpHelpers';
 
 import {
   BAD_REQUEST_ERROR,

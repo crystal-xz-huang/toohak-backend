@@ -11,7 +11,7 @@ import {
   quizTrashViewV2,
   quizRestoreV2,
   quizTrashEmptyV2,
-} from '../testHelpers';
+} from '../httpHelpers';
 
 import {
   BAD_REQUEST_ERROR,
@@ -23,6 +23,11 @@ import {
   QUIZ2,
   QUIZ3,
 } from '../testTypes';
+
+import {
+  getTimeStamp,
+  checkTimeStamp,
+} from '../testHelpers';
 
 import { AdminQuizListReturn, AdminQuizInfoReturn } from '../functionTypes';
 
@@ -196,7 +201,7 @@ describe.skip('Testing GET /v2/admin/quiz/trash', () => {
   });
 });
 
-describe.skip('Testing POST /v2/admin/quiz/{quizid}/restore', () => {
+describe('Testing POST /v2/admin/quiz/{quizid}/restore', () => {
   let tokenUser1: string;
   let tokenUser2: string;
   let quizId1: number;
@@ -238,14 +243,11 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/restore', () => {
     expect(quizListV2(tokenUser1).jsonBody).toStrictEqual({ quizzes: [{ quizId: quizId1, name: QUIZ1.name }, { quizId: quizId2, name: QUIZ2.name }] });
   });
 
-  test('timeLastEdited is updated and is within a 1 second range of the current time', () => {
-    const response1 = quizRestoreV2(tokenUser1, quizId1).jsonBody;
-    expect(response1).toStrictEqual({});
-    const expectedTime = Math.floor(Date.now() / 1000);
-    const response2 = quizInfoV2(tokenUser1, quizId1).jsonBody;
-    const timeLastEdited = response2.timeLastEdited as number;
-    expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
-    expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+  test('timeLastEdited is updated', () => {
+    quizRestoreV2(tokenUser1, quizId1);
+    const expectedTime = getTimeStamp();
+    const timeLastEdited = quizInfoV2(tokenUser1, quizId1).jsonBody.timeLastEdited as number;
+    checkTimeStamp(timeLastEdited, expectedTime);
   });
 
   describe('Unauthorised errors', () => {
