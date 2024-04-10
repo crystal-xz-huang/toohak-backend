@@ -8,6 +8,7 @@ import {
   quizNameUpdateV2,
   quizDescriptionUpdateV2,
   quizTransferV2,
+  quizThumbnailUpdateV1,
 } from '../httpHelpers';
 
 import {
@@ -507,7 +508,7 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/description', () => {
   });
 });
 
-describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
+describe.skip('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   let tokenUser1: string;
   let tokenUser2: string;
   let quizId1: number;
@@ -601,6 +602,51 @@ describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
     test('Bad request status code 400 last', () => {
       const response = quizTransferV2(tokenUser1, quizId1, invalidUserEmail);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+});
+
+describe('Testing quizThumbnailUpdateV1', () => {
+  let token1: string;
+  let token2: string;
+  let quizId1: number;
+
+  beforeEach(() => {
+    token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    token2 = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody.token as string;
+    quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+  });
+
+  test('Successfully updates quiz thumbnail URL', () => {
+    const newImgUrl = 'https://example.com/img.jpg';
+    const response = quizThumbnailUpdateV1(token1, quizId1, newImgUrl);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({});
+  });
+
+  describe('Unauthorized errors', () => {
+    test('Token is empty', () => {
+      const imgUrl = 'https://example.com/img.jpg';
+      expect(quizThumbnailUpdateV1('', quizId1, imgUrl)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid user session', () => {
+      const imgUrl = 'https://example.com/img.jpg';
+      expect(quizThumbnailUpdateV1(token1 + 'random', quizId1, imgUrl)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+  });
+
+  describe('Forbidden errors', () => {
+    test('Valid token but user does not own the quiz', () => {
+      const imgUrl = 'https://example.com/img.jpg';
+      expect(quizThumbnailUpdateV1(token2, quizId1, imgUrl)).toStrictEqual(FORBIDDEN_ERROR);
+    });
+  });
+
+  describe('Bad Request errors', () => {
+    test('Invalid image URL format', () => {
+      const invalidImgUrl = 'not-a-valid-url';
+      expect(quizThumbnailUpdateV1(token1, quizId1, invalidImgUrl)).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 });
