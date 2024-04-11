@@ -1,40 +1,20 @@
-/**
- * List of all types and interfaces used in the project
- * NOTE: Types vs Interfaces
- * - Types cannot be extended or modified after declaration
- * - Interfaces can be extended and re-opened to add new properties
- */
-
-/*********************************************************************
- * TOKENS - Used by the client to identify their session to the server
- * SESSIONS - Used by the server to identify the client's session
- *
- * Whenever we need to return a token, we should create a new session to pair it with.
- * The actions that trigger this are:
- * - Registering
- * - Logging in
- *
- * Method:
- * 1. Create a new sessionId with data.sessionId_counter + 1
- * 2. Generate a token with the function generateToken(sessionId: number)
- * 3. Create a new session object with the sessionId, authUserId, token, valid, and timeCreated
- * 4. Push the new session object to data.sessions
- * 5. Save the updated data object to the database with setData(data)
-/*********************************************************************/
-
 // ====================================================================
-// DATA STORE TYPES
+// DATA STORE
 // ====================================================================
-export type Data = {
+
+export interface Data {
   users: User[];
   quizzes: Quiz[];
-  sessions: Session[];
-  userId_counter: number;
-  quizId_counter: number;
-  sessionId_counter: number;
+  userSessions: UserSession[];
+  quizSessions: QuizSession[];
+  players: Player[];
+  messages: Message[];
 }
 
-export type User = {
+// ====================================================================
+// USER TYPES
+// ====================================================================
+export interface User {
   authUserId: number;
   email: string;
   password: string;
@@ -44,96 +24,43 @@ export type User = {
   numFailedPasswordsSinceLastLogin: number;
 }
 
-export type AnswerBody = {
-  answerId: number;
-  answer: string;
-  colour: string; // randomly generated colour
-  correct: boolean;
+export interface UserSession {
+  authUserId: number;
+  token: string;
+  valid: boolean;
 }
 
-export type QuestionBody = {
-  questionId: number;
-  question: string;
-  duration: number; // in seconds
-  points: number;
-  answers: AnswerBody[];
-}
-
-export type Quiz = {
+export interface Quiz {
   quizId: number;
   name: string;
   authUserId: number; // the id of the user who created the quiz
   description: string;
-  timeCreated: number; // Unix timestamp in seconds: Math.floor(Date.now() / 1000)
-  timeLastEdited: number; // Unix timestamp in seconds: Math.floor(Date.now() / 1000)
+  timeCreated: number;
+  timeLastEdited: number;
   numQuestions: number;
   questions: QuestionBody[];
   duration: number;
+  thumbnailUrl: string;
   valid: boolean; // false if the quiz has been moved to the trash
 }
 
-export type Session = {
-  token: string; // the session token (identifies the session)
-  sessionId: number;
-  adminUserId: number; // the user id of the admin user
-  valid: boolean; // true if the session is logged in
+interface QuestionBody {
+  questionId: number;
+  question: string;
+  duration: number;
+  thumbnailUrl: string;
+  points: number;
+  answers: AnswerBody[];
 }
 
-// ====================================================================
-// GLOBAL TYPES
-// ====================================================================
-
-export type EmptyObject = Record<string, never>;
-
-export type Token = {
-  token: string;
+interface AnswerBody {
+  answerId: number;
+  answer: string;
+  colour: string;
+  correct: boolean;
 }
 
-// ====================================================================
-// RETURN TYPES - POST REQUESTS
-// ====================================================================
-
-export type Error = {
-  statusCode: number;
-  error: string;
-};
-
-export type ErrorMessage = {
-  error: string;
-};
-
-export type AdminAuthRegisterReturn = {
-  token: string;
-};
-
-export type AdminAuthLoginReturn = {
-  token: string;
-};
-
-export type AdminUserDetailsReturn = {
-  user: {
-    userId: number;
-    name: string;
-    email: string;
-    numSuccessfulLogins: number;
-    numFailedPasswordsSinceLastLogin: number;
-  }
-};
-
-export type QuizDetails = {
-  quizId: number;
-  name: string;
-};
-
-export type AdminQuizListReturn = {
-  quizzes: QuizDetails[];
-};
-
-export type AdminQuizCreateReturn = {
-  quizId: number;
-}
-
-export type AdminQuizInfoReturn = {
+export interface QuizMetadata {
   quizId: number;
   name: string;
   timeCreated: number;
@@ -142,26 +69,67 @@ export type AdminQuizInfoReturn = {
   numQuestions: number;
   questions: QuestionBody[];
   duration: number;
+  thumbnailUrl: string;
 }
 
-export type AdminQuizTrashViewReturn = {
-  quizzes: QuizDetails[];
+export interface QuizSession {
+  sessionId: number;
+  autoStartNum: number; // number of players needed to auto start the quiz
+  state: State, // the current state of the quiz session
+  atQuestion: number; // the question the quiz session is currently at
+  metadata: QuizMetadata; // the metadata of the quiz
+  questionCountDown: ReturnType<typeof setTimeout> | null;
+  questionDuration: ReturnType<typeof setTimeout> | null;
 }
 
-export type AdminQuizQuestionCreateReturn = {
+interface Player {
+  playerId: number;
+  sessionId: number;
+  name: string;
+  score: number;
+}
+
+interface Message {
+  messageBody: string;
+  playerId: number;
+  playerName: string;
+  timeSent: number;
+}
+
+/*
+interface AnswerSubmission {
+  playerId: number;
   questionId: number;
+  answerIds: number[];
+  answerTime: number;
 }
 
-export type QuestionBodyInput = {
-  question: string;
-  duration: number;
-  points: number;
-  answers: Array<{ answer: string; correct: boolean }>;
-};
-
-export type AdminQuizQuestionDuplicateReturn = {
-  newQuestionId: number;
+interface Result {
+  questionId: number;
+  playersCorrectList: string[];
+  averageAnswerTime: number;
+  percentCorrect: number;
 }
+*/
+
+export enum State {
+  LOBBY = 'LOBBY', // players can join
+  QUESTION_COUNTDOWN = 'QUESTION_COUNTDOWN', // countdown to question open
+  QUESTION_OPEN = 'QUESTION_OPEN', // question is open for viewing and answering
+  QUESTION_CLOSE = 'QUESTION_CLOSE', // question is closed for answering (still open for viewing)
+  ANSWER_SHOW = 'ANSWER_SHOW', // correct answers are shown
+  FINAL_RESULTS = 'FINAL_RESULTS', // final results are shown
+  END = 'END', // quiz session has ended (inactive state)
+}
+
+export enum Action {
+  NEXT_QUESTION = 'NEXT_QUESTION',
+  SKIP_COUNTDOWN = 'SKIP_COUNTDOWN',
+  GO_TO_ANSWER = 'GO_TO_ANSWER',
+  GO_TO_FINAL_RESULTS = 'GO_TO_FINAL_RESULTS',
+  END = 'END',
+}
+
 // ====================================================================
 // CONSTANTS
 // ====================================================================
@@ -181,7 +149,6 @@ export const MAX_QUIZ_NAME_LENGTH = 30;
 export const QUIZNAME_REGEX = /^[a-zA-Z0-9\s]+$/;
 export const MAX_QUIZ_DESCRIPTION_LENGTH = 100;
 
-// STATUS CODES
-export const BAD_REQUEST_CODE = 400;
-export const UNAUTHORISED_CODE = 401;
-export const FORBIDDEN_CODE = 403;
+// URLS
+export const URL_PROTOCOL = /^(http|https):\/\//;
+export const URL_FILETYPE = /\.(jpg|jpeg|png)$/i;

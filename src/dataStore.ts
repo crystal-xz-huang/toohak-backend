@@ -2,14 +2,14 @@
 import { Data } from './dataTypes';
 import fs from 'fs';
 
-// let data: Data = {
-//   users: [],
-//   quizzes: [],
-//   sessions: [],
-//   userId_counter: 0,
-//   quizId_counter: 0,
-//   sessionId_counter: 0,
-// };
+let data: Data = {
+  users: [],
+  quizzes: [],
+  userSessions: [],
+  quizSessions: [],
+  players: [],
+  messages: [],
+};
 
 // YOU SHOULD MODIFY THIS OBJECT ABOVE ONLY
 
@@ -34,21 +34,13 @@ export function getData(): Data {
   if (fs.existsSync('./database.json')) {
     const file = fs.readFileSync('./database.json', { flag: 'r' });
     return JSON.parse(file.toString());
-  } else {
-    return {
-      users: [],
-      quizzes: [],
-      sessions: [],
-      userId_counter: 0,
-      quizId_counter: 0,
-      sessionId_counter: 0,
-    };
   }
+  return data;
 }
 
 // Use set(newData) to pass in the entire data object, with modifications made
 export function setData(newData: Data): void {
-  const data = newData;
+  data = newData;
   const dataStr = JSON.stringify(data, null, 2);
   fs.writeFileSync('./database.json', dataStr, { flag: 'w' });
 }

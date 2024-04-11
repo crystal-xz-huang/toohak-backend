@@ -1,5 +1,5 @@
 import { getData, setData } from './dataStore';
-import { EmptyObject } from './dataTypes';
+import { EmptyObject } from './functionTypes';
 
 /**
   * Reset the state of the application back to the start
@@ -11,10 +11,16 @@ export function clear(): EmptyObject {
   const data = getData();
   data.users = [];
   data.quizzes = [];
-  data.sessions = [];
-  data.userId_counter = 0;
-  data.quizId_counter = 0;
-  data.sessionId_counter = 0;
+  data.userSessions = [];
+  data.quizSessions.forEach((session) => {
+    clearTimeout(session.questionCountDown);
+    clearTimeout(session.questionDuration);
+    session.questionCountDown = null;
+    session.questionDuration = null;
+  });
+  data.quizSessions = [];
+  data.players = [];
+  data.messages = [];
   setData(data);
   return {};
 }
