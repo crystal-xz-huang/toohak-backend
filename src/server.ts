@@ -48,13 +48,13 @@ import {
 } from './quizSession';
 import {
   playerJoin,
-  playerStatus,
-  playerQuestionInfo,
-  playerQuestionAnswer,
-  playerQuestionResults,
-  playerFinalResults,
-  playerChatList,
-  playerChatSend
+  // playerStatus,
+  // playerQuestionInfo,
+  // playerQuestionAnswer,
+  // playerQuestionResults,
+  // playerFinalResults,
+  // playerChatList,
+  // playerChatSend
 } from './player';
 
 // Set up web app
@@ -457,7 +457,7 @@ app.post('/v1/player/join', (req: Request, res: Response) => {
   res.json(response);
 });
 
-app.get('/v1/player/:playerid', (req: Request, res: Response) => {
+/* app.get('/v1/player/:playerid', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
   const response = playerStatus(playerId);
   res.json(response);
@@ -502,7 +502,7 @@ app.post('/v1/player/:playerid/chat', (req: Request, res: Response) => {
   const { message } = req.body;
   const response = playerChatSend(playerId, message);
   res.json(response);
-});
+}); */
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================

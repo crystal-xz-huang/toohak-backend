@@ -40,8 +40,8 @@ import {
 import { QuizMetadata } from '../functionTypes';
 import { sortArray } from '../testHelpers';
 import sleep from 'atomic-sleep';
-import { TIMEOUT } from 'dns';
-import { only } from 'node:test';
+// import { TIMEOUT } from 'dns';
+// import { only } from 'node:test';
 
 beforeEach(() => {
   clearV1();

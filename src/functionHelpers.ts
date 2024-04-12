@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import crypto from 'crypto';
 import { ErrorMessage, QuestionBodyInput } from './functionTypes';
-var randomstring = require("randomstring");
+
 import {
   Data,
   User,
@@ -54,20 +54,20 @@ export function generateRandomNumber(): number {
 export function generateRandomStringPlayer() {
   const letters = 'abcdefghijklmnopqrstuvwxyz';
   const numbers = '0123456789';
-  let letterArray = letters.split('');
-  let numberArray = numbers.split('');
-  
+  const letterArray = letters.split('');
+  const numberArray = numbers.split('');
+
   // Shuffle arrays to randomize order
   shuffleArray(letterArray);
   shuffleArray(numberArray);
-  
+
   // Select first 5 letters and first 3 numbers
   const selectedLetters = letterArray.slice(0, 5);
   const selectedNumbers = numberArray.slice(0, 3);
-  
+
   // Join letters and numbers
   const randomString = selectedLetters.join('') + selectedNumbers.join('');
-  
+
   return randomString;
 }
 
@@ -425,8 +425,8 @@ export function isValidImgURL(imgUrl: string): ErrorMessage | null {
 /**
  * Check if name is used by alraedy joined user
  * Returns null if the name is not used, otherwise returns an error object
- * @param {string} name 
- * @param {number} sessionId 
+ * @param {string} name
+ * @param {number} sessionId
  * @returns { ErrorMessage | null } - error message if invalid, or null if valid
  */
 export function isPlayerNameUsed(name: string, sessionId: number, data: Data): ErrorMessage | null {

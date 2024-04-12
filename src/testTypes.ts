@@ -401,7 +401,7 @@ export const INVALID_IMG_URLS = [
 // PLAYER CONSTANTS
 // ====================================================================
 
-//Valid names
+// Valid names
 export const PLAYER_BODY1 = {
   name: 'John Smith'
 };
@@ -414,4 +414,4 @@ export const PLAYER_BODY3 = {
   name: 'Hayden Smith'
 };
 
-//create names if empty string
+// create names if empty string
