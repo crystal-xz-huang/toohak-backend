@@ -45,7 +45,7 @@ import {
   // PLAYER_BODY3,
 } from '../testTypes';
 import {
-  State,
+  // State,
   Action,
 } from '../dataTypes';
 /* import { QuizMetadata } from '../functionTypes';
@@ -124,7 +124,7 @@ describe('Testing GET/v1/player/{playerid}', () => {
     const respone = playerStatusV1(playerId);
     expect(respone.statusCode).toStrictEqual(200);
     expect(respone.jsonBody).toStrictEqual({
-      state: expect.any(State),
+      state: expect.any(String),
       numQuestions: expect.any(Number),
       atQuestion: expect.any(Number),
     });
@@ -133,6 +133,4 @@ describe('Testing GET/v1/player/{playerid}', () => {
   test('BAD_REQUEST_ERROR', () => {
     expect(playerStatusV1(playerId + 220)).toStrictEqual(BAD_REQUEST_ERROR);
   });
-
 });
-

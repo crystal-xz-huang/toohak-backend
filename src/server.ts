@@ -463,7 +463,7 @@ app.get('/v1/player/:playerid', (req: Request, res: Response) => {
   res.json(response);
 });
 
-/*app.get('/v1/player/:playerid/question/:questionposition', (req: Request, res: Response) => {
+/* app.get('/v1/player/:playerid/question/:questionposition', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
   const questionPosition = parseInt(req.params.questionposition);
   const response = playerQuestionInfo(playerId, questionPosition);
