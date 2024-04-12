@@ -21,7 +21,7 @@ import {
   // quizSessionResultsV1,
   // quizSessionCSVResultsV1,
   playerJoinV1,
-  // playerStatusV1,
+  playerStatusV1,
   // playerQuestionInfoV1,
   // playerQuestionAnswerV1,
   // playerQuestionResultsV1,
@@ -45,8 +45,8 @@ import {
   // PLAYER_BODY3,
 } from '../testTypes';
 import {
-  // State,
-  Action
+  State,
+  Action,
 } from '../dataTypes';
 /* import { QuizMetadata } from '../functionTypes';
 import { sortArray } from '../testHelpers';
@@ -105,3 +105,34 @@ describe('Testing POST v1/player/join', () => {
     });
   });
 });
+
+describe('Testing GET/v1/player/{playerid}', () => {
+  let token: string;
+  let quizId: number;
+  let sessionId: number;
+  let playerId: number;
+
+  beforeEach(() => {
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody.questionId as number;
+    sessionId = quizSessionStartV1(token, quizId, 0).jsonBody.sessionId as number;
+    playerId = playerJoinV1(sessionId, PLAYER_BODY1.name).jsonBody.playerId as number;
+  });
+
+  test('Correct status code and return value with given name', () => {
+    const respone = playerStatusV1(playerId);
+    expect(respone.statusCode).toStrictEqual(200);
+    expect(respone.jsonBody).toStrictEqual({
+      state: expect.any(State),
+      numQuestions: expect.any(Number),
+      atQuestion: expect.any(Number),
+    });
+  });
+
+  test('BAD_REQUEST_ERROR', () => {
+    expect(playerStatusV1(playerId + 220)).toStrictEqual(BAD_REQUEST_ERROR);
+  });
+
+});
+

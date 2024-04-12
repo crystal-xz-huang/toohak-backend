@@ -8,7 +8,7 @@ import {
   // EmptyObject,
   // ChatMessage,
   PlayerJoinReturn,
-  // PlayerStatusReturn,
+  PlayerStatusReturn,
   // PlayerQuestionInfoReturn,
   // PlayerQuestionAnswerReturn,
   // PlayerQuestionResultsReturn,
@@ -69,13 +69,13 @@ export function playerJoin(sessionId: number, name: string): PlayerJoinReturn {
  * @param { number } playerId - the player ID to check
  * @returns { PlayerStatusReturn } - an object containing the player's status
  */
-/* export function playerStatus(playerId: number): PlayerStatusReturn {
+export function playerStatus(playerId: number): PlayerStatusReturn {
   return {
     state: 'LOBBY',
     numQuestions: 0,
     atQuestion: 0,
   };
-} */
+}
 
 /**
  * Get the information about a question that the guest player is on
