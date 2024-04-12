@@ -81,7 +81,7 @@ export function playerStatus(playerId: number): PlayerStatusReturn {
 
   let atQuestion: number;
 
-  if(quiz.state === State.LOBBY || quiz.state === State.FINAL_RESULTS || quiz.state === State.END) {
+  if (quiz.state === State.LOBBY || quiz.state === State.FINAL_RESULTS || quiz.state === State.END) {
     atQuestion = 0;
   } else {
     atQuestion = quiz.atQuestion;
@@ -103,13 +103,38 @@ export function playerStatus(playerId: number): PlayerStatusReturn {
  * @returns { playerQuestionInfo } - an object containing the question information
  */
 export function playerQuestionInfo(playerId: number, questionPosition: number): PlayerQuestionInfoReturn {
+  const data = getData();
+
+  const player = data.players.find((p) => p.playerId === playerId);
+  if (!player) {
+    throw HTTPError(400, 'Player Id does not exists');
+  }
+
+  const quiz = data.quizSessions.find((q) => q.sessionId === player.sessionId);
+
+  if (quiz.metadata.numQuestions < questionPosition) {
+    throw HTTPError(400, 'Question position is not valid for the session this player is in');
+  }
+
+  if (quiz.state === State.LOBBY || quiz.state === State.QUESTION_COUNTDOWN || quiz.state === State.END) {
+    throw HTTPError(400, `Session is in ${quiz.state}`);
+  }
+
+  if (quiz.atQuestion !== questionPosition) {
+    throw HTTPError(400, 'Session is not currently on this question');
+  }
+
+  const Metadata = quiz.metadata.questions[questionPosition - 1];
+
+  setData(data);
   return {
-    questionId: 0,
-    question: 'Who is the Monarch of England?',
-    duration: 30,
-    points: 100,
+    questionId: Metadata.questionId,
+    question: Metadata.question,
+    duration: Metadata.duration,
+    thumbnailUrl: Metadata.thumbnailUrl,
+    points: Metadata.points,
     answers: [
-      { answerId: 0, answer: 'Prince Charles', colour: 'red' },
+      { answerId: Metadata.answers[0].answerId, answer: Metadata.answers[0].answer, colour: Metadata.answers[0].colour },
     ],
   };
 }
