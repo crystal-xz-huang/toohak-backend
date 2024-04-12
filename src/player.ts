@@ -70,10 +70,20 @@ export function playerJoin(sessionId: number, name: string): PlayerJoinReturn {
  * @returns { PlayerStatusReturn } - an object containing the player's status
  */
 export function playerStatus(playerId: number): PlayerStatusReturn {
+  const data = getData();
+
+  const player = data.players.find((p) => p.playerId === playerId);
+  if (!player) {
+    throw HTTPError(400, 'Player Id does not exists');
+  }
+
+  const quiz = data.quizSessions.find((q) => q.sessionId === player.sessionId);
+
+  setData(data);
   return {
-    state: 'LOBBY',
-    numQuestions: 0,
-    atQuestion: 0,
+    state: quiz.state,
+    numQuestions: quiz.metadata.numQuestions,
+    atQuestion: quiz.atQuestion,
   };
 }
 
