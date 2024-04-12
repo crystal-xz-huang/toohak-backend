@@ -9,7 +9,7 @@ import {
   // ChatMessage,
   PlayerJoinReturn,
   PlayerStatusReturn,
-  // PlayerQuestionInfoReturn,
+  PlayerQuestionInfoReturn,
   // PlayerQuestionAnswerReturn,
   // PlayerQuestionResultsReturn,
   // PlayerFinalResultsReturn,
@@ -79,11 +79,19 @@ export function playerStatus(playerId: number): PlayerStatusReturn {
 
   const quiz = data.quizSessions.find((q) => q.sessionId === player.sessionId);
 
+  let atQuestion: number;
+
+  if(quiz.state === State.LOBBY || quiz.state === State.FINAL_RESULTS || quiz.state === State.END) {
+    atQuestion = 0;
+  } else {
+    atQuestion = quiz.atQuestion;
+  }
+
   setData(data);
   return {
     state: quiz.state,
     numQuestions: quiz.metadata.numQuestions,
-    atQuestion: quiz.atQuestion,
+    atQuestion: atQuestion,
   };
 }
 
@@ -94,7 +102,7 @@ export function playerStatus(playerId: number): PlayerStatusReturn {
  * @param { number } playerId - the player ID to check
  * @returns { playerQuestionInfo } - an object containing the question information
  */
-/* export function playerQuestionInfo(playerId: number, questionPosition: number): PlayerQuestionInfoReturn {
+export function playerQuestionInfo(playerId: number, questionPosition: number): PlayerQuestionInfoReturn {
   return {
     questionId: 0,
     question: 'Who is the Monarch of England?',
@@ -104,7 +112,7 @@ export function playerStatus(playerId: number): PlayerStatusReturn {
       { answerId: 0, answer: 'Prince Charles', colour: 'red' },
     ],
   };
-} */
+}
 
 /**
  * Allow the current player to submit answer(s) to the currently active question.

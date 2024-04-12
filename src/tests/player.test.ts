@@ -22,7 +22,7 @@ import {
   // quizSessionCSVResultsV1,
   playerJoinV1,
   playerStatusV1,
-  // playerQuestionInfoV1,
+  playerQuestionInfoV1,
   // playerQuestionAnswerV1,
   // playerQuestionResultsV1,
   // playerFinalResultsV1,
@@ -38,9 +38,9 @@ import {
   QUIZ1,
   // QUIZ2,
   QUESTION_BODY1,
-  // QUESTION_BODY2,
   // OK_SUCCESS,
   PLAYER_BODY1,
+  QUESTION_BODY2,
   // PLAYER_BODY2,
   // PLAYER_BODY3,
 } from '../testTypes';
@@ -130,7 +130,88 @@ describe('Testing GET/v1/player/{playerid}', () => {
     });
   });
 
+  test.each([
+    Action.GO_TO_FINAL_RESULTS,
+    Action.END,
+  ])('%s state than atQuestion should be 0', (InvalidAction) => {
+    quizSessionUpdateV1(token, quizId, sessionId, InvalidAction);
+    const respone = playerStatusV1(playerId);
+    expect(respone.statusCode).toStrictEqual(200);
+    expect(respone.jsonBody).toStrictEqual({
+      state: expect.any(String),
+      numQuestions: expect.any(Number),
+      atQuestion: 0,
+    });
+  });
+
   test('BAD_REQUEST_ERROR', () => {
     expect(playerStatusV1(playerId + 220)).toStrictEqual(BAD_REQUEST_ERROR);
   });
 });
+
+describe('Testing GET/v1/player/{playerid}/question/{questionposition}', () => {
+  let token: string;
+  let quizId: number;
+  let sessionId: number;
+  let playerId: number;
+  let questionId1: number;
+  let questionId2: number;
+
+  beforeEach(() => {
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    questionId1 = quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody.questionId as number;
+    questionId2 = quizQuestionCreateV2(token, quizId, QUESTION_BODY2).jsonBody.questionId as number;
+    sessionId = quizSessionStartV1(token, quizId, 0).jsonBody.sessionId as number;
+    playerId = playerJoinV1(sessionId, PLAYER_BODY1.name).jsonBody.playerId as number;
+  });
+
+  test('Correct status code and return value with given name', () => {
+    quizSessionUpdateV1(token, quizId, sessionId, Action.NEXT_QUESTION);
+    quizSessionUpdateV1(token, quizId, sessionId, Action.SKIP_COUNTDOWN);
+    const response  = playerQuestionInfoV1(playerId, 1);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({
+        questionId: questionId1,
+        question: QUESTION_BODY1.question,
+        duration: QUESTION_BODY1.duration,
+        thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
+        points: QUESTION_BODY1.points,
+        answers: expect.any(Array),
+    });
+  });
+
+  describe('BAD_REQUEST_ERROR', () => {
+    test('Player Id does not exists', () => {
+      expect(playerQuestionInfoV1(playerId + 220, 1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('If question position is not valid for the session this player is in', () => {
+    quizSessionUpdateV1(token, quizId, sessionId, Action.NEXT_QUESTION);
+    quizSessionUpdateV1(token, quizId, sessionId, Action.SKIP_COUNTDOWN);
+      expect(playerQuestionInfoV1(playerId, 3)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('If session is not currently on this question', () => {
+    quizSessionUpdateV1(token, quizId, sessionId, Action.NEXT_QUESTION);
+    quizSessionUpdateV1(token, quizId, sessionId, Action.SKIP_COUNTDOWN);
+      //currently at first question
+      expect(playerQuestionInfoV1(playerId, 2)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Session is in LOBBY state', () => {
+      expect(playerQuestionInfoV1(playerId, 1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Session is in QUESTION_COUNTDOWN State', () => {
+      quizSessionUpdateV1(token, quizId, sessionId, Action.NEXT_QUESTION);
+      expect(playerQuestionInfoV1(playerId, 1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Session is in END State', () => {
+      quizSessionUpdateV1(token, quizId, sessionId, Action.END);
+      expect(playerQuestionInfoV1(playerId, 1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+});
+
