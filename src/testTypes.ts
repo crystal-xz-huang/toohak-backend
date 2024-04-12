@@ -396,3 +396,22 @@ export const INVALID_IMG_URLS = [
   'HTTP://google.com/some/image/path.jpg',
   'HTTPS://google.com/some/image/path.jpg',
 ];
+
+// ====================================================================
+// PLAYER CONSTANTS
+// ====================================================================
+
+//Valid names
+export const PLAYER_BODY1 = {
+  name: 'John Smith'
+};
+
+export const PLAYER_BODY2 = {
+  name: 'Joe Doe'
+};
+
+export const PLAYER_BODY3 = {
+  name: 'Hayden Smith'
+};
+
+//create names if empty string
