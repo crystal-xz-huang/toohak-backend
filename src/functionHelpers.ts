@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import crypto from 'crypto';
 import { ErrorMessage, QuestionBodyInput } from './functionTypes';
+
 import {
   Data,
   User,
@@ -44,6 +45,38 @@ export function generateToken(): string {
  */
 export function generateRandomNumber(): number {
   return Math.floor(Math.random() * 900000) + 100000;
+}
+
+/**
+ * Generated a string in format [5letter][3number]
+ * without repetation of numbers or characters within the same name
+ */
+export function generateRandomStringPlayer() {
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  const letterArray = letters.split('');
+  const numberArray = numbers.split('');
+
+  // Shuffle arrays to randomize order
+  shuffleArray(letterArray);
+  shuffleArray(numberArray);
+
+  // Select first 5 letters and first 3 numbers
+  const selectedLetters = letterArray.slice(0, 5);
+  const selectedNumbers = numberArray.slice(0, 3);
+
+  // Join letters and numbers
+  const randomString = selectedLetters.join('') + selectedNumbers.join('');
+
+  return randomString;
+}
+
+function shuffleArray(array: Array<number | string>) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
 /// ////////////////////////////////////////////////////////////////////////////////////
@@ -388,3 +421,18 @@ export function isValidImgURL(imgUrl: string): ErrorMessage | null {
 //     return createError('SessionId does not refer to a valid session within the quiz');
 //   }
 // }
+
+/**
+ * Check if name is used by alraedy joined user
+ * Returns null if the name is not used, otherwise returns an error object
+ * @param {string} name
+ * @param {number} sessionId
+ * @returns { ErrorMessage | null } - error message if invalid, or null if valid
+ */
+export function isPlayerNameUsed(name: string, sessionId: number, data: Data): ErrorMessage | null {
+  const userQuizzes = data.players.filter(player => player.sessionId === sessionId);
+  if (userQuizzes.some(player => player.name === name)) {
+    return createError('Name is already used by another quiz');
+  }
+  return null;
+}
