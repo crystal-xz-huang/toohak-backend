@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "test": "jest quizV2.test.ts",
+        "test": "jest",
         "test-coverage": "jest --coverage",
         "tsc": "tsc --project tsconfig.json",
         "lint": "eslint 'src/**/*.{ts,js}'",

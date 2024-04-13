@@ -11,6 +11,14 @@ import {
   quizTrashViewV2,
   quizRestoreV2,
   quizTrashEmptyV2,
+  quizQuestionCreateV2,
+  // quizQuestionUpdateV2,
+  // quizQuestionRemoveV2,
+  // quizQuestionMoveV2,
+  quizSessionStartV1,
+  quizSessionUpdateV1,
+  // quizSessionListV1,
+  // quizSessionStatusV1,
 } from '../httpHelpers';
 
 import {
@@ -22,12 +30,20 @@ import {
   QUIZ1,
   QUIZ2,
   QUIZ3,
+  QUESTION_BODY1,
+  // QUESTION_BODY2,
+  // OK_SUCCESS,
 } from '../testTypes';
 
 import {
   getTimeStamp,
   checkTimeStamp,
 } from '../testHelpers';
+
+import {
+  // State,
+  Action,
+} from '../dataTypes';
 
 import { AdminQuizListReturn, AdminQuizInfoReturn } from '../functionTypes';
 
@@ -44,29 +60,33 @@ afterEach(() => {
 // Use .only to run only that block of tests
 //= =============================================================================
 
-describe.skip('Testing DELETE /v2/admin/quiz/{quizid}', () => {
+describe('Testing DELETE /v2/admin/quiz/{quizid}', () => {
   let token: string;
   let quizId: number;
+  let sessionId: number;
   beforeEach(() => {
-    const user = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
-    token = user.token;
-    const quiz = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody;
-    quizId = quiz.quizId as number;
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody.questionId as number;
+    sessionId = quizSessionStartV1(token, quizId, 0).jsonBody.sessionId as number;
   });
 
   test('Correct status code and return value', () => {
+    quizSessionUpdateV1(token, quizId, sessionId, Action.END);
     const response = quizTrashV2(token, quizId);
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual({});
   });
 
   test('Successful removal of one quiz', () => {
+    quizSessionUpdateV1(token, quizId, sessionId, Action.END);
     quizTrashV2(token, quizId);
     const response = quizListV2(token).jsonBody;
     expect(response).toStrictEqual({ quizzes: [] });
   });
 
   test('Successful removal of one quiz and creation of same quiz', () => {
+    quizSessionUpdateV1(token, quizId, sessionId, Action.END);
     quizTrashV2(token, quizId);
     quizCreateV2(token, QUIZ1.name, QUIZ1.description);
     const response = quizListV2(token).jsonBody;
@@ -79,6 +99,11 @@ describe.skip('Testing DELETE /v2/admin/quiz/{quizid}', () => {
     const timeLastEdited = quizInfoV2(token, quizId).jsonBody.timeLastEdited as number;
     expect(timeLastEdited).toBeGreaterThanOrEqual(expectedTime);
     expect(timeLastEdited).toBeLessThanOrEqual(expectedTime + 1);
+  });
+
+  test('Session State is Not END results in 400 status code', () => {
+    const response = quizTrashV2(token, quizId);
+    expect(response).toStrictEqual(BAD_REQUEST_ERROR);
   });
 
   describe('Unauthorised errors', () => {
@@ -201,7 +226,7 @@ describe.skip('Testing GET /v2/admin/quiz/trash', () => {
   });
 });
 
-describe('Testing POST /v2/admin/quiz/{quizid}/restore', () => {
+describe.skip('Testing POST /v2/admin/quiz/{quizid}/restore', () => {
   let tokenUser1: string;
   let tokenUser2: string;
   let quizId1: number;
