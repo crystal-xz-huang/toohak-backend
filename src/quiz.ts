@@ -1,5 +1,11 @@
 import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
+
+import {
+  State,
+  // Action,
+} from './dataTypes';
+
 import {
   EmptyObject,
   QuestionBodyInput,
@@ -119,6 +125,11 @@ export function adminQuizTrash(token: string, quizId: number): EmptyObject {
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const sessions = data.quizSessions.filter((s) => s.metadata.quizId === quizId && s.state !== State.END);
+  if (sessions.length > 0) {
+    throw HTTPError(400, 'Any session for this quiz is not in END state.');
+  }
+
   if (quiz) {
     quiz.valid = false;
     quiz.timeLastEdited = getCurrentTime();
