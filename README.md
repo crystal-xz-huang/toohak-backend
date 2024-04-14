@@ -11,6 +11,7 @@
 * 20/02: Removing unnecessary `user.js` file
 * 02/04: Point out a new error condition for two existing iteration 2 routes.
 * 04/04: Point out a new error condition for another iteration 2 route.
+* 09/04: More information about final presentations added
 
 ## 🫡 0. Aims:
 
@@ -1535,7 +1536,20 @@ The CSV is ordered in alphabetical/ascii ascending order of player name.
 
 If a player does not answer a question, their rank is 0 for that question.
 
-### 🦆 5.12. Marking Criteria
+### 🦆 5.12. Iteration 3 Final Presentation
+
+Iteration 3 final presentation is a 10 minute Q&A session.
+
+During this session, at a minimum we will expect groups to:
+ * Each give a quick one sentence explanation of what you contributed
+ * (If marks are desired) Complete a 90 second demonstration of your server working with the supplied frontend
+   * (If marks are desired) If deployed, demonstrate this as deployed instead of running locally
+
+Times mentioned above will be adhered to strictly.
+
+The remaining time will be Q&A led by a tutor. That tutor may not necessarily be your normal class tutor.
+
+### 🦆 5.13. Marking Criteria
 
 <table>
   <tr>
@@ -1633,7 +1647,7 @@ Where:
  * `c` is the statement coverage score achieved by running coverage on your entire codebase.
  * `e` is the score between 0-1 achieved by running <code>eslint</code> against your code and the provided configuration.
 
-### 🦆 5.13. Dryrun
+### 🦆 5.14. Dryrun
 
 The dryrun checks the format of your return types and simple expected behaviour for a few basic routes. Do not rely on these as an indicator for the correctness of your implementation or tests.
 
@@ -1648,7 +1662,7 @@ To view the dryrun tests, you can run the following command on CSE machines:
 cat ~cs1531/bin/iter3_test.py
 ```
 
-### 🦆 5.14. Submission & Peer Assessment
+### 🦆 5.15. Submission & Peer Assessment
 
 Please see section 6 for information on **due date**. There will be no demonstration for iteration 3.
 
