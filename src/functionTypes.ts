@@ -153,6 +153,7 @@ export type PlayerQuestionInfoReturn = {
   questionId: number;
   question: string;
   duration: number;
+  thumbnailUrl: string;
   points: number;
   answers: PlayerQuestionAnswerBody[];
 }
