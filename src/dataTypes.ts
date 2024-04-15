@@ -22,6 +22,7 @@ export interface User {
   nameLast: string;
   numSuccessfulLogins: number;
   numFailedPasswordsSinceLastLogin: number;
+  usedPasswords: string[];
 }
 
 export interface UserSession {
