@@ -40,8 +40,6 @@ import {
 import { QuizMetadata } from '../functionTypes';
 import { sortArray } from '../testHelpers';
 import sleep from 'atomic-sleep';
-// import { TIMEOUT } from 'dns';
-// import { only } from 'node:test';
 
 beforeEach(() => {
   clearV1();
@@ -53,6 +51,7 @@ afterEach(() => {
 
 //= =============================================================================
 //= =============================================================================
+
 describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   let token1: string;
   let token2: string;
@@ -104,6 +103,7 @@ describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
   let quizId1: number;
   let sessionId1: number, sessionId2: number, sessionId3: number, sessionId4: number;
   beforeEach(() => {
+    clearV1();
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
     quizQuestionCreateV2(token1, quizId1, QUESTION_BODY1).jsonBody.questionId as number;
@@ -111,6 +111,10 @@ describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
     sessionId2 = quizSessionStartV1(token1, quizId1, 1).jsonBody.sessionId as number;
     sessionId3 = quizSessionStartV1(token1, quizId1, 2).jsonBody.sessionId as number;
     sessionId4 = quizSessionStartV1(token1, quizId1, 3).jsonBody.sessionId as number;
+  });
+
+  afterEach(() => {
+    clearV1();
   });
 
   test('Correct status code and return value', () => {
@@ -484,6 +488,7 @@ describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
     });
 
     test('QUESTION_OPEN -> QUESTION_CLOSE', () => {
+      expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_OPEN);
       sleep(QUESTION_BODY1.duration * 1000); // wait for the duration of the question
       expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_CLOSE);
     });

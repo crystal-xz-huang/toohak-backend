@@ -1,5 +1,6 @@
 import { getData, setData } from './dataStore';
 import { EmptyObject } from './functionTypes';
+import { clearAllTimers } from './timerStore';
 
 /**
   * Reset the state of the application back to the start
@@ -12,15 +13,10 @@ export function clear(): EmptyObject {
   data.users = [];
   data.quizzes = [];
   data.userSessions = [];
-  data.quizSessions.forEach((session) => {
-    clearTimeout(session.questionCountDown);
-    clearTimeout(session.questionDuration);
-    session.questionCountDown = null;
-    session.questionDuration = null;
-  });
   data.quizSessions = [];
   data.players = [];
   data.messages = [];
+  clearAllTimers();
   setData(data);
   return {};
 }

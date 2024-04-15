@@ -29,7 +29,7 @@ afterEach(() => {
 // Use .only to run only that block of tests
 //= =============================================================================
 
-describe.skip('Testing GET /v2/admin/user/details', () => {
+describe('Testing GET /v2/admin/user/details', () => {
   let token: string;
   beforeEach(() => {
     token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token;
@@ -134,7 +134,7 @@ describe.skip('Testing GET /v2/admin/user/details', () => {
   });
 });
 
-describe.skip('Testing PUT /v2/admin/user/details', () => {
+describe('Testing PUT /v2/admin/user/details', () => {
   const emailUpdate = 'janedoe@gmail.com';
   const nameFirstUpdate = 'Jane';
   const nameLastUpdate = 'Doe';
@@ -251,7 +251,7 @@ describe.skip('Testing PUT /v2/admin/user/details', () => {
   });
 });
 
-describe.skip('Testing PUT /v2/admin/user/password', () => {
+describe('Testing PUT /v2/admin/user/password', () => {
   let token: string;
   beforeEach(() => {
     const result = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
@@ -304,6 +304,11 @@ describe.skip('Testing PUT /v2/admin/user/password', () => {
       expect(userPasswordUpdateV2(token, USER1.password, USER1.password)).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
+    test('New password has already bneen used before', () => {
+      userPasswordUpdateV2(token, USER1.password, newpassword);
+      expect(userPasswordUpdateV2(token, newpassword, USER1.password)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
     test('New password is less than 8 characters', () => {
       expect(userPasswordUpdateV2(token, USER1.password, 'abc4567')).toStrictEqual(BAD_REQUEST_ERROR);
     });
@@ -329,7 +334,7 @@ describe.skip('Testing PUT /v2/admin/user/password', () => {
   });
 });
 
-describe.skip('Testing POST /v2/admin/auth/logout', () => {
+describe('Testing POST /v2/admin/auth/logout', () => {
   let token: string;
   beforeEach(() => {
     const result = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;

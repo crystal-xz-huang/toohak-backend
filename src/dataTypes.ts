@@ -22,6 +22,7 @@ export interface User {
   nameLast: string;
   numSuccessfulLogins: number;
   numFailedPasswordsSinceLastLogin: number;
+  usedPasswords: string[];
 }
 
 export interface UserSession {
@@ -78,8 +79,6 @@ export interface QuizSession {
   state: State, // the current state of the quiz session
   atQuestion: number; // the question the quiz session is currently at
   metadata: QuizMetadata; // the metadata of the quiz
-  questionCountDown: ReturnType<typeof setTimeout> | null;
-  questionDuration: ReturnType<typeof setTimeout> | null;
 }
 
 interface Player {

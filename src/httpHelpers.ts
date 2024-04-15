@@ -78,12 +78,20 @@ function requestHelper(method: HttpVerb, path: string, payload: object, headers?
 /***********************************************************************
 * Iteration 2 (Using Iteration 1)
 ***********************************************************************/
+export function clearV1(): RequestResponse {
+  return requestHelper('DELETE', '/v1/clear', {});
+}
+
 export function authRegisterV1(email: string, password: string, nameFirst: string, nameLast: string): RequestResponse {
   return requestHelper('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast });
 }
 
 export function authLoginV1(email: string, password: string): RequestResponse {
   return requestHelper('POST', '/v1/admin/auth/login', { email, password });
+}
+
+export function authLogoutV1(token: string): RequestResponse {
+  return requestHelper('POST', '/v1/admin/auth/logout', { token });
 }
 
 export function userDetailsV1(token: string): RequestResponse {
@@ -98,12 +106,20 @@ export function userPasswordUpdateV1(token: string, oldPassword: string, newPass
   return requestHelper('PUT', '/v1/admin/user/password', { token, oldPassword, newPassword });
 }
 
+export function quizCreateV1(token: string, name: string, description: string): RequestResponse {
+  return requestHelper('POST', '/v1/admin/quiz', { token, name, description });
+}
+
 export function quizListV1(token: string): RequestResponse {
   return requestHelper('GET', '/v1/admin/quiz/list', { token });
 }
 
-export function quizCreateV1(token: string, name: string, description: string): RequestResponse {
-  return requestHelper('POST', '/v1/admin/quiz', { token, name, description });
+export function quizTrashViewV1(token: string): RequestResponse {
+  return requestHelper('GET', '/v1/admin/quiz/trash', { token });
+}
+
+export function quizTrashEmptyV1(token: string, quizIds: number[]): RequestResponse {
+  return requestHelper('DELETE', '/v1/admin/quiz/trash/empty', { token, quizIds: JSON.stringify(quizIds) });
 }
 
 export function quizTrashV1(token: string, quizId: number): RequestResponse {
@@ -122,24 +138,8 @@ export function quizDescriptionUpdateV1(token: string, quizId: number, descripti
   return requestHelper('PUT', `/v1/admin/quiz/${quizId}/description`, { token, description });
 }
 
-export function clearV1(): RequestResponse {
-  return requestHelper('DELETE', '/v1/clear', {});
-}
-
-export function authLogoutV1(token: string): RequestResponse {
-  return requestHelper('POST', '/v1/admin/auth/logout', { token });
-}
-
-export function quizTrashViewV1(token: string): RequestResponse {
-  return requestHelper('GET', '/v1/admin/quiz/trash', { token });
-}
-
 export function quizRestoreV1(token: string, quizId: number): RequestResponse {
   return requestHelper('POST', `/v1/admin/quiz/${quizId}/restore`, { token });
-}
-
-export function quizTrashEmptyV1(token: string, quizIds: number[]): RequestResponse {
-  return requestHelper('DELETE', '/v1/admin/quiz/trash/empty', { token, quizIds: JSON.stringify(quizIds) });
 }
 
 export function quizTransferV1(token: string, quizId: number, userEmail: string): RequestResponse {
@@ -169,6 +169,11 @@ export function quizQuestionDuplicateV1(token: string, quizId: number, questionI
 /***********************************************************************
 * Iteration 3 (MODIFIED)
 ***********************************************************************/
+
+export function authLogoutV2(token: string): RequestResponse {
+  return requestHelper('POST', '/v2/admin/auth/logout', {}, { token });
+}
+
 export function userDetailsV2(token: string): RequestResponse {
   return requestHelper('GET', '/v2/admin/user/details', {}, { token });
 }
@@ -181,12 +186,20 @@ export function userPasswordUpdateV2(token: string, oldPassword: string, newPass
   return requestHelper('PUT', '/v2/admin/user/password', { oldPassword, newPassword }, { token });
 }
 
+export function quizCreateV2(token: string, name: string, description: string): RequestResponse {
+  return requestHelper('POST', '/v2/admin/quiz', { name, description }, { token });
+}
+
 export function quizListV2(token: string): RequestResponse {
   return requestHelper('GET', '/v2/admin/quiz/list', {}, { token });
 }
 
-export function quizCreateV2(token: string, name: string, description: string): RequestResponse {
-  return requestHelper('POST', '/v2/admin/quiz', { name, description }, { token });
+export function quizTrashViewV2(token: string): RequestResponse {
+  return requestHelper('GET', '/v2/admin/quiz/trash', {}, { token });
+}
+
+export function quizTrashEmptyV2(token: string, quizIds: number[]): RequestResponse {
+  return requestHelper('DELETE', '/v2/admin/quiz/trash/empty', { quizIds: JSON.stringify(quizIds) }, { token });
 }
 
 export function quizTrashV2(token: string, quizId: number): RequestResponse {
@@ -205,20 +218,8 @@ export function quizDescriptionUpdateV2(token: string, quizId: number, descripti
   return requestHelper('PUT', `/v2/admin/quiz/${quizId}/description`, { description }, { token });
 }
 
-export function authLogoutV2(token: string): RequestResponse {
-  return requestHelper('POST', '/v2/admin/auth/logout', {}, { token });
-}
-
-export function quizTrashViewV2(token: string): RequestResponse {
-  return requestHelper('GET', '/v2/admin/quiz/trash', {}, { token });
-}
-
 export function quizRestoreV2(token: string, quizId: number): RequestResponse {
   return requestHelper('POST', `/v2/admin/quiz/${quizId}/restore`, {}, { token });
-}
-
-export function quizTrashEmptyV2(token: string, quizIds: number[]): RequestResponse {
-  return requestHelper('DELETE', '/v2/admin/quiz/trash/empty', { quizIds: JSON.stringify(quizIds) }, { token });
 }
 
 export function quizTransferV2(token: string, quizId: number, userEmail: string): RequestResponse {
