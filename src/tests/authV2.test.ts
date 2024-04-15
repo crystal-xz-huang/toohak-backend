@@ -304,6 +304,11 @@ describe('Testing PUT /v2/admin/user/password', () => {
       expect(userPasswordUpdateV2(token, USER1.password, USER1.password)).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
+    test('New password has already bneen used before', () => {
+      userPasswordUpdateV2(token, USER1.password, newpassword);
+      expect(userPasswordUpdateV2(token, newpassword, USER1.password)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
     test('New password is less than 8 characters', () => {
       expect(userPasswordUpdateV2(token, USER1.password, 'abc4567')).toStrictEqual(BAD_REQUEST_ERROR);
     });
