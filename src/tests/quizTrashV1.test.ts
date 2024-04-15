@@ -129,8 +129,8 @@ describe('Testing GET /v1/admin/quiz/trash', () => {
   let quizId2: number;
   let quizId3: number;
   beforeEach(() => {
-    const user = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
-    token = user.token as string;
+    const ret1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
+    token = ret1.token as string;
     const q1 = quizCreateV1(token, QUIZ1.name, QUIZ1.description).jsonBody;
     quizId1 = q1.quizId as number;
     const q2 = quizCreateV1(token, QUIZ2.name, QUIZ2.description).jsonBody;

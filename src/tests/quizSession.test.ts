@@ -40,8 +40,6 @@ import {
 import { QuizMetadata } from '../functionTypes';
 import { sortArray } from '../testHelpers';
 import sleep from 'atomic-sleep';
-// import { TIMEOUT } from 'dns';
-// import { only } from 'node:test';
 
 beforeEach(() => {
   clearV1();
@@ -104,6 +102,7 @@ describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
   let quizId1: number;
   let sessionId1: number, sessionId2: number, sessionId3: number, sessionId4: number;
   beforeEach(() => {
+    clearV1();
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
     quizQuestionCreateV2(token1, quizId1, QUESTION_BODY1).jsonBody.questionId as number;
