@@ -64,6 +64,7 @@ export function adminAuthRegister(
     nameLast: nameLast,
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
+    usedPasswords: [],
   });
 
   setData(data);
@@ -210,13 +211,18 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
     throw HTTPError(401, tokenError.error);
   }
 
-  const foundUser = findUserbyToken(token, data);
-  if (foundUser.password !== getHashOf(oldPassword)) {
+  const user = findUserbyToken(token, data);
+  if (user.password !== getHashOf(oldPassword)) {
     throw HTTPError(400, 'Old password is incorrect');
   }
 
-  if (foundUser.password === getHashOf(newPassword)) {
+  if (user.password === getHashOf(newPassword)) {
     throw HTTPError(400, 'Old password and new password are the same');
+  }
+
+  // check if New Password has already been used before by this user
+  if (user.usedPasswords.includes(getHashOf(newPassword))) {
+    throw HTTPError(400, 'New password has already been used before');
   }
 
   const passwordError = isValidPassword(newPassword, 'New password');
@@ -224,7 +230,9 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
     throw HTTPError(400, passwordError.error);
   }
 
-  foundUser.password = getHashOf(newPassword);
+  // add old password to usedPasswords array (to prevent reuse of old password
+  user.usedPasswords.push(user.password);
+  user.password = getHashOf(newPassword);
   setData(data);
 
   return {};

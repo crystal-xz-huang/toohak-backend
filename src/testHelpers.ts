@@ -5,7 +5,7 @@ export const getTimeStamp = () => Math.floor(Date.now() / 1000);
 
 export function checkTimeStamp(timeStamp: number, expectedTimeStamp: number) {
   // allow for 1 second offset
-  expect(timeStamp).toBeGreaterThanOrEqual(expectedTimeStamp);
+  expect(timeStamp).toBeGreaterThanOrEqual(expectedTimeStamp - 1);
   expect(timeStamp).toBeLessThanOrEqual(expectedTimeStamp + 1);
 }
 
