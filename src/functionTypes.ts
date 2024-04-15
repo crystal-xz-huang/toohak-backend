@@ -174,7 +174,7 @@ export type PlayerFinalResultsReturn = {
   questionResults: PlayerQuestionResultsReturn[];
 }
 
-type UserScore = {
+export type UserScore = {
   name: string;
   score: number;
 }
