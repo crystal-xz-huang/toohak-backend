@@ -1,5 +1,6 @@
 import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
+import { clearTimer, setTimer, TimerState } from './timerStore';
 import { Action, State } from './dataTypes';
 import {
   EmptyObject,
@@ -101,8 +102,6 @@ export function adminQuizSessionStart(token: string, quizId: number, autoStartNu
     state: State.LOBBY,
     atQuestion: 0,
     metadata: quizCopy,
-    questionCountDown: null,
-    questionDuration: null,
   });
   setData(data);
   return { sessionId: newSessionId };
@@ -141,6 +140,7 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
   }
 
   const questions = session.metadata.questions;
+
   if (action === Action.NEXT_QUESTION) {
     // only valid in LOBBY, QUESTION_CLOSE and ANSWER_SHOW
     if (![State.LOBBY, State.QUESTION_CLOSE, State.ANSWER_SHOW].includes(session.state as State)) {
@@ -154,59 +154,62 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
     session.atQuestion++;
     session.state = State.QUESTION_COUNTDOWN;
     const question = questions[session.atQuestion - 1];
-    setData(data);
-    session.questionCountDown = setTimeout(() => {
+
+    // set the countdown timer to open the question after 3 seconds
+    setTimer(session.sessionId, TimerState.questionCountDown, 3, () => {
       session.state = State.QUESTION_OPEN;
       setData(data);
-      session.questionDuration = setTimeout(() => {
+      // set the duration timer to close the question after the question duration
+      setTimer(session.sessionId, TimerState.questionDuration, question.duration, () => {
         session.state = State.QUESTION_CLOSE;
         setData(data);
-      }, question.duration * 1000);
-    }, 3 * 1000);
+      });
+    });
   } else if (action === Action.SKIP_COUNTDOWN) {
     // only valid in QUESTION_COUNTDOWN
     if (session.state !== State.QUESTION_COUNTDOWN) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
 
-    clearTimeout(session.questionCountDown);
-    clearTimeout(session.questionDuration);
-    session.questionCountDown = null;
-    session.questionDuration = null;
+    // clear the countdown timer and open the question immediately
+    clearTimer(session.sessionId, TimerState.questionCountDown);
+    clearTimer(session.sessionId, TimerState.questionDuration);
+
+    // set the duration timer to close the question after the question duration
     session.state = State.QUESTION_OPEN;
-    setData(data);
-    session.questionDuration = setTimeout(() => {
+    const question = questions[session.atQuestion - 1];
+    setTimer(session.sessionId, TimerState.questionDuration, question.duration, () => {
       session.state = State.QUESTION_CLOSE;
       setData(data);
-    }, questions[session.atQuestion - 1].duration * 1000);
+    });
   } else if (action === Action.GO_TO_ANSWER) {
     // only valid in QUESTION_OPEN and QUESTION_CLOSE
     if (![State.QUESTION_OPEN, State.QUESTION_CLOSE].includes(session.state as State)) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
-    clearTimeout(session.questionDuration);
-    session.questionDuration = null;
+
+    // clear the duration timer and show the answer immediately
+    clearTimer(session.sessionId, TimerState.questionDuration);
     session.state = State.ANSWER_SHOW;
-    setData(data);
   } else if (action === Action.GO_TO_FINAL_RESULTS) {
     // only valid in ANSWER_SHOW and QUESTION_CLOSE
     if (![State.ANSWER_SHOW, State.QUESTION_CLOSE].includes(session.state)) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
     session.state = State.FINAL_RESULTS;
-    setData(data);
   } else if (action === Action.END) {
     // valid in all states except END itself
     if (session.state === State.END) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
-    clearTimeout(session.questionCountDown);
-    clearTimeout(session.questionDuration);
-    session.questionCountDown = null;
-    session.questionDuration = null;
+
+    // clear all timers and end the session
+    clearTimer(session.sessionId, TimerState.questionCountDown);
+    clearTimer(session.sessionId, TimerState.questionDuration);
     session.state = State.END;
-    setData(data);
   }
+
+  setData(data);
   return {};
 }
 
