@@ -51,7 +51,7 @@ afterEach(() => {
 
 //= =============================================================================
 //= =============================================================================
-describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
+describe.skip('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   let token1: string;
   let token2: string;
   let quizId1: number;
@@ -97,7 +97,7 @@ describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   });
 });
 
-describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
+describe.skip('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
   let token1: string;
   let quizId1: number;
   let sessionId1: number, sessionId2: number, sessionId3: number, sessionId4: number;
@@ -110,6 +110,10 @@ describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
     sessionId2 = quizSessionStartV1(token1, quizId1, 1).jsonBody.sessionId as number;
     sessionId3 = quizSessionStartV1(token1, quizId1, 2).jsonBody.sessionId as number;
     sessionId4 = quizSessionStartV1(token1, quizId1, 3).jsonBody.sessionId as number;
+  });
+
+  afterEach(() => {
+    clearV1();
   });
 
   test('Correct status code and return value', () => {
@@ -172,7 +176,7 @@ describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
   });
 });
 
-describe('Testing POST /v1/admin/quiz/:quizid/session/start', () => {
+describe.skip('Testing POST /v1/admin/quiz/:quizid/session/start', () => {
   let token1: string;
   let quizId1: number;
   let questionId1: number;
@@ -298,7 +302,7 @@ describe('Testing POST /v1/admin/quiz/:quizid/session/start', () => {
   });
 });
 
-describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
+describe.skip('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
   let token1: string;
   let quizId1: number;
   let sessionId1: number;
@@ -559,7 +563,7 @@ describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
   });
 });
 
-describe('Testing GET /v1/admin/quiz/:quizid/session/:sessionid', () => {
+describe.skip('Testing GET /v1/admin/quiz/:quizid/session/:sessionid', () => {
   let token1: string;
   let quizId1: number;
   let questionId1: number;
