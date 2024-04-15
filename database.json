@@ -12,16 +12,16 @@
   ],
   "quizzes": [
     {
-      "quizId": 617792,
+      "quizId": 117438,
       "name": "Quiz 1",
       "authUserId": 1,
       "description": "This is a quiz",
-      "timeCreated": 1713189025,
-      "timeLastEdited": 1713189025,
+      "timeCreated": 1713189902,
+      "timeLastEdited": 1713189902,
       "numQuestions": 2,
       "questions": [
         {
-          "questionId": 464315,
+          "questionId": 351087,
           "question": "Who is the Monarch of England?",
           "duration": 4,
           "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -30,19 +30,19 @@
             {
               "answerId": 0,
               "answer": "Prince Charles",
-              "colour": "purple",
+              "colour": "cyan",
               "correct": true
             },
             {
               "answerId": 1,
               "answer": "Queen Elizabeth II",
-              "colour": "orange",
+              "colour": "green",
               "correct": false
             }
           ]
         },
         {
-          "questionId": 379340,
+          "questionId": 725573,
           "question": "What is the capital of Australia?",
           "duration": 10,
           "thumbnailUrl": "https://google.com/some/image/path.jpg",
@@ -51,13 +51,13 @@
             {
               "answerId": 0,
               "answer": "Canberra",
-              "colour": "red",
+              "colour": "cyan",
               "correct": true
             },
             {
               "answerId": 1,
               "answer": "Sydney",
-              "colour": "orange",
+              "colour": "yellow",
               "correct": false
             }
           ]
@@ -71,26 +71,26 @@
   "userSessions": [
     {
       "authUserId": 1,
-      "token": "13629abc-f32b-4f33-82b2-d6d00a31e78b",
+      "token": "1f1c5952-f3bc-4808-ab46-07e15285a032",
       "valid": true
     }
   ],
   "quizSessions": [
     {
-      "sessionId": 919487,
+      "sessionId": 435783,
       "autoStartNum": 0,
       "state": "QUESTION_CLOSE",
       "atQuestion": 1,
       "metadata": {
-        "quizId": 617792,
+        "quizId": 117438,
         "name": "Quiz 1",
         "description": "This is a quiz",
-        "timeCreated": 1713189025,
-        "timeLastEdited": 1713189025,
+        "timeCreated": 1713189902,
+        "timeLastEdited": 1713189902,
         "numQuestions": 2,
         "questions": [
           {
-            "questionId": 464315,
+            "questionId": 351087,
             "question": "Who is the Monarch of England?",
             "duration": 4,
             "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -99,19 +99,19 @@
               {
                 "answerId": 0,
                 "answer": "Prince Charles",
-                "colour": "purple",
+                "colour": "cyan",
                 "correct": true
               },
               {
                 "answerId": 1,
                 "answer": "Queen Elizabeth II",
-                "colour": "orange",
+                "colour": "green",
                 "correct": false
               }
             ]
           },
           {
-            "questionId": 379340,
+            "questionId": 725573,
             "question": "What is the capital of Australia?",
             "duration": 10,
             "thumbnailUrl": "https://google.com/some/image/path.jpg",
@@ -120,13 +120,13 @@
               {
                 "answerId": 0,
                 "answer": "Canberra",
-                "colour": "red",
+                "colour": "cyan",
                 "correct": true
               },
               {
                 "answerId": 1,
                 "answer": "Sydney",
-                "colour": "orange",
+                "colour": "yellow",
                 "correct": false
               }
             ]
@@ -139,7 +139,7 @@
         "_idleTimeout": 3000,
         "_idlePrev": null,
         "_idleNext": null,
-        "_idleStart": 92865,
+        "_idleStart": 89623,
         "_repeat": null,
         "_destroyed": true
       },
@@ -147,7 +147,7 @@
         "_idleTimeout": 4000,
         "_idlePrev": null,
         "_idleNext": null,
-        "_idleStart": 95866,
+        "_idleStart": 92624,
         "_repeat": null,
         "_destroyed": false
       }
@@ -155,8 +155,8 @@
   ],
   "players": [
     {
-      "playerId": 471612,
-      "sessionId": 919487,
+      "playerId": 480074,
+      "sessionId": 435783,
       "name": "John Smith",
       "score": 0
     }

@@ -38,6 +38,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
   let token: string;
   let quizId: number;
   beforeEach(() => {
+    clearV1();
     const user = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
     token = user.token;
     const quiz = quizCreateV1(token, QUIZ1.name, QUIZ1.description).jsonBody;
