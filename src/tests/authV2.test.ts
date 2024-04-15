@@ -251,7 +251,7 @@ describe('Testing PUT /v2/admin/user/details', () => {
   });
 });
 
-describe.skip('Testing PUT /v2/admin/user/password', () => {
+describe('Testing PUT /v2/admin/user/password', () => {
   let token: string;
   beforeEach(() => {
     const result = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
