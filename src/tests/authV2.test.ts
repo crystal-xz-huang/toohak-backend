@@ -29,7 +29,7 @@ afterEach(() => {
 // Use .only to run only that block of tests
 //= =============================================================================
 
-describe.skip('Testing GET /v2/admin/user/details', () => {
+describe('Testing GET /v2/admin/user/details', () => {
   let token: string;
   beforeEach(() => {
     token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token;
