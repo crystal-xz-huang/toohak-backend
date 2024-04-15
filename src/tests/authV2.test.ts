@@ -134,7 +134,7 @@ describe('Testing GET /v2/admin/user/details', () => {
   });
 });
 
-describe.skip('Testing PUT /v2/admin/user/details', () => {
+describe('Testing PUT /v2/admin/user/details', () => {
   const emailUpdate = 'janedoe@gmail.com';
   const nameFirstUpdate = 'Jane';
   const nameLastUpdate = 'Doe';
