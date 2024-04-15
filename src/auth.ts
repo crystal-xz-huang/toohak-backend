@@ -110,6 +110,28 @@ export function adminAuthLogin(email: string, password: string): AdminAuthLoginR
 }
 
 /**
+ * Given a token, logs out an admin user who has an active quiz session
+ * Should be called with a token that is returned after either a login or register has been made
+ *
+ * @param { string } token - the token that corresponds to a user session
+ * @returns { EmptyObject } - returns an empty object on success
+ * @throws { HTTPError } - throws an HTTP 401 error if the token is invalid
+ */
+export function adminAuthLogout(token: string): EmptyObject {
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError.error);
+  }
+
+  const index = data.userSessions.findIndex((session) => session.token === token);
+  data.userSessions[index].valid = false;
+  setData(data);
+  return {};
+}
+
+/**
   * Given a token, returns the details of the admin user who is logged in.
   *
   * @param { string } token - a unique admin user identifier
@@ -205,27 +227,5 @@ export function adminUserPasswordUpdate(token: string, oldPassword: string, newP
   foundUser.password = getHashOf(newPassword);
   setData(data);
 
-  return {};
-}
-
-/**
- * Given a token, logs out an admin user who has an active quiz session
- * Should be called with a token that is returned after either a login or register has been made
- *
- * @param { string } token - the token that corresponds to a user session
- * @returns { EmptyObject } - returns an empty object on success
- * @throws { HTTPError } - throws an HTTP 401 error if the token is invalid
- */
-export function adminAuthLogout(token: string): EmptyObject {
-  const data = getData();
-
-  const tokenError = isValidToken(token, data);
-  if (tokenError) {
-    throw HTTPError(401, tokenError.error);
-  }
-
-  const index = data.userSessions.findIndex((session) => session.token === token);
-  data.userSessions[index].valid = false;
-  setData(data);
   return {};
 }
