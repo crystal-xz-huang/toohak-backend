@@ -51,7 +51,8 @@ afterEach(() => {
 
 //= =============================================================================
 //= =============================================================================
-describe.skip('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
+
+describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   let token1: string;
   let token2: string;
   let quizId1: number;
@@ -97,7 +98,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   });
 });
 
-describe.skip('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
+describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
   let token1: string;
   let quizId1: number;
   let sessionId1: number, sessionId2: number, sessionId3: number, sessionId4: number;
@@ -176,7 +177,7 @@ describe.skip('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
   });
 });
 
-describe.skip('Testing POST /v1/admin/quiz/:quizid/session/start', () => {
+describe('Testing POST /v1/admin/quiz/:quizid/session/start', () => {
   let token1: string;
   let quizId1: number;
   let questionId1: number;
@@ -302,7 +303,7 @@ describe.skip('Testing POST /v1/admin/quiz/:quizid/session/start', () => {
   });
 });
 
-describe.skip('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
+describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
   let token1: string;
   let quizId1: number;
   let sessionId1: number;
@@ -487,6 +488,7 @@ describe.skip('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
     });
 
     test('QUESTION_OPEN -> QUESTION_CLOSE', () => {
+      expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_OPEN);
       sleep(QUESTION_BODY1.duration * 1000); // wait for the duration of the question
       expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_CLOSE);
     });
@@ -563,7 +565,7 @@ describe.skip('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
   });
 });
 
-describe.skip('Testing GET /v1/admin/quiz/:quizid/session/:sessionid', () => {
+describe('Testing GET /v1/admin/quiz/:quizid/session/:sessionid', () => {
   let token1: string;
   let quizId1: number;
   let questionId1: number;
