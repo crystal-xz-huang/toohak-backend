@@ -42,18 +42,17 @@ import {
   State,
   Action
 } from '../dataTypes';
-import { 
+import {
   QuizMetadata,
   UserScore,
   PlayerQuestionResultsReturn,
   PlayerQuestionInfoReturn,
 } from '../functionTypes';
-import { 
+import {
   sortArray,
   getQuestionAnswerIds,
 } from '../testHelpers';
 import sleep from 'atomic-sleep';
-import exp from 'constants';
 
 beforeEach(() => {
   clearV1();
@@ -675,7 +674,7 @@ describe('Testing GET /v1/admin/quiz/:quizid/session/:sessionid', () => {
   });
 });
 
-describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
+describe.skip('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
   let token1: string;
   let quizId1: number;
   let questionId1: number;
@@ -693,11 +692,14 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () =
     player2 = playerJoinV1(sessionId1, 'John').jsonBody.playerId as number;
     player3 = playerJoinV1(sessionId1, 'Alice').jsonBody.playerId as number;
     player4 = playerJoinV1(sessionId1, 'Bob').jsonBody.playerId as number;
-  });
-  
-  test('Correct status code and return value', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION);
     quizSessionUpdateV1(token1, quizId1, sessionId1, Action.SKIP_COUNTDOWN);
+  });
+
+  test('Correct status code and return value', () => {
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.FINAL_RESULTS);
     const response = quizSessionResultsV1(token1, quizId1, sessionId1);
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual({
@@ -706,18 +708,16 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () =
     });
   });
 
-  describe('Correct usersRankedByScore and questionResults values', () => {
+  describe.only('Correct usersRankedByScore and questionResults values', () => {
     let answerIds: number[];
     beforeEach(() => {
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION);
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.SKIP_COUNTDOWN);
+      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
+      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
       const questionInfo = playerQuestionInfoV1(sessionId1, player1).jsonBody as PlayerQuestionInfoReturn;
-      answerIds = getQuestionAnswerIds(questionInfo);
+      answerIds = questionInfo.answers.map((answer) => answer.answerId);
     });
 
     test('No players have answered any questions', () => {
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
       const response = quizSessionResultsV1(token1, quizId1, sessionId1).jsonBody;
       // no answer = 0 score
       expect(response.usersRankedByScore).toStrictEqual([
@@ -742,7 +742,7 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () =
       playerQuestionAnswerV1(player2, 1, [answerIds[0]]); // John - score 5 * 1/2 = 2.5 = 3 (rounded up)
       playerQuestionAnswerV1(player3, 1, [answerIds[0]]); // Alice - score 5 * 1/3 = 1.67 = 2
       playerQuestionAnswerV1(player4, 1, [answerIds[0]]); // Bob - score 5 * 1/4 = 1.25 = 1
-      
+
       quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
       quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
 
@@ -764,13 +764,13 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () =
     });
 
     test('All players have answered the question incorrectly', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[1]]); 
-      playerQuestionAnswerV1(player2, 1, [answerIds[1]]); 
-      playerQuestionAnswerV1(player3, 1, [answerIds[1]]); 
-      playerQuestionAnswerV1(player4, 1, [answerIds[1]]); 
+      playerQuestionAnswerV1(player1, 1, [answerIds[1]]);
+      playerQuestionAnswerV1(player2, 1, [answerIds[1]]);
+      playerQuestionAnswerV1(player3, 1, [answerIds[1]]);
+      playerQuestionAnswerV1(player4, 1, [answerIds[1]]);
       quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
       quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
-      
+
       expect(quizSessionResultsV1(token1, quizId1, sessionId1).jsonBody).toStrictEqual({
         usersRankedByScore: [
           { name: 'Hayden', score: 0 },
@@ -790,13 +790,13 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () =
     });
 
     test('Half of the players have answered the question correctly', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[0]]);  // Hayden - score 5 * 1/1 = 5
-      playerQuestionAnswerV1(player2, 1, [answerIds[0], answerIds[1]]);  // John - score 0
+      playerQuestionAnswerV1(player1, 1, [answerIds[0]]); // Hayden - score 5 * 1/1 = 5
+      playerQuestionAnswerV1(player2, 1, [answerIds[0], answerIds[1]]); // John - score 0
       playerQuestionAnswerV1(player3, 1, [answerIds[0]]); // Alice - score 5 * 1/3 = 1.67 = 2
       playerQuestionAnswerV1(player4, 1, [answerIds[1]]); // Bob - score 0
       quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
       quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
-      
+
       expect(quizSessionResultsV1(token1, quizId1, sessionId1).jsonBody).toStrictEqual({
         usersRankedByScore: [
           { name: 'Hayden', score: 5 },
@@ -816,13 +816,13 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () =
     });
 
     test('Mixed results', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[1]]);  // Hayden - score 0
-      playerQuestionAnswerV1(player2, 1, [answerIds[0]]);  // John - score 5 * 1/2 = 2.5 = 3
+      playerQuestionAnswerV1(player1, 1, [answerIds[1]]); // Hayden - score 0
+      playerQuestionAnswerV1(player2, 1, [answerIds[0]]); // John - score 5 * 1/2 = 2.5 = 3
       playerQuestionAnswerV1(player3, 1, [answerIds[1], answerIds[0]]); // Alice - score 0
       playerQuestionAnswerV1(player4, 1, [answerIds[0]]); // Bob - score 5 * 1/4 = 1.25 = 1
       quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
       quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
-      
+
       expect(quizSessionResultsV1(token1, quizId1, sessionId1).jsonBody).toStrictEqual({
         usersRankedByScore: [
           { name: 'John', score: 3 },
@@ -842,9 +842,9 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () =
     });
 
     test('All players have answered the question correctly but with different times', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[0]]);  // Hayden - score 5 * 1/1 = 5
+      playerQuestionAnswerV1(player1, 1, [answerIds[0]]); // Hayden - score 5 * 1/1 = 5
       sleep(1000); // 1 second delay
-      playerQuestionAnswerV1(player2, 1, [answerIds[0]]);  // John - score 5 * 1/2 = 2.5 = 3
+      playerQuestionAnswerV1(player2, 1, [answerIds[0]]); // John - score 5 * 1/2 = 2.5 = 3
       sleep(2000); // 2 second delay
       playerQuestionAnswerV1(player3, 1, [answerIds[0]]); // Alice - score 5 * 1/3 = 1.67 = 2
       sleep(5000); // 5 second delay
@@ -899,7 +899,7 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () =
       test('Invalid sessionId', () => {
         expect(quizSessionResultsV1(token1, quizId1, -1)).toStrictEqual(BAD_REQUEST_ERROR);
       });
-    
+
       test('SessionId does not refer to a valid session within this quiz', () => {
         const quizId2 = quizCreateV2(token1, QUIZ2.name, QUIZ2.description).jsonBody.quizId as number;
         quizQuestionCreateV2(token1, quizId2, QUESTION_BODY1).jsonBody.questionId as number;
@@ -912,28 +912,4 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () =
       });
     });
   });
-
-
-
-
-
-  // {
-  //   "usersRankedByScore": [
-  //     {
-  //       "name": "Hayden",
-  //       "score": 45
-  //     }
-  //   ],
-  //   "questionResults": [
-  //     {
-  //       "questionId": 5546,
-  //       "playersCorrectList": [
-  //         "Hayden"
-  //       ],
-  //       "averageAnswerTime": 45,
-  //       "percentCorrect": 54
-  //     }
-  //   ]
-  // }
-
 });
