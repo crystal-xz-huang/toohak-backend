@@ -26,7 +26,7 @@ import {
   // playerQuestionAnswerV1,
   // playerQuestionResultsV1,
   // playerFinalResultsV1,
-  // playerChatListV1,
+  playerChatListV1,
   playerChatSendV1
 } from '../httpHelpers';
 // import {
@@ -50,7 +50,7 @@ import {
 } from '../testTypes';
 import {
   // State,
-  Action,
+  Action
 } from '../dataTypes';
 /* import { QuizMetadata } from '../functionTypes';
 import { sortArray } from '../testHelpers';
@@ -264,5 +264,52 @@ describe('Testing POST/v1/player/{playerid}/chat', () => {
     playerChatSendV1(playerId, message);
     // const timeSent = playerChatListV1(playerId).jsonBody.timeSent as number;
     // checkTimeStamp(timeSent, expectedTime);
+  });
+});
+
+describe('Testing GET/v1/player/{playerid}/chat', () => {
+  let token: string;
+  let quizId: number;
+  let sessionId: number;
+  let playerId: number;
+  const message = { messageBody: 'chat' };
+
+  beforeEach(() => {
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody.questionId as number;
+    sessionId = quizSessionStartV1(token, quizId, 0).jsonBody.sessionId as number;
+    playerId = playerJoinV1(sessionId, PLAYER_BODY1.name).jsonBody.playerId as number;
+  });
+
+  test('Correct status code and return value with given name', () => {
+    playerChatSendV1(playerId, message);
+    const response = playerChatListV1(playerId).jsonBody;
+    const expected = { messages: [{messageBody: 'chat', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}] };
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response).toStrictEqual({expected});
+  });
+
+  test('Successful retrieval when player has no messages', () => {
+    const response = playerChatListV1(playerId).jsonBody;
+    expect(response).toStrictEqual({ messages: []});
+  });
+
+  test('Successful retrieval and displayed in correct order', () => {
+    playerChatSendV1(playerId, message);
+    const message1 = { messageBody: 'chat1' };
+    playerChatSendV1(playerId, message1);
+    const message2 = { messageBody: 'chat2' };
+    playerChatSendV1(playerId, message2);
+    const expected = { messages: [{messageBody: 'chat', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}] };
+    const response = playerChatListV1(playerId).jsonBody;
+    expect(response).toStrictEqual(expected);
+  });
+
+  describe('BAD_REQUEST_ERROR', () => {
+    test('Player Id does not refer to a valid player', () => {
+      const response = playerChatListV1(playerId + 1);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
   });
 });
