@@ -47,6 +47,9 @@ import {
   QUESTION_BODY2,
   // PLAYER_BODY2,
   // PLAYER_BODY3,
+  MESSAGE1,
+  MESSAGE2,
+  MESSAGE3
 } from '../testTypes';
 import {
   // State,
@@ -272,7 +275,6 @@ describe('Testing GET/v1/player/{playerid}/chat', () => {
   let quizId: number;
   let sessionId: number;
   let playerId: number;
-  const message = { messageBody: 'chat' };
 
   beforeEach(() => {
     token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
@@ -283,9 +285,9 @@ describe('Testing GET/v1/player/{playerid}/chat', () => {
   });
 
   test('Correct status code and return value with given name', () => {
-    playerChatSendV1(playerId, message);
+    playerChatSendV1(playerId, MESSAGE1);
     const response = playerChatListV1(playerId);
-    const expected = { messages: [{messageBody: 'chat', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}] };
+    const expected = { messages: [{messageBody: MESSAGE1, playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}] };
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual(expected);
   });
@@ -296,12 +298,10 @@ describe('Testing GET/v1/player/{playerid}/chat', () => {
   });
 
   test('Successful retrieval and displayed in correct order', () => {
-    playerChatSendV1(playerId, message);
-    const message1 = { messageBody: 'chat1' };
-    playerChatSendV1(playerId, message1);
-    const message2 = { messageBody: 'chat2' };
-    playerChatSendV1(playerId, message2);
-    const expected = { messages: [{messageBody: 'chat', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}, {messageBody: 'chat1', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}, {messageBody: 'chat2', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}] };
+    playerChatSendV1(playerId, MESSAGE1);
+    playerChatSendV1(playerId, MESSAGE2);
+    playerChatSendV1(playerId, MESSAGE3);
+    const expected = { messages: [{messageBody: MESSAGE1, playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}, {messageBody: MESSAGE2, playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}, {messageBody: MESSAGE1, playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}] };
     const response = playerChatListV1(playerId).jsonBody;
     expect(response).toStrictEqual(expected);
   });

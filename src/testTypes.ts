@@ -414,4 +414,14 @@ export const PLAYER_BODY3 = {
   name: 'Hayden Smith'
 };
 
-// create names if empty string
+export const MESSAGE1 = {
+  messageBody: 'This a message'
+};
+
+export const MESSAGE2 = {
+  messageBody: 'This another message'
+};
+
+export const MESSAGE3 = {
+  messageBody: 'This yet another message'
+};
