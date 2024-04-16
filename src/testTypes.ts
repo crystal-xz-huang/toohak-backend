@@ -359,7 +359,6 @@ export const QUESTION_BODY2 = {
   thumbnailUrl: 'https://google.com/some/image/path.jpg'
 };
 
-
 export const QUESTION_BODY3 = {
   question: 'What is the capital of France?',
   duration: 2,

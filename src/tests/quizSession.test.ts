@@ -50,7 +50,6 @@ import {
 } from '../functionTypes';
 import {
   sortArray,
-  getQuestionAnswerIds,
 } from '../testHelpers';
 import sleep from 'atomic-sleep';
 
@@ -708,7 +707,7 @@ describe.skip('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results',
     });
   });
 
-  describe.only('Correct usersRankedByScore and questionResults values', () => {
+  describe('Correct usersRankedByScore and questionResults values', () => {
     let answerIds: number[];
     beforeEach(() => {
       quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
