@@ -415,13 +415,13 @@ export const PLAYER_BODY3 = {
 };
 
 export const MESSAGE1 = {
-  messageBody: 'This a message'
+  messageBody: 'This is a message'
 };
 
 export const MESSAGE2 = {
-  messageBody: 'This another message'
+  messageBody: 'This is another message'
 };
 
 export const MESSAGE3 = {
-  messageBody: 'This yet another message'
+  messageBody: 'This is yet another message'
 };
