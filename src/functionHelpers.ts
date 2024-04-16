@@ -1,12 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import crypto from 'crypto';
-import { ErrorMessage, QuestionBodyInput } from './functionTypes';
+import { ErrorMessage, QuestionBodyInput, QuizMetadata } from './functionTypes';
 
 import {
   Data,
   User,
   Quiz,
+  QuizMetadata as SessionQuizMetadata,
+  SessionQuestionBody,
   MIN_USER_NAME_LENGTH,
   MAX_USER_NAME_LENGTH,
   MIN_PASSWORD_LENGTH,
@@ -412,16 +414,6 @@ export function isValidImgURL(imgUrl: string): ErrorMessage | null {
   return null;
 }
 
-// export function isValidSessionIdforQuiz(quizId: number, sessionId: number, data: Data): ErrorMessage | null {
-//   const session = data.quizSessions
-//     .filter((s) => s.metadata.quizId === quizId)
-//     .find((s) => s.sessionId === sessionId);
-
-//   if (!session) {
-//     return createError('SessionId does not refer to a valid session within the quiz');
-//   }
-// }
-
 /**
  * Check if name is used by alraedy joined user
  * Returns null if the name is not used, otherwise returns an error object
@@ -432,7 +424,75 @@ export function isValidImgURL(imgUrl: string): ErrorMessage | null {
 export function isPlayerNameUsed(name: string, sessionId: number, data: Data): ErrorMessage | null {
   const userQuizzes = data.players.filter(player => player.sessionId === sessionId);
   if (userQuizzes.some(player => player.name === name)) {
-    return createError('Name is already used by another quiz');
+    return createError('Name is already used by another player');
   }
   return null;
+}
+
+/**
+ * Copy the question object and return a new question object
+ */
+export function copyQuizToQuizMetadata(quiz: Quiz): SessionQuizMetadata {
+  return {
+    quizId: quiz.quizId,
+    name: quiz.name,
+    timeCreated: quiz.timeCreated,
+    timeLastEdited: quiz.timeLastEdited,
+    description: quiz.description,
+    numQuestions: quiz.numQuestions,
+    questions: quiz.questions.map(q => ({
+      questionId: q.questionId,
+      question: q.question,
+      duration: q.duration,
+      thumbnailUrl: q.thumbnailUrl,
+      points: q.points,
+      answers: q.answers,
+      timeOpen: null,
+      playerCorrectList: [],
+      playerAnswers: [],
+    })),
+    duration: quiz.duration,
+    thumbnailUrl: quiz.thumbnailUrl
+  };
+}
+
+export function convertSessionMetadata(sessionQuizMetadata: SessionQuizMetadata): QuizMetadata {
+  return {
+    quizId: sessionQuizMetadata.quizId,
+    name: sessionQuizMetadata.name,
+    timeCreated: sessionQuizMetadata.timeCreated,
+    timeLastEdited: sessionQuizMetadata.timeLastEdited,
+    description: sessionQuizMetadata.description,
+    numQuestions: sessionQuizMetadata.numQuestions,
+    questions: sessionQuizMetadata.questions.map(q => ({
+      questionId: q.questionId,
+      question: q.question,
+      duration: q.duration,
+      thumbnailUrl: q.thumbnailUrl,
+      points: q.points,
+      answers: q.answers,
+    })),
+    duration: sessionQuizMetadata.duration,
+    thumbnailUrl: sessionQuizMetadata.thumbnailUrl,
+  };
+}
+
+export function getQuestionAverageAnswerTime(question: SessionQuestionBody): number {
+  const totalTime = question.playerAnswers.reduce((acc, answer) => acc + answer.answerTime, 0);
+  // Return 0 if no player has answered the question
+  if (question.playerAnswers.length === 0) {
+    return 0;
+  } else {
+    return Math.round(totalTime / question.playerAnswers.length);
+  }
+}
+
+export function getQuestionPercentageCorrect(question: SessionQuestionBody): number {
+  const totalCorrect = question.playerCorrectList.length;
+  // Return 0 if no player has answered the question
+  if (question.playerAnswers.length === 0) {
+    return 0;
+  } else {
+    return Math.round((totalCorrect / question.playerAnswers.length) * 100);
+  }
 }

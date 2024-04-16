@@ -61,6 +61,14 @@ interface AnswerBody {
   correct: boolean;
 }
 
+export interface QuizSession {
+  sessionId: number;
+  autoStartNum: number; // number of players needed to auto start the quiz
+  state: State, // the current state of the quiz session
+  atQuestion: number; // the question the quiz session is currently at
+  metadata: QuizMetadata; // the metadata of the quiz
+}
+
 export interface QuizMetadata {
   quizId: number;
   name: string;
@@ -68,17 +76,27 @@ export interface QuizMetadata {
   timeLastEdited: number;
   description: string;
   numQuestions: number;
-  questions: QuestionBody[];
+  questions: SessionQuestionBody[];
   duration: number;
   thumbnailUrl: string;
 }
 
-export interface QuizSession {
-  sessionId: number;
-  autoStartNum: number; // number of players needed to auto start the quiz
-  state: State, // the current state of the quiz session
-  atQuestion: number; // the question the quiz session is currently at
-  metadata: QuizMetadata; // the metadata of the quiz
+export interface SessionQuestionBody {
+  questionId: number;
+  question: string;
+  duration: number;
+  thumbnailUrl: string;
+  points: number;
+  answers: AnswerBody[];
+  timeOpen: number | null; // the time the question was opened
+  playerCorrectList: string[]; // the list of players who answered the question correctly
+  playerAnswers: AnswerSubmission[]; // the answers submitted by the players
+}
+
+export interface AnswerSubmission {
+  playerId: number;
+  answerTime: number; // average time taken to answer the question
+  answers: number[]; // the answer ids submitted by the player
 }
 
 interface Player {
@@ -94,22 +112,6 @@ interface Message {
   playerName: string;
   timeSent: number;
 }
-
-/*
-interface AnswerSubmission {
-  playerId: number;
-  questionId: number;
-  answerIds: number[];
-  answerTime: number;
-}
-
-interface Result {
-  questionId: number;
-  playersCorrectList: string[];
-  averageAnswerTime: number;
-  percentCorrect: number;
-}
-*/
 
 export enum State {
   LOBBY = 'LOBBY', // players can join

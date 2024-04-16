@@ -50,7 +50,7 @@ import {
   playerJoin,
   playerStatus,
   playerQuestionInfo,
-  // playerQuestionAnswer,
+  playerQuestionAnswer,
   // playerQuestionResults,
   // playerFinalResults,
   playerChatList,
@@ -440,6 +440,7 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
   const sessionId = parseInt(req.params.sessionid);
   const token = req.header('token');
   const response = adminQuizSessionResults(token, quizId, sessionId);
+  console.log(response);
   res.json(response);
 });
 
@@ -470,7 +471,7 @@ app.get('/v1/player/:playerid/question/:questionposition', (req: Request, res: R
   res.json(response);
 });
 
-/* app.put('/v1/player/:playerid/question/:questionposition/answer', (req: Request, res: Response) => {
+app.put('/v1/player/:playerid/question/:questionposition/answer', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
   const questionPosition = parseInt(req.params.questionposition);
   const answerIds = req.body.answerIds as number[];
@@ -478,7 +479,7 @@ app.get('/v1/player/:playerid/question/:questionposition', (req: Request, res: R
   res.json(response);
 });
 
-app.get('/v1/player/:playerid/question/:questionposition/results', (req: Request, res: Response) => {
+/* app.get('/v1/player/:playerid/question/:questionposition/results', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
   const questionPosition = parseInt(req.params.questionposition);
   const response = playerQuestionResults(playerId, questionPosition);
