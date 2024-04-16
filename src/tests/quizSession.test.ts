@@ -1,3 +1,9 @@
+// Tests for querying and updating quiz sessions results
+
+import sleep from 'atomic-sleep';
+import { QuizMetadata, AdminQuizInfoReturn, AdminQuizSessionStatusReturn } from '../functionTypes';
+import { State, Action } from '../dataTypes';
+import { sortNumericArray, sortStringArray } from '../testHelpers';
 import {
   clearV1,
   authRegisterV1,
@@ -34,20 +40,6 @@ import {
   QUESTION_BODY3,
   QUESTION_BODY4,
 } from '../testTypes';
-import {
-  State,
-  Action
-} from '../dataTypes';
-import {
-  QuizMetadata,
-  AdminQuizInfoReturn,
-  AdminQuizSessionStatusReturn,
-} from '../functionTypes';
-import {
-  sortNumericArray,
-  sortStringArray,
-} from '../testHelpers';
-import sleep from 'atomic-sleep';
 
 beforeEach(() => {
   clearV1();
@@ -57,7 +49,6 @@ afterEach(() => {
   clearV1();
 });
 
-// ====================================================================
 describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   let token1: string;
   let token2: string;
