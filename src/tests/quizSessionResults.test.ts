@@ -307,38 +307,6 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
       expect(playerQuestionAnswerV1(player1, 1, [answerIds1[0]])).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
-
-  test('Need to select all correct answers to be considered correct', () => {
-    questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY5).jsonBody.questionId as number;
-    sessionId = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
-    player1 = playerJoinV1(sessionId, 'Tommy').jsonBody.playerId as number;
-    player2 = playerJoinV1(sessionId, 'Mason').jsonBody.playerId as number;
-    player3 = playerJoinV1(sessionId, 'Alice').jsonBody.playerId as number;
-    quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
-    quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
-    const questionInfo = playerQuestionInfoV1(player1, 1).jsonBody as PlayerQuestionInfoReturn;
-    answerIds = getQuestionAnswerIds(questionInfo);
-    playerQuestionAnswerV1(player1, 1, [answerIds[0], answerIds[1]]); // Tommy: 7 * 1/1 = 7
-    playerQuestionAnswerV1(player2, 1, [answerIds[1], answerIds[2]]); // Mason: 0
-    playerQuestionAnswerV1(player3, 1, [answerIds[2], answerIds[0]]); // Alice: 0
-    quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
-    quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
-    expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
-      usersRankedByScore: [
-        { name: 'Tommy', score: 7 },
-        { name: 'Mason', score: 0 },
-        { name: 'Alice', score: 0 },
-      ],
-      questionResults: [
-        {
-          questionId: questionId1,
-          playersCorrectList: ['Tommy'],
-          averageAnswerTime: expect.any(Number),
-          percentCorrect: Math.round(1 / 3 * 100),
-        },
-      ],
-    });
-  });
 });
 
 describe('Testing GET /v1/player/{playerid}/question/{questionposition}/results', () => {
@@ -349,13 +317,14 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}/results'
     questionId2 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY4).jsonBody.questionId as number;
     sessionId = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
     player1 = playerJoinV1(sessionId, 'Tommy').jsonBody.playerId as number;
+  });
+
+  test('Correct status code and return value', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
     expect(quizSessionStatusV1(token1, quizId1, sessionId).jsonBody.state).toStrictEqual(State.ANSWER_SHOW);
-  });
 
-  test('Correct status code and return value', () => {
     const response = playerQuestionResultsV1(player1, 1);
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual({
@@ -367,6 +336,13 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}/results'
   });
 
   describe('Bad request errors', () => {
+    beforeEach(() => {
+      quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
+      quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
+      quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
+      expect(quizSessionStatusV1(token1, quizId1, sessionId).jsonBody.state).toStrictEqual(State.ANSWER_SHOW);
+    });
+
     test('Player ID does not exist', () => {
       expect(playerQuestionResultsV1(-1, 1)).toStrictEqual(BAD_REQUEST_ERROR);
     });
@@ -385,6 +361,7 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}/results'
       expect(playerQuestionResultsV1(player1, 1)).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
     test('Session is in QUESTION_COUNTDOWN state', () => {
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
       expect(playerQuestionResultsV1(player1, 1)).toStrictEqual(BAD_REQUEST_ERROR);
@@ -417,8 +394,49 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}/results'
   });
 });
 
-describe('Final results for session with 1 question', () => {
+test('Need to select all correct answers to be considered correct', () => {
+  token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+  quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+  questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY5).jsonBody.questionId as number;
+  sessionId = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
+  player1 = playerJoinV1(sessionId, 'Tommy').jsonBody.playerId as number;
+  player2 = playerJoinV1(sessionId, 'Mason').jsonBody.playerId as number;
+  player3 = playerJoinV1(sessionId, 'Alice').jsonBody.playerId as number;
+  const quizInfo = quizInfoV2(token1, quizId1).jsonBody as AdminQuizInfoReturn;
+  answerIds = getAnswerIds(quizInfo, questionId1);
+  quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
+  quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
+  playerQuestionAnswerV1(player1, 1, [answerIds[0], answerIds[1]]); // Tommy: 7 * 1/1 = 7
+  playerQuestionAnswerV1(player2, 1, [answerIds[1], answerIds[2]]); // Mason: 0
+  playerQuestionAnswerV1(player3, 1, [answerIds[2], answerIds[0]]); // Alice: 0
+
+  const usersRankedByScore = [
+    { name: 'Tommy', score: 7 },
+    { name: 'Mason', score: 0 },
+    { name: 'Alice', score: 0 },
+  ];
+
+  const questionResults = {
+    questionId: questionId1,
+    playersCorrectList: ['Tommy'],
+    averageAnswerTime: expect.any(Number),
+    percentCorrect: Math.round(1 / 3 * 100),
+  };
+
+  quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
+  expect(playerQuestionResultsV1(player1, 1).jsonBody).toStrictEqual(questionResults);
+
+  quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
+  expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
+    usersRankedByScore: usersRankedByScore,
+    questionResults: [questionResults] as PlayerQuestionResultsReturn[],
+  });
+});
+
+describe('Question and final results for session with 1 question', () => {
   beforeEach(() => {
+    token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
     questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY2).jsonBody.questionId as number;
     sessionId = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
     player1 = playerJoinV1(sessionId, 'Tommy').jsonBody.playerId as number;
@@ -451,7 +469,7 @@ describe('Final results for session with 1 question', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
-      questionResults: questionResults,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
   });
 
@@ -462,9 +480,9 @@ describe('Final results for session with 1 question', () => {
     playerQuestionAnswerV1(player4, 1, [answerIds[0]]); // Katie: 5 * 1/4 = 1.25 = 1
     const usersRankedByScore = [
       { name: 'Tommy', score: 5 },
-      { name: 'Mason', score: 5 },
-      { name: 'Alice', score: 5 },
-      { name: 'Katie', score: 5 },
+      { name: 'Mason', score: 3 },
+      { name: 'Alice', score: 2 },
+      { name: 'Katie', score: 1 },
     ];
     const questionResults = {
       questionId: questionId1,
@@ -479,7 +497,7 @@ describe('Final results for session with 1 question', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
-      questionResults: questionResults,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
   });
 
@@ -509,7 +527,7 @@ describe('Final results for session with 1 question', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
-      questionResults: questionResults,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
   });
 
@@ -539,7 +557,7 @@ describe('Final results for session with 1 question', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
-      questionResults: questionResults,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
   });
 
@@ -567,13 +585,15 @@ describe('Final results for session with 1 question', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
-      questionResults: questionResults,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
   });
 });
 
-describe('Final results for session with 1 question and resubmissions', () => {
+describe('Question and final results for session with 1 question and resubmissions', () => {
   beforeEach(() => {
+    token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
     questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY4).jsonBody.questionId as number;
     sessionId = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
     player1 = playerJoinV1(sessionId, 'Tommy').jsonBody.playerId as number;
@@ -591,14 +611,17 @@ describe('Final results for session with 1 question and resubmissions', () => {
     playerQuestionAnswerV1(player2, 1, [answerIds[0]]);
     playerQuestionAnswerV1(player3, 1, [answerIds[0]]);
     playerQuestionAnswerV1(player4, 1, [answerIds[0]]); // Katie: 7/1
+    sleep(1000);
     playerQuestionAnswerV1(player2, 1, [answerIds[0]]); // Mason: 7/2
+    sleep(1000);
     playerQuestionAnswerV1(player3, 1, [answerIds[0]]); // Alice  7/3
+    sleep(1000);
     playerQuestionAnswerV1(player1, 1, [answerIds[0]]); // Tommy  7/4
     const usersRankedByScore = [
       { name: 'Katie', score: 7 },
-      { name: 'Mason', score: Math.round(7 / 2) },
-      { name: 'Alice', score: Math.round(7 / 3) },
-      { name: 'Tommy', score: Math.round(7 / 4) },
+      { name: 'Mason', score: 4 },
+      { name: 'Tommy', score: 2 },
+      { name: 'Alice', score: 2 },
     ];
     const questionResults = {
       questionId: questionId1,
@@ -613,7 +636,7 @@ describe('Final results for session with 1 question and resubmissions', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
-      questionResults: questionResults,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
   });
 
@@ -622,13 +645,14 @@ describe('Final results for session with 1 question and resubmissions', () => {
     playerQuestionAnswerV1(player2, 1, [answerIds[0]]);
     playerQuestionAnswerV1(player3, 1, [answerIds[1]]);
     playerQuestionAnswerV1(player4, 1, [answerIds[0]]); // Katie:
+    sleep(1000);
     playerQuestionAnswerV1(player2, 1, [answerIds[0]]); // Mason:
     playerQuestionAnswerV1(player1, 1, [answerIds[1]]);
     playerQuestionAnswerV1(player3, 1, [answerIds[0]]); // Alice:
     const usersRankedByScore = [
       { name: 'Katie', score: 7 },
-      { name: 'Mason', score: Math.round(7 / 2) },
-      { name: 'Alice', score: Math.round(7 / 3) },
+      { name: 'Mason', score: 4 },
+      { name: 'Alice', score: 2 },
       { name: 'Tommy', score: 0 },
     ];
     const questionResults = {
@@ -644,7 +668,7 @@ describe('Final results for session with 1 question and resubmissions', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
-      questionResults: questionResults,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
   });
 
@@ -674,15 +698,17 @@ describe('Final results for session with 1 question and resubmissions', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
-      questionResults: questionResults,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
   });
 });
 
-describe('Final results for session with 2 questions', () => {
+describe('Question and final results for session with 2 questions', () => {
   let answerIds1: number[];
   let answerIds2: number[];
   beforeEach(() => {
+    token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
     questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY1).jsonBody.questionId as number;
     questionId2 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY4).jsonBody.questionId as number;
     sessionId = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
@@ -697,25 +723,6 @@ describe('Final results for session with 2 questions', () => {
   });
 
   test('No resubmissions', () => {
-    const usersRankedByScore = [
-      { name: 'Mason', score: 8 }, // 5 + 3.5 = 8.5 = 9
-      { name: 'Tommy', score: 7 }, // 7
-      { name: 'Alice', score: 4 }, // 2.5 + 2.33 = 4.83 = 5
-    ];
-    const questionResults = [
-      {
-        questionId: questionId1,
-        playersCorrectList: sortStringArray(['Mason', 'Alice']),
-        averageAnswerTime: expect.any(Number),
-        percentCorrect: Math.round(2 / 3 * 100),
-      },
-      {
-        questionId: questionId2,
-        playersCorrectList: sortStringArray(['Tommy', 'Mason', 'Alice']),
-        averageAnswerTime: expect.any(Number),
-        percentCorrect: 100,
-      },
-    ];
     // QUESTION 1
     playerQuestionAnswerV1(player1, 1, [answerIds1[1]]);
     playerQuestionAnswerV1(player2, 1, [answerIds1[0]]); // Mason
@@ -731,15 +738,34 @@ describe('Final results for session with 2 questions', () => {
     playerQuestionAnswerV1(player2, 2, [answerIds2[0]]); // Mason
     playerQuestionAnswerV1(player3, 2, [answerIds2[0]]); // Alice
 
+    const usersRankedByScore = [
+      { name: 'Mason', score: 9 }, // 5 + 3.5 = 8.5 = 9
+      { name: 'Tommy', score: 7 }, // 7
+      { name: 'Alice', score: 5 }, // 2.5 + 2.33 = 4.83 = 5
+    ];
+    const questionResults = [
+      {
+        questionId: questionId1,
+        playersCorrectList: sortStringArray(['Mason', 'Alice']),
+        averageAnswerTime: expect.any(Number),
+        percentCorrect: Math.round(2 / 3 * 100),
+      },
+      {
+        questionId: questionId2,
+        playersCorrectList: sortStringArray(['Tommy', 'Mason', 'Alice']),
+        averageAnswerTime: expect.any(Number),
+        percentCorrect: 100,
+      },
+    ];
     // MOVE TO FINAL RESULTS
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
     expect(quizSessionStatusV1(token1, quizId1, sessionId).jsonBody.state).toStrictEqual(State.ANSWER_SHOW);
-    expect(playerQuestionResultsV1(player1, 2).jsonBody).toStrictEqual(questionResults);
+    expect(playerQuestionResultsV1(player1, 2).jsonBody).toStrictEqual(questionResults[1]);
 
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
-      questionResults: questionResults,
+      questionResults: questionResults as PlayerQuestionResultsReturn[],
     });
   });
 
@@ -763,6 +789,7 @@ describe('Final results for session with 2 questions', () => {
 
     // QUESTION 2 NEW SUBMISSIONS
     playerQuestionAnswerV1(player1, 2, [answerIds2[1]]);
+    sleep(1000);
     playerQuestionAnswerV1(player2, 2, [answerIds2[0]]); // Mason: 7
     playerQuestionAnswerV1(player3, 2, [answerIds2[1]]);
     // QUESTION 2 RESUBMISSIONS
@@ -770,20 +797,20 @@ describe('Final results for session with 2 questions', () => {
     playerQuestionAnswerV1(player3, 2, [answerIds2[1]]);
     playerQuestionAnswerV1(player1, 2, [answerIds2[1]]);
     playerQuestionAnswerV1(player3, 2, [answerIds2[0]]); // Alice: 7/2
+    sleep(1000);
     playerQuestionAnswerV1(player1, 2, [answerIds2[0]]); // Tommy: 7/3
 
     const usersRankedByScore = [
+      { name: 'Alice', score: 9 },
       { name: 'Mason', score: 7 },
-      { name: 'Tommy', score: 7 },
-      { name: 'Alice', score: 6 },
+      { name: 'Tommy', score: 5 },
     ];
-
     const questionResults = [
       {
         questionId: questionId1,
         playersCorrectList: sortStringArray(['Tommy', 'Alice']),
         averageAnswerTime: expect.any(Number),
-        percentCorrect: Math.round(2 / 3 * 100),
+        percentCorrect: 67,
       },
       {
         questionId: questionId2,
@@ -795,12 +822,12 @@ describe('Final results for session with 2 questions', () => {
 
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
     expect(quizSessionStatusV1(token1, quizId1, sessionId).jsonBody.state).toStrictEqual(State.ANSWER_SHOW);
-    expect(playerQuestionResultsV1(player1, 2).jsonBody).toStrictEqual(questionResults);
+    expect(playerQuestionResultsV1(player1, 2).jsonBody).toStrictEqual(questionResults[1]);
 
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
-      questionResults: questionResults,
+      questionResults: questionResults as PlayerQuestionResultsReturn[],
     });
   });
 });
