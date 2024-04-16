@@ -12,7 +12,6 @@ import {
   PlayerQuestionInfoReturn,
   PlayerQuestionResultsReturn,
   PlayerFinalResultsReturn,
-  EmptyObject,
   // PlayerChatListReturn,
 } from './functionTypes';
 
