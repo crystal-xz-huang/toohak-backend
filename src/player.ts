@@ -175,33 +175,64 @@ export function playerQuestionAnswer(playerId: number, questionPosition: number,
     throw HTTPError(400, 'At least one answer must be submitted');
   }
 
-  const timeTaken = getCurrentTime() - question.timeOpen;
-  // update the player's submissions
-  const correctAnswers = question.answers.filter((answer) => answer.correct).map((answer) => answer.answerId).sort();
-  const playerAnswers = question.playerAnswers.find((answer) => answer.playerId === playerId);
-  if (playerAnswers) {
-    playerAnswers.answerTime = timeTaken;
-    playerAnswers.answers = answerIds;
+  let timeTaken = 0;
+  if (!question.timeOpen) {
+    timeTaken = getCurrentTime() - question.timeOpen;
+  }
+
+  // correctAnswers is an array of the correct answerIds
+  const correctAnswers = question.answers.filter((a) => a.correct).map((a) => a.answerId).sort((a, b) => a - b);
+  // check if the answerIds submitted are correct
+  const correct = answerIds.sort((a, b) => a - b).every((answerId, index) => answerId === correctAnswers[index]);
+
+  const questionPoints = question.points;
+  const inplayerCorrectList = question.playerCorrectList.find((p) => p.name === player.name);
+
+  let previousScore = 0;
+  const submissions = question.playerAnswers.find((answer) => answer.playerId === playerId);
+  if (submissions) {
+    previousScore = submissions.score;
+  }
+
+  let newScore = 0;
+  if (correct && !inplayerCorrectList) {
+    // correct and not in the correct list
+    question.playerCorrectList.push({
+      name: player.name,
+      answerTime: timeTaken,
+    });
+    question.playerCorrectList.sort((a, b) => a.answerTime - b.answerTime);
+    const N = question.playerCorrectList.findIndex((p) => p.name === player.name);
+    newScore = questionPoints * (1 / (N + 1));
+  } else if (!correct && inplayerCorrectList) {
+    // incorrect and in the correct list
+    // remove the player from the correct list
+    question.playerCorrectList = question.playerCorrectList.filter((p) => p.name !== player.name);
+  } else if (correct && inplayerCorrectList) {
+    // correct and in the correct list
+    inplayerCorrectList.answerTime = timeTaken;
+
+    // calculate the new score
+    question.playerCorrectList.sort((a, b) => a.answerTime - b.answerTime);
+    const N = question.playerCorrectList.findIndex((p) => p.name === player.name);
+    newScore = questionPoints * (1 / (N + 1));
+  }
+
+  // update the player's total score
+  player.score = player.score - previousScore + newScore;
+
+  // update the player's answer submission
+  if (submissions) {
+    submissions.answerTime = timeTaken;
+    submissions.answerIds = answerIds;
+    submissions.score = newScore;
   } else {
     question.playerAnswers.push({
       playerId: playerId,
       answerTime: timeTaken,
-      answers: answerIds,
+      answerIds: answerIds,
+      score: newScore,
     });
-  }
-
-  const questionPoints = question.points;
-  const correct = answerIds.sort().every((answerId, index) => answerId === correctAnswers[index]);
-  if (correct && !question.playerCorrectList.includes(player.name)) {
-    // add the player to the correct list if they answered correctly
-    question.playerCorrectList.push(player.name);
-    const N = question.playerCorrectList.indexOf(player.name);
-    player.score += questionPoints * (1 / (N + 1));
-  } else if (!correct && question.playerCorrectList.includes(player.name)) {
-    // remove the player from the correct list if they answered incorrectly
-    const N = question.playerCorrectList.indexOf(player.name);
-    player.score -= questionPoints * (1 / (N + 1));
-    question.playerCorrectList = question.playerCorrectList.filter((name) => name !== player.name);
   }
 
   setData(data);
@@ -239,6 +270,27 @@ export function playerQuestionResults(playerId: number, questionPosition: number
   const question = session.metadata.questions[questionPosition - 1];
 
   // calculate the average time taken to answer the question
+  let totalTime = 0;
+  question.playerAnswers.forEach((answer) => {
+    totalTime += answer.answerTime;
+  });
+  const averageAnswerTime = Math.round(totalTime / question.playerAnswers.length);
+
+  // calculate the percentage of players who answered the question correctly
+  const totalCorrect = question.playerCorrectList.length || 0;
+  const totalPlayers = data.players.filter((p) => p.sessionId === player.sessionId).length;
+  const percentCorrect = Math.round((totalCorrect / totalPlayers) * 100);
+
+  const sortedCorrectList = [...question.playerCorrectList].map((player) => player.name).sort();
+
+  return {
+    questionId: question.questionId,
+    playersCorrectList: sortedCorrectList,
+    averageAnswerTime: averageAnswerTime,
+    percentCorrect: percentCorrect,
+  };
+
+  /*
   const totalTime = question.playerAnswers.reduce((total, answer) => total + answer.answerTime, 0);
   const averageAnswerTime = Math.round(totalTime / question.playerAnswers.length);
 
@@ -247,12 +299,15 @@ export function playerQuestionResults(playerId: number, questionPosition: number
   const totalPlayers = data.players.filter((p) => p.sessionId === player.sessionId).length;
   const percentCorrect = Math.round((totalCorrect / totalPlayers) * 100);
 
+  const sortedCorrectList = [...question.playerCorrectList].sort();
   return {
     questionId: question.questionId,
-    playersCorrectList: question.playerCorrectList,
+    playersCorrectList: sortedCorrectList,
     averageAnswerTime: averageAnswerTime,
     percentCorrect: percentCorrect,
   };
+
+  */
 }
 
 /**
@@ -283,22 +338,25 @@ export function playerFinalResults(playerId: number): PlayerFinalResultsReturn {
     const averageAnswerTime = Math.round(totalTime / question.playerAnswers.length);
     const totalCorrect = question.playerCorrectList.length;
     const totalPlayers = data.players.filter((p) => p.sessionId === player.sessionId).length;
-    const percentCorrect = totalPlayers === 0 ? 0 : Math.round((totalCorrect / totalPlayers) * 100);
+    const percentCorrect = Math.round((totalCorrect / totalPlayers) * 100);
+    const sortedCorrectList = [...question.playerCorrectList].map((player) => player.name).sort();
     return {
       questionId: question.questionId,
-      playersCorrectList: question.playerCorrectList,
-      averageAnswerTime: averageAnswerTime,
+      playersCorrectList: sortedCorrectList,
+      averageAnswerTime: averageAnswerTime || 0,
       percentCorrect: percentCorrect,
     };
   });
 
+  // list of all users who played ranked in descending order by score
   const usersRankedByScore = data.players
     .filter((p) => p.sessionId === player.sessionId)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .sort((a, b) => Math.round(b.score) - Math.round(a.score))
     .map((p) => {
       return {
         name: p.name,
-        score: p.score,
+        score: Math.round(p.score || 0),
       };
     });
 

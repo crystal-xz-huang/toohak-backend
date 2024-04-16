@@ -1,7 +1,6 @@
 // ====================================================================
 // DATA STORE
 // ====================================================================
-
 export interface Data {
   users: User[];
   quizzes: Quiz[];
@@ -88,15 +87,22 @@ export interface SessionQuestionBody {
   thumbnailUrl: string;
   points: number;
   answers: AnswerBody[];
-  timeOpen: number | null; // the time the question was opened
-  playerCorrectList: string[]; // the list of players who answered the question correctly
-  playerAnswers: AnswerSubmission[]; // the answers submitted by the players
+  timeOpen: number; // the time the question was opened
+  playerCorrectList: PlayerInfo[]; // the list of players who answered the question correctly
+  playerAnswers: PlayerAnswer[]; // the answers submitted by the players
+}
+// ====================================================================
+
+export interface PlayerAnswer {
+  playerId: number;
+  answerTime: number;
+  answerIds: number[];
+  score: number;
 }
 
-export interface AnswerSubmission {
-  playerId: number;
-  answerTime: number; // average time taken to answer the question
-  answers: number[]; // the answer ids submitted by the player
+export interface PlayerInfo {
+  name: string;
+  answerTime: number;
 }
 
 interface Player {
