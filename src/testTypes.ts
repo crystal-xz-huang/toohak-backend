@@ -381,6 +381,19 @@ export const QUESTION_BODY4 = {
   thumbnailUrl: 'https://google.com/some/image/path.png'
 };
 
+export const QUESTION_BODY5 = {
+  question: 'What is the square root of 16?',
+  duration: 6,
+  points: 7,
+  answers: [
+    { answer: '4', correct: true },
+    { answer: '4.0', correct: true },
+    { answer: '2', correct: false },
+    { answer: '8', correct: false },
+  ],
+  thumbnailUrl: 'https://google.com/some/image/path.png'
+};
+
 // does not end with one of the following filetypes (case insensitive): jpg, jpeg, png
 // does not begin with 'http://' or 'https://'
 export const INVALID_IMG_URLS = [
@@ -413,5 +426,3 @@ export const PLAYER_BODY2 = {
 export const PLAYER_BODY3 = {
   name: 'Hayden Smith'
 };
-
-// create names if empty string

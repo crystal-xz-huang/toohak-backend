@@ -2,7 +2,7 @@
  * Helper functions for testing
 */
 
-import { PlayerQuestionInfoReturn } from './functionTypes';
+import { PlayerQuestionInfoReturn, AdminQuizInfoReturn } from './functionTypes';
 
 export const getTimeStamp = () => Math.floor(Date.now() / 1000);
 
@@ -36,4 +36,10 @@ export function sortStringArray(arr: string[]): string[] {
 
 export function getQuestionAnswerIds(question: PlayerQuestionInfoReturn): number[] {
   return question.answers.map((answer) => answer.answerId);
+}
+
+export function getAnswerIds(quizInfo: AdminQuizInfoReturn, questionId: number): number[] {
+  return quizInfo.questions
+    .find((question) => question.questionId === questionId)
+    .answers.map((answer) => answer.answerId);
 }
