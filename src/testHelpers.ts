@@ -26,8 +26,12 @@ export function sleepSync(ms: number) {
 }
 
 // Sort an array of numbers in ascending order
-export function sortArray(arr: number[]): number[] {
+export function sortNumericArray(arr: number[]): number[] {
   return arr.sort((a, b) => a - b);
+}
+
+export function sortStringArray(arr: string[]): string[] {
+  return arr.sort();
 }
 
 export function getQuestionAnswerIds(question: PlayerQuestionInfoReturn): number[] {

@@ -140,22 +140,25 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
   }
 
   const questions = session.metadata.questions;
+  const questionCount = questions.length;
 
-  // If the quiz is in either LOBBY, FINAL_RESULTS, or END state then the value is 0.
+  // If the quiz is in either LOBBY, FINAL_RESULTS, or END state then at Question should be 0
   if (action === Action.NEXT_QUESTION) {
-    // only valid in LOBBY, QUESTION_CLOSE and ANSWER_SHOW
+    // only valid in LOBBY, QUESTION_CLOSE and ANSWER_SHOW states
     if (![State.LOBBY, State.QUESTION_CLOSE, State.ANSWER_SHOW].includes(session.state as State)) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
 
-    if (session.atQuestion >= questions.length) {
-      throw HTTPError(400, 'Cannot move to the next question as there are no more questions');
+    if (session.atQuestion === questionCount) {
+      throw HTTPError(400, 'Already at the last question');
     }
 
-    session.atQuestion++;
+    session.atQuestion = session.atQuestion + 1;
+    clearTimer(session.sessionId, TimerState.questionCountDown);
+    clearTimer(session.sessionId, TimerState.questionDuration);
     session.state = State.QUESTION_COUNTDOWN;
     const question = questions[session.atQuestion - 1];
-
+    setData(data);
     // set the countdown timer to open the question after 3 seconds
     setTimer(session.sessionId, TimerState.questionCountDown, 3, () => {
       session.state = State.QUESTION_OPEN;
@@ -244,10 +247,11 @@ export function adminQuizSessionStatus(token: string, quizId: number, sessionId:
     throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
   }
 
-  // find the players in the session
+  // find the players in the session and sort in ascending order of name
   const players = data.players
     .filter((p) => p.sessionId === sessionId)
-    .map((p) => p.name);
+    .map((p) => p.name)
+    .sort();
 
   return {
     state: session.state,
