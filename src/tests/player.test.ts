@@ -284,10 +284,10 @@ describe('Testing GET/v1/player/{playerid}/chat', () => {
 
   test('Correct status code and return value with given name', () => {
     playerChatSendV1(playerId, message);
-    const response = playerChatListV1(playerId).jsonBody;
+    const response = playerChatListV1(playerId);
     const expected = { messages: [{messageBody: 'chat', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}] };
     expect(response.statusCode).toStrictEqual(200);
-    expect(response).toStrictEqual({expected});
+    expect(response.jsonBody).toStrictEqual(expected);
   });
 
   test('Successful retrieval when player has no messages', () => {
@@ -301,7 +301,7 @@ describe('Testing GET/v1/player/{playerid}/chat', () => {
     playerChatSendV1(playerId, message1);
     const message2 = { messageBody: 'chat2' };
     playerChatSendV1(playerId, message2);
-    const expected = { messages: [{messageBody: 'chat', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}] };
+    const expected = { messages: [{messageBody: 'chat', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}, {messageBody: 'chat1', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}, {messageBody: 'chat2', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number)}] };
     const response = playerChatListV1(playerId).jsonBody;
     expect(response).toStrictEqual(expected);
   });
