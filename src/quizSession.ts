@@ -141,6 +141,7 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
 
   const questions = session.metadata.questions;
 
+  // If the quiz is in either LOBBY, FINAL_RESULTS, or END state then the value is 0.
   if (action === Action.NEXT_QUESTION) {
     // only valid in LOBBY, QUESTION_CLOSE and ANSWER_SHOW
     if (![State.LOBBY, State.QUESTION_CLOSE, State.ANSWER_SHOW].includes(session.state as State)) {
@@ -199,15 +200,16 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
     session.state = State.FINAL_RESULTS;
+    session.atQuestion = 0;
   } else if (action === Action.END) {
     // valid in all states except END itself
     if (session.state === State.END) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
-
     // clear all timers and end the session
     clearTimer(session.sessionId, TimerState.questionCountDown);
     clearTimer(session.sessionId, TimerState.questionDuration);
+    session.atQuestion = 0;
     session.state = State.END;
   }
 

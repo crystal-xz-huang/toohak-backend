@@ -17,13 +17,13 @@ import {
   quizSessionStartV1,
   quizSessionUpdateV1,
   // quizSessionListV1,
-  // quizSessionStatusV1,
+  quizSessionStatusV1,
   // quizSessionResultsV1,
   // quizSessionCSVResultsV1,
   playerJoinV1,
   playerStatusV1,
   playerQuestionInfoV1,
-  // playerQuestionAnswerV1,
+  playerQuestionAnswerV1,
   // playerQuestionResultsV1,
   // playerFinalResultsV1,
   // playerChatListV1,
@@ -49,12 +49,12 @@ import {
   // PLAYER_BODY3,
 } from '../testTypes';
 import {
-  // State,
+  State,
   Action,
 } from '../dataTypes';
-/* import { QuizMetadata } from '../functionTypes';
-import { sortArray } from '../testHelpers';
-import sleep from 'atomic-sleep'; */
+import { getQuestionAnswerIds } from '../testHelpers';
+import { PlayerQuestionInfoReturn } from '../functionTypes';
+import sleep from 'atomic-sleep';
 
 beforeEach(() => {
   clearV1();
@@ -214,6 +214,121 @@ describe('Testing GET/v1/player/{playerid}/question/{questionposition}', () => {
     test('Session is in END State', () => {
       quizSessionUpdateV1(token, quizId, sessionId, Action.END);
       expect(playerQuestionInfoV1(playerId, 1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+});
+
+describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer', () => {
+  let token: string;
+  let quizId: number;
+  let sessionId: number;
+  let playerId1: number;
+  let playerId2: number;
+  let playerId3: number;
+  let answerIds1: number[];
+  beforeEach(() => {
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY2).jsonBody.questionId as number;
+    sessionId = quizSessionStartV1(token, quizId, 0).jsonBody.sessionId as number;
+
+    playerId1 = playerJoinV1(sessionId, 'Harry').jsonBody.playerId as number;
+    playerId2 = playerJoinV1(sessionId, 'Ron').jsonBody.playerId as number;
+    playerId3 = playerJoinV1(sessionId, 'Hermione').jsonBody.playerId as number;
+
+    expect(quizSessionUpdateV1(token, quizId, sessionId, Action.NEXT_QUESTION).statusCode).toStrictEqual(200);
+    expect(quizSessionUpdateV1(token, quizId, sessionId, Action.SKIP_COUNTDOWN).statusCode).toStrictEqual(200);
+    expect(quizSessionStatusV1(token, quizId, sessionId).jsonBody.state).toStrictEqual(State.QUESTION_OPEN);
+
+    const questionInfo = playerQuestionInfoV1(playerId1, 1).jsonBody as PlayerQuestionInfoReturn;
+    answerIds1 = getQuestionAnswerIds(questionInfo);
+  });
+
+  const expectedResponse = {
+    statusCode: 200,
+    jsonBody: {},
+  };
+
+  test('Correct status code and return value', () => {
+    expect(playerQuestionAnswerV1(playerId1, 1, [answerIds1[0]])).toStrictEqual(expectedResponse);
+    expect(playerQuestionAnswerV1(playerId2, 1, [answerIds1[1]])).toStrictEqual(expectedResponse);
+    expect(playerQuestionAnswerV1(playerId3, 1, [answerIds1[0]])).toStrictEqual(expectedResponse);
+  });
+
+  describe('Bad request errors', () => {
+    test('Player Id does not exist', () => {
+      expect(playerQuestionAnswerV1(-1, 1, [answerIds1[0]])).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test.each([
+      { questionPosition: 3 },
+      { questionPosition: -1 },
+      { questionPosition: 0 }
+    ])('Question position is not valid for the session this player is in', ({ questionPosition }) => {
+      expect(playerQuestionAnswerV1(playerId1, questionPosition, [answerIds1[0]])).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Session is not yet up to this question', () => {
+      expect(playerQuestionAnswerV1(playerId1, 2, [answerIds1[0]])).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Answer Ids are not valid for the question', () => {
+      expect(playerQuestionAnswerV1(playerId1, 1, [answerIds1[0], answerIds1[1] + 1])).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Duplicate answer ids', () => {
+      expect(playerQuestionAnswerV1(playerId1, 1, [answerIds1[0], answerIds1[0]])).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Less than 1 answer id', () => {
+      expect(playerQuestionAnswerV1(playerId1, 1, [])).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+
+  describe('Bad request error if session is not in QUESTION_OPEN state', () => {
+    beforeEach(() => {
+      clearV1();
+      token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+      quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+      quizQuestionCreateV2(token, quizId, QUESTION_BODY2).jsonBody.questionId as number;
+      sessionId = quizSessionStartV1(token, quizId, 0).jsonBody.sessionId as number;
+      playerId1 = playerJoinV1(sessionId, 'Harry').jsonBody.playerId as number;
+    });
+
+    test('LOBBY state', () => {
+      expect(quizSessionStatusV1(token, quizId, sessionId).jsonBody.state).toStrictEqual(State.LOBBY);
+      expect(playerQuestionAnswerV1(playerId1, 1, [answerIds1[0]])).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('QUESTION_COUNTDOWN State', () => {
+      expect(quizSessionUpdateV1(token, quizId, sessionId, Action.NEXT_QUESTION).statusCode).toStrictEqual(200);
+      expect(quizSessionStatusV1(token, quizId, sessionId).jsonBody.state).toStrictEqual(State.QUESTION_COUNTDOWN);
+      expect(playerQuestionAnswerV1(playerId1, 1, [answerIds1[0]])).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('QUESTION_CLOSED State', () => {
+      expect(quizSessionUpdateV1(token, quizId, sessionId, Action.NEXT_QUESTION).statusCode).toStrictEqual(200);
+      expect(quizSessionUpdateV1(token, quizId, sessionId, Action.SKIP_COUNTDOWN).statusCode).toStrictEqual(200);
+      sleep(QUESTION_BODY2.duration * 1000);
+      expect(quizSessionStatusV1(token, quizId, sessionId).jsonBody.state).toStrictEqual(State.QUESTION_CLOSE);
+      expect(playerQuestionAnswerV1(playerId1, 1, [answerIds1[0]])).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('ANSWER_SHOW State', () => {
+      expect(quizSessionUpdateV1(token, quizId, sessionId, Action.NEXT_QUESTION).statusCode).toStrictEqual(200);
+      expect(quizSessionUpdateV1(token, quizId, sessionId, Action.SKIP_COUNTDOWN).statusCode).toStrictEqual(200);
+      expect(quizSessionUpdateV1(token, quizId, sessionId, Action.GO_TO_ANSWER).statusCode).toStrictEqual(200);
+      expect(quizSessionStatusV1(token, quizId, sessionId).jsonBody.state).toStrictEqual(State.ANSWER_SHOW);
+      expect(playerQuestionAnswerV1(playerId1, 1, [answerIds1[0]])).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('FINAL_RESULTS State', () => {
+      expect(quizSessionUpdateV1(token, quizId, sessionId, Action.NEXT_QUESTION).statusCode).toStrictEqual(200);
+      expect(quizSessionUpdateV1(token, quizId, sessionId, Action.SKIP_COUNTDOWN).statusCode).toStrictEqual(200);
+      expect(quizSessionUpdateV1(token, quizId, sessionId, Action.GO_TO_ANSWER).statusCode).toStrictEqual(200);
+      expect(quizSessionUpdateV1(token, quizId, sessionId, Action.GO_TO_FINAL_RESULTS).statusCode).toStrictEqual(200);
+      expect(quizSessionStatusV1(token, quizId, sessionId).jsonBody.state).toStrictEqual(State.FINAL_RESULTS);
+      expect(playerQuestionAnswerV1(playerId1, 1, [answerIds1[0]])).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 });

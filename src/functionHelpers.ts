@@ -424,7 +424,7 @@ export function isValidImgURL(imgUrl: string): ErrorMessage | null {
 export function isPlayerNameUsed(name: string, sessionId: number, data: Data): ErrorMessage | null {
   const userQuizzes = data.players.filter(player => player.sessionId === sessionId);
   if (userQuizzes.some(player => player.name === name)) {
-    return createError('Name is already used by another quiz');
+    return createError('Name is already used by another player');
   }
   return null;
 }
