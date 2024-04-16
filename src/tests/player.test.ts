@@ -29,10 +29,10 @@ import {
   // playerChatListV1,
   playerChatSendV1
 } from '../httpHelpers';
-import {
-  getTimeStamp,
-  checkTimeStamp
-} from '../testHelpers';
+// import {
+//   getTimeStamp,
+//   checkTimeStamp
+// } from '../testHelpers';
 import {
   BAD_REQUEST_ERROR,
   // UNAUTHORISED_ERROR,
@@ -223,7 +223,7 @@ describe('Testing POST/v1/player/{playerid}/chat', () => {
   let quizId: number;
   let sessionId: number;
   let playerId: number;
-  let message = {messageBody: 'chat'};
+  const message = { messageBody: 'chat' };
 
   beforeEach(() => {
     token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
@@ -247,20 +247,20 @@ describe('Testing POST/v1/player/{playerid}/chat', () => {
     });
 
     test('Message is less than 1 characters', () => {
-      let message1 = {messageBody: ''};
+      const message1 = { messageBody: '' };
       const response = playerChatSendV1(playerId, message1);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('Message is greater than 100 characters', () => {
-      let message1 = {messageBody: 'm'.repeat(101)};
+      const message1 = { messageBody: 'm'.repeat(101) };
       const response = playerChatSendV1(playerId, message1);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 
   test.skip('Message sent time is within a 1 second range of the current time', () => {
-    const expectedTime = getTimeStamp();
+    // const expectedTime = getTimeStamp();
     playerChatSendV1(playerId, message);
     // const timeSent = playerChatListV1(playerId).jsonBody.timeSent as number;
     // checkTimeStamp(timeSent, expectedTime);

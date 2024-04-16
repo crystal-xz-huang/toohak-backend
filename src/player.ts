@@ -220,7 +220,7 @@ export function playerChatSend(playerId: number, message: ChatMessage): EmptyObj
   const player = data.players.find(player => player.playerId === playerId);
   if (!player) {
     throw HTTPError(400, 'Player Id does not exist');
-  };
+  }
 
   if (message.messageBody.length > 100) {
     throw HTTPError(400, 'Message is more than 100 characters');
@@ -228,14 +228,14 @@ export function playerChatSend(playerId: number, message: ChatMessage): EmptyObj
     throw HTTPError(400, 'Message is empty');
   }
 
-  const playerName = player.name
+  const playerName = player.name;
   data.messages.push({
     messageBody: message.messageBody,
     playerId: playerId,
     playerName: playerName,
     timeSent: getCurrentTime()
   });
-  
+
   setData(data);
   return {};
 }
