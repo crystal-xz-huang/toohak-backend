@@ -158,10 +158,10 @@ export function playerQuestionAnswer(playerId: number, questionPosition: number,
     throw HTTPError(400, 'Session is not yet up to this question');
   }
 
-  // Check if the answerIds submitted are valid
+  // Check if the answerIds submitted are valid for this question
   const question = session.metadata.questions[questionPosition - 1];
-  const validAnswers = question.answers.map((answer) => answer.answerId);
-  if (answerIds.some((answerId) => !validAnswers.includes(answerId))) {
+  const validAnswers = question.answers.map((a) => a.answerId);
+  if (!answerIds.every((answerId) => validAnswers.includes(answerId))) {
     throw HTTPError(400, 'Answer ID is not valid for this question');
   }
 

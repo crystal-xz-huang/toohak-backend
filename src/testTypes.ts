@@ -428,19 +428,3 @@ export const PLAYER_BODY2 = {
 export const PLAYER_BODY3 = {
   name: 'Hayden Smith'
 };
-
-// create names if empty string
-
-export interface Action_State {
-  Action: string;
-  State: string;
-}
-
-export type Action_State_Transition = Action_State[];
-
-export const LOBBY_TO_FINAL_RESULTS: Action_State_Transition = [
-  { Action: Action.NEXT_QUESTION, State: State.QUESTION_COUNTDOWN },
-  { Action: Action.SKIP_COUNTDOWN, State: State.QUESTION_OPEN },
-  { Action: Action.GO_TO_ANSWER, State: State.ANSWER_SHOW },
-  { Action: Action.GO_TO_FINAL_RESULTS, State: State.FINAL_RESULTS },
-];
