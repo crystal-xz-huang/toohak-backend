@@ -18,13 +18,7 @@ import {
   quizSessionUpdateV1,
   quizSessionListV1,
   quizSessionStatusV1,
-  quizSessionResultsV1,
-  // quizSessionCSVResultsV1,
   playerJoinV1,
-  playerQuestionInfoV1,
-  playerQuestionAnswerV1,
-  // playerQuestionResultsV1,
-  // playerFinalResultsV1,
 } from '../httpHelpers';
 import {
   BAD_REQUEST_ERROR,
@@ -46,9 +40,6 @@ import {
 } from '../dataTypes';
 import {
   QuizMetadata,
-  UserScore,
-  PlayerQuestionResultsReturn,
-  PlayerQuestionInfoReturn,
   AdminQuizInfoReturn,
   AdminQuizSessionStatusReturn,
 } from '../functionTypes';
@@ -66,9 +57,7 @@ afterEach(() => {
   clearV1();
 });
 
-//= =============================================================================
-//= =============================================================================
-
+// ====================================================================
 describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   let token1: string;
   let token2: string;
@@ -143,7 +132,7 @@ describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
     });
   });
 
-  test('Retrieves active and inactive session ids (sorted in ascending order) for a quiz', () => {
+  test('Retrieves active and inactive sessionids (sorted in ascending order) for a quiz', () => {
     const response = quizSessionListV1(token1, quizId1).jsonBody;
     expect(response.activeSessions).toStrictEqual(sortNumericArray([sessionId1, sessionId2, sessionId3, sessionId4]));
     expect(response.inactiveSessions).toStrictEqual([]);
@@ -176,7 +165,7 @@ describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
       expect(quizSessionListV1(token1 + 'random', quizId1)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
-    test('Token does not refer to a valid looged in user session', () => {
+    test('Token does not refer to a valid logged in user session', () => {
       authLogoutV1(token1);
       expect(quizSessionListV1(token1, quizId1)).toStrictEqual(UNAUTHORISED_ERROR);
     });
@@ -275,7 +264,7 @@ describe('Testing POST /v1/admin/quiz/:quizid/session/start', () => {
       expect(quizSessionStartV1(token1 + 'random', quizId1, 0)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
-    test('Token does not refer to a valid looged in user session', () => {
+    test('Token does not refer to a valid logged in user session', () => {
       authLogoutV1(token1);
       expect(quizSessionStartV1(token1, quizId1, 0)).toStrictEqual(UNAUTHORISED_ERROR);
     });
@@ -348,7 +337,7 @@ describe('Testing PUT /v1/admin/quiz/:quizid/session/:sessionid', () => {
       expect(quizSessionUpdateV1(token1 + 'random', quizId1, sessionId1, Action.END)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
-    test('Token does not refer to a valid looged in user session', () => {
+    test('Token does not refer to a valid logged in user session', () => {
       authLogoutV1(token1);
       expect(quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END)).toStrictEqual(UNAUTHORISED_ERROR);
     });
@@ -777,7 +766,7 @@ describe('Testing GET /v1/admin/quiz/:quizid/session/:sessionid', () => {
       expect(quizSessionStatusV1(token1 + 'random', quizId1, sessionId1)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
-    test('Token does not refer to a valid looged in user session', () => {
+    test('Token does not refer to a valid logged in user session', () => {
       authLogoutV1(token1);
       expect(quizSessionStatusV1(token1, quizId1, sessionId1)).toStrictEqual(UNAUTHORISED_ERROR);
     });
@@ -804,246 +793,6 @@ describe('Testing GET /v1/admin/quiz/:quizid/session/:sessionid', () => {
       quizQuestionCreateV2(token1, quizId2, QUESTION_BODY1).jsonBody.questionId as number;
       const sessionId2 = quizSessionStartV1(token1, quizId2, 0).jsonBody.sessionId as number;
       expect(quizSessionStatusV1(token1, quizId1, sessionId2)).toStrictEqual(BAD_REQUEST_ERROR);
-    });
-  });
-});
-
-describe.skip('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
-  let token1: string;
-  let quizId1: number;
-  let questionId1: number;
-  let sessionId1: number;
-  let player1: number;
-  let player2: number;
-  let player3: number;
-  let player4: number;
-  beforeEach(() => {
-    token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
-    quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
-    questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY2).jsonBody.questionId as number;
-    sessionId1 = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
-    player1 = playerJoinV1(sessionId1, 'Hayden').jsonBody.playerId as number;
-    player2 = playerJoinV1(sessionId1, 'John').jsonBody.playerId as number;
-    player3 = playerJoinV1(sessionId1, 'Alice').jsonBody.playerId as number;
-    player4 = playerJoinV1(sessionId1, 'Bob').jsonBody.playerId as number;
-    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION);
-    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.SKIP_COUNTDOWN);
-  });
-
-  test('Correct status code and return value', () => {
-    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
-    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
-    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.FINAL_RESULTS);
-    const response = quizSessionResultsV1(token1, quizId1, sessionId1);
-    expect(response.statusCode).toStrictEqual(200);
-    expect(response.jsonBody).toStrictEqual({
-      usersRankedByScore: expect.any(Array) as UserScore[],
-      questionResults: expect.any(Array) as PlayerQuestionResultsReturn[],
-    });
-  });
-
-  describe('Correct usersRankedByScore and questionResults values', () => {
-    let answerIds: number[];
-    beforeEach(() => {
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
-      const questionInfo = playerQuestionInfoV1(sessionId1, player1).jsonBody as PlayerQuestionInfoReturn;
-      answerIds = questionInfo.answers.map((answer) => answer.answerId);
-    });
-
-    test('No players have answered any questions', () => {
-      const response = quizSessionResultsV1(token1, quizId1, sessionId1).jsonBody;
-      // no answer = 0 score
-      expect(response.usersRankedByScore).toStrictEqual([
-        { name: 'Hayden', score: 0 },
-        { name: 'John', score: 0 },
-        { name: 'Alice', score: 0 },
-        { name: 'Bob', score: 0 },
-      ]);
-      expect(response.questionResults).toStrictEqual([
-        {
-          questionId: questionId1,
-          playersCorrectList: [],
-          averageAnswerTime: 0,
-          percentCorrect: 0,
-        },
-      ]);
-    });
-
-    test('All players have answered the question correctly', () => {
-      // Points = 5, answerId[0] is the correct answer, answerId[1] is the incorrect answer
-      playerQuestionAnswerV1(player1, 1, [answerIds[0]]); // Hayden - score 5 * 1/1 = 5
-      playerQuestionAnswerV1(player2, 1, [answerIds[0]]); // John - score 5 * 1/2 = 2.5 = 3 (rounded up)
-      playerQuestionAnswerV1(player3, 1, [answerIds[0]]); // Alice - score 5 * 1/3 = 1.67 = 2
-      playerQuestionAnswerV1(player4, 1, [answerIds[0]]); // Bob - score 5 * 1/4 = 1.25 = 1
-
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
-
-      const ret = quizSessionResultsV1(token1, quizId1, sessionId1).jsonBody;
-      expect(ret.usersRankedByScore).toStrictEqual([
-        { name: 'Hayden', score: 5 },
-        { name: 'John', score: 3 },
-        { name: 'Alice', score: 2 },
-        { name: 'Bob', score: 1 },
-      ]);
-      expect(ret.questionResults).toStrictEqual([
-        {
-          questionId: questionId1,
-          playersCorrectList: ['Hayden', 'John', 'Alice', 'Bob'],
-          averageAnswerTime: 0,
-          percentCorrect: 100,
-        },
-      ]);
-    });
-
-    test('All players have answered the question incorrectly', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[1]]);
-      playerQuestionAnswerV1(player2, 1, [answerIds[1]]);
-      playerQuestionAnswerV1(player3, 1, [answerIds[1]]);
-      playerQuestionAnswerV1(player4, 1, [answerIds[1]]);
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
-
-      expect(quizSessionResultsV1(token1, quizId1, sessionId1).jsonBody).toStrictEqual({
-        usersRankedByScore: [
-          { name: 'Hayden', score: 0 },
-          { name: 'John', score: 0 },
-          { name: 'Alice', score: 0 },
-          { name: 'Bob', score: 0 },
-        ],
-        questionResults: [
-          {
-            questionId: questionId1,
-            playersCorrectList: [],
-            averageAnswerTime: 0,
-            percentCorrect: 0,
-          },
-        ],
-      });
-    });
-
-    test('Half of the players have answered the question correctly', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[0]]); // Hayden - score 5 * 1/1 = 5
-      playerQuestionAnswerV1(player2, 1, [answerIds[0], answerIds[1]]); // John - score 0
-      playerQuestionAnswerV1(player3, 1, [answerIds[0]]); // Alice - score 5 * 1/3 = 1.67 = 2
-      playerQuestionAnswerV1(player4, 1, [answerIds[1]]); // Bob - score 0
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
-
-      expect(quizSessionResultsV1(token1, quizId1, sessionId1).jsonBody).toStrictEqual({
-        usersRankedByScore: [
-          { name: 'Hayden', score: 5 },
-          { name: 'Alice', score: 2 },
-          { name: 'John', score: 0 },
-          { name: 'Bob', score: 0 },
-        ],
-        questionResults: [
-          {
-            questionId: questionId1,
-            playersCorrectList: ['Hayden', 'Alice'],
-            averageAnswerTime: 0,
-            percentCorrect: 50,
-          },
-        ],
-      });
-    });
-
-    test('Mixed results', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[1]]); // Hayden - score 0
-      playerQuestionAnswerV1(player2, 1, [answerIds[0]]); // John - score 5 * 1/2 = 2.5 = 3
-      playerQuestionAnswerV1(player3, 1, [answerIds[1], answerIds[0]]); // Alice - score 0
-      playerQuestionAnswerV1(player4, 1, [answerIds[0]]); // Bob - score 5 * 1/4 = 1.25 = 1
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
-
-      expect(quizSessionResultsV1(token1, quizId1, sessionId1).jsonBody).toStrictEqual({
-        usersRankedByScore: [
-          { name: 'John', score: 3 },
-          { name: 'Bob', score: 1 },
-          { name: 'Hayden', score: 0 },
-          { name: 'Alice', score: 0 },
-        ],
-        questionResults: [
-          {
-            questionId: questionId1,
-            playersCorrectList: ['John', 'Bob'],
-            averageAnswerTime: 0,
-            percentCorrect: 50,
-          },
-        ],
-      });
-    });
-
-    test('All players have answered the question correctly but with different times', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[0]]); // Hayden - score 5 * 1/1 = 5
-      sleep(1000); // 1 second delay
-      playerQuestionAnswerV1(player2, 1, [answerIds[0]]); // John - score 5 * 1/2 = 2.5 = 3
-      sleep(2000); // 2 second delay
-      playerQuestionAnswerV1(player3, 1, [answerIds[0]]); // Alice - score 5 * 1/3 = 1.67 = 2
-      sleep(5000); // 5 second delay
-      playerQuestionAnswerV1(player4, 1, [answerIds[0]]); // Bob - score 5 * 1/4 = 1.25 = 1
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
-      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
-      expect(quizSessionResultsV1(token1, quizId1, sessionId1).jsonBody).toStrictEqual({
-        usersRankedByScore: [
-          { name: 'Hayden', score: 5 },
-          { name: 'John', score: 3 },
-          { name: 'Alice', score: 2 },
-          { name: 'Bob', score: 1 },
-        ],
-        questionResults: [
-          {
-            questionId: questionId1,
-            playersCorrectList: ['Hayden', 'John', 'Alice', 'Bob'],
-            averageAnswerTime: 3,
-            percentCorrect: 100,
-          },
-        ],
-      });
-    });
-
-    describe('Unauthorised errors', () => {
-      test('Token is empty', () => {
-        expect(quizSessionResultsV1('', quizId1, sessionId1)).toStrictEqual(UNAUTHORISED_ERROR);
-      });
-
-      test('Token does not refer to a valid user session', () => {
-        expect(quizSessionResultsV1(token1 + 'random', quizId1, sessionId1)).toStrictEqual(UNAUTHORISED_ERROR);
-      });
-
-      test('Token does not refer to a valid looged in user session', () => {
-        authLogoutV1(token1);
-        expect(quizSessionResultsV1(token1, quizId1, sessionId1)).toStrictEqual(UNAUTHORISED_ERROR);
-      });
-    });
-
-    describe('Forbidden errors', () => {
-      test('Valid token but invalid quizId', () => {
-        expect(quizSessionResultsV1(token1, -1, sessionId1)).toStrictEqual(FORBIDDEN_ERROR);
-      });
-
-      test('Valid token but user does not own the quiz', () => {
-        const token2 = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody.token as string;
-        expect(quizSessionResultsV1(token2, quizId1, sessionId1)).toStrictEqual(FORBIDDEN_ERROR);
-      });
-    });
-
-    describe('Bad request errors', () => {
-      test('Invalid sessionId', () => {
-        expect(quizSessionResultsV1(token1, quizId1, -1)).toStrictEqual(BAD_REQUEST_ERROR);
-      });
-
-      test('SessionId does not refer to a valid session within this quiz', () => {
-        const quizId2 = quizCreateV2(token1, QUIZ2.name, QUIZ2.description).jsonBody.quizId as number;
-        quizQuestionCreateV2(token1, quizId2, QUESTION_BODY1).jsonBody.questionId as number;
-        const sessionId2 = quizSessionStartV1(token1, quizId2, 0).jsonBody.sessionId as number;
-        expect(quizSessionResultsV1(token1, quizId1, sessionId2)).toStrictEqual(BAD_REQUEST_ERROR);
-      });
-
-      test('Session is not in the FINAL_RESULTS state', () => {
-        expect(quizSessionResultsV1(token1, quizId1, sessionId1)).toStrictEqual(BAD_REQUEST_ERROR);
-      });
     });
   });
 });
