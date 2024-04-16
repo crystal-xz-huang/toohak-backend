@@ -96,13 +96,12 @@ export interface SessionQuestionBody {
 export interface PlayerAnswer {
   playerId: number;
   answerTime: number;
-  answerIds: number[];
-  score: number;
 }
 
 export interface PlayerInfo {
+  playerId: number;
   name: string;
-  answerTime: number;
+  submittedTime: number;
 }
 
 interface Player {
