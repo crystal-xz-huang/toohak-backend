@@ -5,8 +5,8 @@ import {
   // Action,
 } from './dataTypes';
 import {
-  // EmptyObject,
-  // ChatMessage,
+  EmptyObject,
+  ChatMessage,
   PlayerJoinReturn,
   PlayerStatusReturn,
   PlayerQuestionInfoReturn,
@@ -326,8 +326,30 @@ export function playerFinalResults(playerId: number): PlayerFinalResultsReturn {
       }
     ]
   };
-}
+} */
 
 export function playerChatSend(playerId: number, message: ChatMessage): EmptyObject {
+  const data = getData();
+
+  const player = data.players.find(player => player.playerId === playerId);
+  if (!player) {
+    throw HTTPError(400, 'Player Id does not exist');
+  }
+
+  if (message.messageBody.length > 100) {
+    throw HTTPError(400, 'Message is more than 100 characters');
+  } else if (message.messageBody === '') {
+    throw HTTPError(400, 'Message is empty');
+  }
+
+  const playerName = player.name;
+  data.messages.push({
+    messageBody: message.messageBody,
+    playerId: playerId,
+    playerName: playerName,
+    timeSent: getCurrentTime()
+  });
+
+  setData(data);
   return {};
-} */
+}

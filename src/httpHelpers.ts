@@ -304,6 +304,6 @@ export function playerChatListV1(playerId: number): RequestResponse {
   return requestHelper('GET', `/v1/player/${playerId}/chat`, {});
 }
 
-export function playerChatSendV1(playerId: number, message: string): RequestResponse {
+export function playerChatSendV1(playerId: number, message: object): RequestResponse {
   return requestHelper('POST', `/v1/player/${playerId}/chat`, { message });
 }
