@@ -287,7 +287,7 @@ describe('Testing GET/v1/player/{playerid}/chat', () => {
   test('Correct status code and return value with given name', () => {
     playerChatSendV1(playerId, MESSAGE1);
     const response = playerChatListV1(playerId);
-    const expected = { messages: [{ messageBody: MESSAGE1, playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number) }] };
+    const expected = { messages: [{ messageBody: 'This is a message', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number) }] };
     expect(response.statusCode).toStrictEqual(200);
     expect(response.jsonBody).toStrictEqual(expected);
   });
@@ -301,7 +301,7 @@ describe('Testing GET/v1/player/{playerid}/chat', () => {
     playerChatSendV1(playerId, MESSAGE1);
     playerChatSendV1(playerId, MESSAGE2);
     playerChatSendV1(playerId, MESSAGE3);
-    const expected = { messages: [{ messageBody: MESSAGE1, playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number) }, { messageBody: MESSAGE2, playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number) }, { messageBody: MESSAGE1, playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number) }] };
+    const expected = { messages: [{ messageBody: 'This is a message', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number) }, { messageBody: 'This is another message', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number) }, { messageBody: 'This is yet another message', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number) }] };
     const response = playerChatListV1(playerId).jsonBody;
     expect(response).toStrictEqual(expected);
   });
