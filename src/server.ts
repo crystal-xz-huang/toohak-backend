@@ -440,6 +440,7 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
   const sessionId = parseInt(req.params.sessionid);
   const token = req.header('token');
   const response = adminQuizSessionResults(token, quizId, sessionId);
+  console.log(response);
   res.json(response);
 });
 
