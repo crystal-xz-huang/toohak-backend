@@ -27,7 +27,7 @@ import {
   // playerQuestionResultsV1,
   // playerFinalResultsV1,
   // playerChatListV1,
-  // playerChatSendV1
+  playerChatSendV1
 } from '../httpHelpers';
 import {
   BAD_REQUEST_ERROR,
@@ -210,6 +210,45 @@ describe('Testing GET/v1/player/{playerid}/question/{questionposition}', () => {
     test('Session is in END State', () => {
       quizSessionUpdateV1(token, quizId, sessionId, Action.END);
       expect(playerQuestionInfoV1(playerId, 1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+});
+
+describe('Testing POST/v1/player/{playerid}/chat', () => {
+  let token: string;
+  let quizId: number;
+  let sessionId: number;
+  let playerId: number;
+
+  beforeEach(() => {
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody.questionId as number;
+    sessionId = quizSessionStartV1(token, quizId, 0).jsonBody.sessionId as number;
+    playerId = playerJoinV1(sessionId, PLAYER_BODY1.name).jsonBody.playerId as number;
+  });
+
+  test('Correct status code and return value with given name', () => {
+    const response = playerChatSendV1(playerId, 'chat');
+    // const message = playerChatListV1(token, quizId).jsonBody;
+    expect(response.statusCode).toStrictEqual(200);
+    // expect(message).toStrictEqual({});
+  });
+
+  describe('BAD_REQUEST_ERROR', () => {
+    test('Player Id does not refer to a valid player', () => {
+      const response = playerChatSendV1(playerId + 220, 'chat');
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Message is less than 1 characters', () => {
+      const response = playerChatSendV1(playerId, '');
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Message is greater than 100 characters', () => {
+      const response = playerChatSendV1(playerId, 'm'.repeat(100));
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 });
