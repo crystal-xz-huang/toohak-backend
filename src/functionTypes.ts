@@ -158,10 +158,6 @@ export type PlayerQuestionInfoReturn = {
   answers: PlayerQuestionAnswerBody[];
 }
 
-export type PlayerQuestionAnswerReturn = {
-  answerIds: number[];
-}
-
 export type PlayerQuestionResultsReturn = {
   questionId: number;
   playersCorrectList: string[]; // array of strings in ascending order
@@ -174,7 +170,7 @@ export type PlayerFinalResultsReturn = {
   questionResults: PlayerQuestionResultsReturn[];
 }
 
-type UserScore = {
+export type UserScore = {
   name: string;
   score: number;
 }

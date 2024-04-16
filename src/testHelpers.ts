@@ -1,6 +1,9 @@
 /**
  * Helper functions for testing
 */
+
+import { PlayerQuestionInfoReturn } from './functionTypes';
+
 export const getTimeStamp = () => Math.floor(Date.now() / 1000);
 
 export function checkTimeStamp(timeStamp: number, expectedTimeStamp: number) {
@@ -25,4 +28,8 @@ export function sleepSync(ms: number) {
 // Sort an array of numbers in ascending order
 export function sortArray(arr: number[]): number[] {
   return arr.sort((a, b) => a - b);
+}
+
+export function getQuestionAnswerIds(question: PlayerQuestionInfoReturn): number[] {
+  return question.answers.map((answer) => answer.answerId);
 }

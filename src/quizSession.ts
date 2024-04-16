@@ -8,13 +8,17 @@ import {
   AdminQuizSessionStartReturn,
   AdminQuizSessionStatusReturn,
   AdminQuizSessionResultsReturn,
-  AdminQuizSessionResultsCSVReturn
+  AdminQuizSessionResultsCSVReturn,
+  PlayerQuestionResultsReturn,
 } from './functionTypes';
 import {
   findUserbyToken,
   generateRandomNumber,
   isValidQuizIdForUser,
-  isValidToken
+  isValidToken,
+  getCurrentTime,
+  copyQuizToQuizMetadata,
+  convertSessionMetadata,
 } from './functionHelpers';
 
 /**
@@ -91,17 +95,13 @@ export function adminQuizSessionStart(token: string, quizId: number, autoStartNu
     throw HTTPError(400, 'A maximum of 10 sessions that are not in END state currently exist for this quiz');
   }
 
-  const quizCopy = { ...quiz };
-  delete quizCopy.authUserId;
-  delete quizCopy.valid;
-
   const newSessionId = generateRandomNumber();
   data.quizSessions.push({
     sessionId: newSessionId,
     autoStartNum: autoStartNum,
     state: State.LOBBY,
     atQuestion: 0,
-    metadata: quizCopy,
+    metadata: copyQuizToQuizMetadata(quiz)
   });
   setData(data);
   return { sessionId: newSessionId };
@@ -158,6 +158,7 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
     // set the countdown timer to open the question after 3 seconds
     setTimer(session.sessionId, TimerState.questionCountDown, 3, () => {
       session.state = State.QUESTION_OPEN;
+      question.timeOpen = getCurrentTime();
       setData(data);
       // set the duration timer to close the question after the question duration
       setTimer(session.sessionId, TimerState.questionDuration, question.duration, () => {
@@ -176,8 +177,9 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
     clearTimer(session.sessionId, TimerState.questionDuration);
 
     // set the duration timer to close the question after the question duration
-    session.state = State.QUESTION_OPEN;
     const question = questions[session.atQuestion - 1];
+    session.state = State.QUESTION_OPEN;
+    question.timeOpen = getCurrentTime();
     setTimer(session.sessionId, TimerState.questionDuration, question.duration, () => {
       session.state = State.QUESTION_CLOSE;
       setData(data);
@@ -249,7 +251,7 @@ export function adminQuizSessionStatus(token: string, quizId: number, sessionId:
     state: session.state,
     atQuestion: session.atQuestion,
     players: players,
-    metadata: session.metadata
+    metadata: convertSessionMetadata(session.metadata)
   };
 }
 
@@ -262,19 +264,50 @@ export function adminQuizSessionStatus(token: string, quizId: number, sessionId:
  * @returns { AdminQuizSessionResultsReturn } - an object containing the results of the quiz session
  */
 export function adminQuizSessionResults(token: string, quizId: number, sessionId: number): AdminQuizSessionResultsReturn {
-  return {
-    usersRankedByScore: [
-      { name: 'Hayden', score: 45 }
-    ],
-    questionResults: [
-      {
-        questionId: 5546,
-        playersCorrectList: ['Hayden'],
-        averageAnswerTime: 45,
-        percentCorrect: 54
-      }
-    ]
-  };
+  const data = getData();
+
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError);
+  }
+
+  const user = findUserbyToken(token, data);
+  const userError = isValidQuizIdForUser(user.authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError);
+  }
+
+  const session = data.quizSessions.find((s) => s.sessionId === sessionId && s.metadata.quizId === quizId);
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+
+  // check if the session is in the FINAL_RESULTS state
+  if (session.state !== State.FINAL_RESULTS) {
+    throw HTTPError(400, 'The session is not in the FINAL_RESULTS state');
+  }
+
+  const usersRankedByScore = data.players
+    .filter((p) => p.sessionId === sessionId)
+    .sort((a, b) => b.score - a.score)
+    .map((p) => ({ name: p.name, score: p.score }));
+
+  const questions = session.metadata.questions;
+  const questionResults: PlayerQuestionResultsReturn[] = questions.map((q) => {
+    const totalTime = q.playerAnswers.reduce((acc, a) => acc + a.answerTime, 0);
+    const averageTime = Math.round(totalTime / q.playerAnswers.length);
+    const totalCorrect = q.playerCorrectList.length;
+    const totalPlayers = data.players.filter((p) => p.sessionId === sessionId).length;
+    const percentCorrect = totalPlayers === 0 ? 0 : Math.round((totalCorrect / totalPlayers) * 100);
+    return {
+      questionId: q.questionId,
+      playersCorrectList: q.playerCorrectList,
+      averageAnswerTime: averageTime,
+      percentCorrect: percentCorrect
+    };
+  });
+
+  return { usersRankedByScore, questionResults };
 }
 
 /**
