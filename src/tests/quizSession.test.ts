@@ -13,7 +13,7 @@ import {
   quizQuestionUpdateV2,
   quizQuestionRemoveV2,
   quizQuestionMoveV2,
-  // quizQuestionDuplicateV2,
+  quizQuestionDuplicateV2,
   quizSessionStartV1,
   quizSessionUpdateV1,
   quizSessionListV1,
@@ -37,6 +37,8 @@ import {
   QUESTION_BODY1,
   QUESTION_BODY2,
   OK_SUCCESS,
+  QUESTION_BODY3,
+  QUESTION_BODY4,
 } from '../testTypes';
 import {
   State,
@@ -47,9 +49,12 @@ import {
   UserScore,
   PlayerQuestionResultsReturn,
   PlayerQuestionInfoReturn,
+  AdminQuizInfoReturn,
+  AdminQuizSessionStatusReturn,
 } from '../functionTypes';
 import {
-  sortArray,
+  sortNumericArray,
+  sortStringArray,
 } from '../testHelpers';
 import sleep from 'atomic-sleep';
 
@@ -140,7 +145,7 @@ describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
 
   test('Retrieves active and inactive session ids (sorted in ascending order) for a quiz', () => {
     const response = quizSessionListV1(token1, quizId1).jsonBody;
-    expect(response.activeSessions).toStrictEqual(sortArray([sessionId1, sessionId2, sessionId3, sessionId4]));
+    expect(response.activeSessions).toStrictEqual(sortNumericArray([sessionId1, sessionId2, sessionId3, sessionId4]));
     expect(response.inactiveSessions).toStrictEqual([]);
   });
 
@@ -148,8 +153,8 @@ describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END);
     quizSessionUpdateV1(token1, quizId1, sessionId2, Action.END);
     const response = quizSessionListV1(token1, quizId1).jsonBody;
-    expect(response.activeSessions).toStrictEqual(sortArray([sessionId3, sessionId4]));
-    expect(response.inactiveSessions).toStrictEqual(sortArray([sessionId1, sessionId2]));
+    expect(response.activeSessions).toStrictEqual(sortNumericArray([sessionId3, sessionId4]));
+    expect(response.inactiveSessions).toStrictEqual(sortNumericArray([sessionId1, sessionId2]));
   });
 
   test('Quiz has only inactive sessions', () => {
@@ -159,7 +164,7 @@ describe('Testing GET /v1/admin/quiz/:quizid/sessions', () => {
     quizSessionUpdateV1(token1, quizId1, sessionId4, Action.END);
     const response = quizSessionListV1(token1, quizId1).jsonBody;
     expect(response.activeSessions).toStrictEqual([]);
-    expect(response.inactiveSessions).toStrictEqual(sortArray([sessionId1, sessionId2, sessionId3, sessionId4]));
+    expect(response.inactiveSessions).toStrictEqual(sortNumericArray([sessionId1, sessionId2, sessionId3, sessionId4]));
   });
 
   describe('Unauthorised errors', () => {
@@ -586,6 +591,8 @@ describe('Testing GET /v1/admin/quiz/:quizid/session/:sessionid', () => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
     questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY1).jsonBody.questionId as number;
+    quizQuestionCreateV2(token1, quizId1, QUESTION_BODY2).jsonBody.questionId as number;
+    quizQuestionCreateV2(token1, quizId1, QUESTION_BODY3).jsonBody.questionId as number;
     sessionId1 = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
   });
 
@@ -598,39 +605,167 @@ describe('Testing GET /v1/admin/quiz/:quizid/session/:sessionid', () => {
       players: expect.any(Array) as string[],
       metadata: expect.any(Object) as QuizMetadata,
     });
+    expect(response.jsonBody.metadata.questions.length).toStrictEqual(3);
   });
 
-  test.skip('Names of all the players in the quiz session are ordered in ascending order of player name', () => {
-    // TODO:
-    // Add players to the session
-    // Check if the names are sorted with sortArray()
+  test('Names of all the players in the quiz session are ordered in ascending order of player name', () => {
+    playerJoinV1(sessionId1, 'Harry').jsonBody.playerId as number;
+    playerJoinV1(sessionId1, 'Ron').jsonBody.playerId as number;
+    playerJoinV1(sessionId1, 'Hermione').jsonBody.playerId as number;
+
+    const sortedNames = sortStringArray(['Harry', 'Ron', 'Hermione']);
+    const response = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.players;
+    expect(response).toStrictEqual(sortedNames);
   });
 
-  test('Correct state, atQuestion, players and metadata values', () => {
-    const response = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody;
-    expect(response.state).toStrictEqual(State.LOBBY);
-    expect(response.atQuestion).toStrictEqual(0);
-    expect(response.players).toStrictEqual([]);
-    expect(response.metadata).toStrictEqual({
-      quizId: quizId1,
-      name: QUIZ1.name,
-      timeCreated: expect.any(Number),
-      timeLastEdited: expect.any(Number),
-      description: QUIZ1.description,
-      numQuestions: 1,
-      questions: [
-        {
-          questionId: questionId1,
-          question: QUESTION_BODY1.question,
-          duration: QUESTION_BODY1.duration,
-          thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
-          points: QUESTION_BODY1.points,
-          answers: expect.any(Array),
-        },
-      ],
-      duration: QUESTION_BODY1.duration,
-      thumbnailUrl: expect.any(String),
+  test('Metadata is a copy of the quiz information', () => {
+    const expectedMetadata = quizInfoV2(token1, quizId1).jsonBody as AdminQuizInfoReturn;
+    const response = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.metadata as QuizMetadata;
+    expect(response).toStrictEqual(expectedMetadata);
+  });
+
+  describe('Session status is unchanged when the quiz is updated by the admin', () => {
+    test('Changing the quiz name', () => {
+      const before = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      quizNameUpdateV2(token1, quizId1, 'New Name');
+      const after = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      expect(after).toStrictEqual(before);
     });
+
+    test('Changing the quiz description', () => {
+      const before = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      quizDescriptionUpdateV2(token1, quizId1, 'New Description');
+      const after = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      expect(after).toStrictEqual(before);
+    });
+
+    test('Adding a new question', () => {
+      const before = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      quizQuestionCreateV2(token1, quizId1, QUESTION_BODY2);
+      const after = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      expect(after).toStrictEqual(before);
+    });
+
+    test('Updating an existing question', () => {
+      const before = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      quizQuestionUpdateV2(token1, quizId1, questionId1, QUESTION_BODY4);
+      const after = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      expect(after).toStrictEqual(before);
+    });
+
+    test('Deleting a question', () => {
+      const before = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      quizQuestionRemoveV2(token1, quizId1, questionId1);
+      const after = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      expect(after).toStrictEqual(before);
+    });
+
+    test('Moving a question', () => {
+      const before = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      quizQuestionMoveV2(token1, quizId1, questionId1, 2);
+      const after = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      expect(after).toStrictEqual(before);
+    });
+
+    test('Duplicating a question', () => {
+      const before = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      quizQuestionDuplicateV2(token1, quizId1, questionId1);
+      const after = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody as AdminQuizSessionStatusReturn;
+      expect(after).toStrictEqual(before);
+    });
+  });
+
+  describe('atQuestion is 0 in LOBBY, END or FINAL_RESULTS state', () => {
+    // starting at lobby
+    test('LOBBY state and atQuestion is 0', () => {
+      const response = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody;
+      expect(response.state).toStrictEqual(State.LOBBY);
+      expect(response.atQuestion).toStrictEqual(0);
+    });
+
+    test('END state and atQuestion is 0', () => {
+      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END);
+      const response = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody;
+      expect(response.state).toStrictEqual(State.END);
+      expect(response.atQuestion).toStrictEqual(0);
+    });
+
+    test('FINAL_RESULTS state and atQuestion is 0', () => {
+      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION);
+      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.SKIP_COUNTDOWN);
+      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
+      quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
+      const response = quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody;
+      expect(response.state).toStrictEqual(State.FINAL_RESULTS);
+      expect(response.atQuestion).toStrictEqual(0);
+    });
+  });
+
+  test('Correct state and atQuestion when advancing through the quiz', () => {
+    // moving to the first question and starting Question Countdown
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_COUNTDOWN);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(1);
+
+    // skip the countdown to move to question open
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.SKIP_COUNTDOWN);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_OPEN);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(1);
+
+    // wait for the duration of the question to move to question close
+    sleep(QUESTION_BODY1.duration * 1000);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_CLOSE);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(1);
+
+    // move to answer show
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.ANSWER_SHOW);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(1);
+
+    // move to 2nd question
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_COUNTDOWN);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(2);
+
+    // skip the countdown to move to question open
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.SKIP_COUNTDOWN);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_OPEN);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(2);
+
+    // move to question close
+    sleep(QUESTION_BODY2.duration * 1000);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_CLOSE);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(2);
+
+    // move to next question
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_COUNTDOWN);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(3);
+
+    // skip the countdown to move to question open
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.SKIP_COUNTDOWN);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.QUESTION_OPEN);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(3);
+
+    // move to answer show
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_ANSWER);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.ANSWER_SHOW);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(3);
+
+    // move to next question (out of range)
+    expect(quizSessionUpdateV1(token1, quizId1, sessionId1, Action.NEXT_QUESTION)).toStrictEqual(BAD_REQUEST_ERROR);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.ANSWER_SHOW);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(3);
+
+    // move to final results
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.GO_TO_FINAL_RESULTS);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.FINAL_RESULTS);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(0);
+
+    // move to end
+    quizSessionUpdateV1(token1, quizId1, sessionId1, Action.END);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.state).toStrictEqual(State.END);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId1).jsonBody.atQuestion).toStrictEqual(0);
   });
 
   describe('Unauthorised errors', () => {
