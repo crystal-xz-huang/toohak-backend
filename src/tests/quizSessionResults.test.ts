@@ -44,7 +44,6 @@ import {
   getAnswerIds,
 } from '../testHelpers';
 import sleep from 'atomic-sleep';
-import exp from 'constants';
 
 beforeEach(() => {
   clearV1();
