@@ -54,7 +54,7 @@ import {
   // playerQuestionResults,
   // playerFinalResults,
   // playerChatList,
-  // playerChatSend
+  playerChatSend
 } from './player';
 
 // Set up web app
@@ -495,14 +495,14 @@ app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
   const response = playerChatList(playerId);
   res.json(response);
-});
+}); */
 
 app.post('/v1/player/:playerid/chat', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
   const { message } = req.body;
   const response = playerChatSend(playerId, message);
   res.json(response);
-}); */
+});
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
