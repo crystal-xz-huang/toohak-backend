@@ -3,7 +3,7 @@ import {
   authRegisterV1,
   // authLogoutV1,
   // quizListV2,
-  quizInfoV2,
+  // quizInfoV2,
   // quizTrashV2,
   quizCreateV2,
   // quizNameUpdateV2,
@@ -29,10 +29,10 @@ import {
   playerChatListV1,
   playerChatSendV1
 } from '../httpHelpers';
-import {
-  getTimeStamp,
-  checkTimeStamp
-} from '../testHelpers';
+// import {
+//   getTimeStamp,
+//   checkTimeStamp
+// } from '../testHelpers';
 import {
   BAD_REQUEST_ERROR,
   // UNAUTHORISED_ERROR,
