@@ -282,7 +282,7 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
   });
 });
 
-describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', () => {
+describe('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', () => {
   let token1: string;
   let token2: string;
   let quizId: number;
@@ -313,6 +313,7 @@ describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', ()
           questionId: expect.any(Number),
           question: QUESTION_BODY1.question,
           duration: QUESTION_BODY1.duration,
+          thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
           points: QUESTION_BODY1.points,
           answers: [
             {
@@ -331,7 +332,7 @@ describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', ()
         }
       ],
       duration: 4,
-      thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
+      thumbnailUrl: ''
     };
     expect(response2).toStrictEqual(expected);
   });

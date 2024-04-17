@@ -508,7 +508,7 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/description', () => {
   });
 });
 
-describe.skip('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
+describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   let tokenUser1: string;
   let tokenUser2: string;
   let quizId1: number;
