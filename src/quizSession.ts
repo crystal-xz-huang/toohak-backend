@@ -359,10 +359,10 @@ export function adminQuizSessionResultsCSV(token: string, quizId: number, sessio
 
   // Write CSV content into a file
   const fileName = 'quizSessionResults.csv';
-  const filePath = path.join(__dirname, '../csv_files', fileName);
+  const filePath = path.join(__dirname, './', fileName);
   fs.writeFileSync(filePath, csvContent);
 
   // Return the URL of the generated CSV file
-  const fileUrl = `https://example.com/csv_files/${fileName}`;
+  const fileUrl = `https://example.com/${fileName}`;
   return { url: fileUrl };
 }
