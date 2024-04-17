@@ -6,6 +6,7 @@ import {
   Data,
   User,
   Quiz,
+  Player,
   SessionQuestionBody,
   QuizMetadata as SessionQuizMetadata,
 } from './dataTypes';

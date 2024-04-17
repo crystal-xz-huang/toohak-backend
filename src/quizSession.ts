@@ -358,7 +358,7 @@ export function adminQuizSessionResultsCSV(token: string, quizId: number, sessio
   const csvContent = generateCSVContent(players, questions);
 
   // Write CSV content into a file
-  const fileName = `quizSessionResults.csv`;
+  const fileName = 'quizSessionResults.csv';
   const filePath = path.join(__dirname, '../csv_files', fileName);
   fs.writeFileSync(filePath, csvContent);
 

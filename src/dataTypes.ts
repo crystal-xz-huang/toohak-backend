@@ -107,7 +107,7 @@ export interface PlayerInfo {
 // ====================================================================
 // PLAYER INTERFACES
 // ====================================================================
-interface Player {
+export interface Player {
   playerId: number;
   sessionId: number;
   name: string;
