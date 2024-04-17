@@ -1,3 +1,7 @@
+import sleep from 'atomic-sleep';
+import { UserScore, PlayerQuestionResultsReturn, PlayerQuestionInfoReturn, AdminQuizInfoReturn } from '../functionTypes';
+import { State, Action } from '../dataTypes';
+import { sortStringArray, getQuestionAnswerIds, getAnswerIds } from '../testHelpers';
 import {
   clearV1,
   authRegisterV1,
@@ -14,7 +18,7 @@ import {
   playerQuestionInfoV1,
   playerQuestionAnswerV1,
   playerQuestionResultsV1,
-  // playerFinalResultsV1,
+  playerFinalResultsV1,
 } from '../httpHelpers';
 import {
   BAD_REQUEST_ERROR,
@@ -29,30 +33,6 @@ import {
   QUESTION_BODY4,
   QUESTION_BODY5,
 } from '../testTypes';
-import {
-  State,
-  Action
-} from '../dataTypes';
-import {
-  UserScore,
-  PlayerQuestionResultsReturn,
-  PlayerQuestionInfoReturn,
-  AdminQuizInfoReturn,
-} from '../functionTypes';
-import {
-  sortStringArray,
-  getQuestionAnswerIds,
-  getAnswerIds,
-} from '../testHelpers';
-import sleep from 'atomic-sleep';
-
-beforeEach(() => {
-  clearV1();
-});
-
-afterEach(() => {
-  clearV1();
-});
 
 let token1: string;
 let quizId1: number;
@@ -67,7 +47,15 @@ let answerIds: number[];
 let answerIds1: number[];
 let answerIds2: number[];
 
-describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
+beforeEach(() => {
+  clearV1();
+});
+
+afterEach(() => {
+  clearV1();
+});
+
+describe('GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -210,7 +198,7 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () =
   });
 });
 
-describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer', () => {
+describe('PUT /v1/player/{playerid}/question/{questionposition}/answer', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -309,7 +297,7 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
   });
 });
 
-describe('Testing GET /v1/player/{playerid}/question/{questionposition}/results', () => {
+describe('GET /v1/player/{playerid}/question/{questionposition}/results', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -379,17 +367,68 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}/results'
       expect(playerQuestionResultsV1(player1, 1)).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test('Session is in FINAL_RESULTS state', () => {
+    test('Session is in END state', () => {
+      quizSessionUpdateV1(token1, quizId1, sessionId, Action.END);
+      expect(playerQuestionResultsV1(player1, 1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+});
+
+describe('GET /v1/player/{playerid}/results', () => {
+  beforeEach(() => {
+    token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY1).jsonBody.questionId as number;
+    questionId2 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY4).jsonBody.questionId as number;
+    sessionId = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
+    player1 = playerJoinV1(sessionId, 'Tommy').jsonBody.playerId as number;
+  });
+
+  test('Correct status code and return value', () => {
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId).jsonBody.state).toStrictEqual(State.FINAL_RESULTS);
+
+    const response = playerFinalResultsV1(player1);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.jsonBody).toStrictEqual({
+      usersRankedByScore: expect.any(Array) as UserScore[],
+      questionResults: expect.any(Array) as PlayerQuestionResultsReturn[],
+    });
+  });
+
+  test('Player ID does not exist', () => {
+    expect(playerFinalResultsV1(-1)).toStrictEqual(BAD_REQUEST_ERROR);
+  });
+
+  describe('Session is not in FINAL_RESULTS state', () => {
+    test('Session is in LOBBY state', () => {
+      expect(playerFinalResultsV1(player1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
+    test('Session is in QUESTION_COUNTDOWN state', () => {
+      quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
+      expect(playerFinalResultsV1(player1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Session is in QUESTION_OPEN state', () => {
+      quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
+      expect(playerFinalResultsV1(player1)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Session is in QUESTION_CLOSE state', () => {
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
-      quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
-      quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
-      expect(playerQuestionResultsV1(player1, 1)).toStrictEqual(BAD_REQUEST_ERROR);
+      sleep(QUESTION_BODY1.duration * 1000);
+      expect(playerFinalResultsV1(player1)).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
     test('Session is in END state', () => {
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.END);
-      expect(playerQuestionResultsV1(player1, 1)).toStrictEqual(BAD_REQUEST_ERROR);
+      expect(playerFinalResultsV1(player1)).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 });
@@ -428,6 +467,10 @@ test('Need to select all correct answers to be considered correct', () => {
 
   quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
   expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
+    usersRankedByScore: usersRankedByScore,
+    questionResults: [questionResults] as PlayerQuestionResultsReturn[],
+  });
+  expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
     usersRankedByScore: usersRankedByScore,
     questionResults: [questionResults] as PlayerQuestionResultsReturn[],
   });
@@ -471,6 +514,11 @@ describe('Question and final results for session with 1 question', () => {
       usersRankedByScore: usersRankedByScore,
       questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
+
+    expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
+      usersRankedByScore: usersRankedByScore,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
+    });
   });
 
   test('All players have answered the question correctly', () => {
@@ -496,6 +544,11 @@ describe('Question and final results for session with 1 question', () => {
 
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
+      usersRankedByScore: usersRankedByScore,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
+    });
+
+    expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
       questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
@@ -529,6 +582,11 @@ describe('Question and final results for session with 1 question', () => {
       usersRankedByScore: usersRankedByScore,
       questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
+
+    expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
+      usersRankedByScore: usersRankedByScore,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
+    });
   });
 
   test('Half of the players have answered the question correctly', () => {
@@ -559,6 +617,11 @@ describe('Question and final results for session with 1 question', () => {
       usersRankedByScore: usersRankedByScore,
       questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
+
+    expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
+      usersRankedByScore: usersRankedByScore,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
+    });
   });
 
   test('Mixed results', () => {
@@ -584,6 +647,11 @@ describe('Question and final results for session with 1 question', () => {
 
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
+      usersRankedByScore: usersRankedByScore,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
+    });
+
+    expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
       questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
@@ -670,6 +738,11 @@ describe('Question and final results for session with 1 question and resubmissio
       usersRankedByScore: usersRankedByScore,
       questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
+
+    expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
+      usersRankedByScore: usersRankedByScore,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
+    });
   });
 
   test('Resubmitting an incorrect answer after initial correct answer', () => {
@@ -697,6 +770,11 @@ describe('Question and final results for session with 1 question and resubmissio
 
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
+      usersRankedByScore: usersRankedByScore,
+      questionResults: [questionResults] as PlayerQuestionResultsReturn[],
+    });
+
+    expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
       questionResults: [questionResults] as PlayerQuestionResultsReturn[],
     });
@@ -767,6 +845,11 @@ describe('Question and final results for session with 2 questions', () => {
       usersRankedByScore: usersRankedByScore,
       questionResults: questionResults as PlayerQuestionResultsReturn[],
     });
+
+    expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
+      usersRankedByScore: usersRankedByScore,
+      questionResults: questionResults as PlayerQuestionResultsReturn[],
+    });
   });
 
   test('With resubmissions', () => {
@@ -826,6 +909,11 @@ describe('Question and final results for session with 2 questions', () => {
 
     quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
+      usersRankedByScore: usersRankedByScore,
+      questionResults: questionResults as PlayerQuestionResultsReturn[],
+    });
+
+    expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
       questionResults: questionResults as PlayerQuestionResultsReturn[],
     });

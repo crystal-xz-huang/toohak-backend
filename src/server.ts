@@ -51,7 +51,7 @@ import {
   playerQuestionInfo,
   playerQuestionAnswer,
   playerQuestionResults,
-  // playerFinalResults,
+  playerFinalResults,
   // playerChatList,
   playerChatSend
 } from './player';
@@ -483,14 +483,13 @@ app.get('/v1/player/:playerid/question/:questionposition/results', (req: Request
   res.json(response);
 });
 
-/*
 app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
   const response = playerFinalResults(playerId);
   res.json(response);
 });
 
-app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+/* app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
   const response = playerChatList(playerId);
   res.json(response);
