@@ -3,7 +3,7 @@ import {
   authRegisterV1,
   // authLogoutV1,
   // quizListV2,
-  // quizInfoV2,
+  quizInfoV2,
   // quizTrashV2,
   quizCreateV2,
   // quizNameUpdateV2,
@@ -29,10 +29,10 @@ import {
   playerChatListV1,
   playerChatSendV1
 } from '../httpHelpers';
-// import {
-//   getTimeStamp,
-//   checkTimeStamp
-// } from '../testHelpers';
+import {
+  getTimeStamp,
+  checkTimeStamp
+} from '../testHelpers';
 import {
   BAD_REQUEST_ERROR,
   // UNAUTHORISED_ERROR,
@@ -336,55 +336,6 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
   });
 });
 
-describe('Testing POST/v1/player/{playerid}/chat', () => {
-  let token: string;
-  let quizId: number;
-  let sessionId: number;
-  let playerId: number;
-  const message = { messageBody: 'chat' };
-
-  beforeEach(() => {
-    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
-    quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
-    quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody.questionId as number;
-    sessionId = quizSessionStartV1(token, quizId, 0).jsonBody.sessionId as number;
-    playerId = playerJoinV1(sessionId, PLAYER_BODY1.name).jsonBody.playerId as number;
-  });
-
-  test('Correct status code and return value with given name', () => {
-    const response = playerChatSendV1(playerId, message);
-    // const message = playerChatListV1(playerId).jsonBody;
-    expect(response.statusCode).toStrictEqual(200);
-    // expect(message).toStrictEqual({});
-  });
-
-  describe('BAD_REQUEST_ERROR', () => {
-    test('Player Id does not refer to a valid player', () => {
-      const response = playerChatSendV1(playerId + 1, message);
-      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
-    });
-
-    test('Message is less than 1 characters', () => {
-      const message1 = { messageBody: '' };
-      const response = playerChatSendV1(playerId, message1);
-      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
-    });
-
-    test('Message is greater than 100 characters', () => {
-      const message1 = { messageBody: 'm'.repeat(101) };
-      const response = playerChatSendV1(playerId, message1);
-      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
-    });
-  });
-
-  test.skip('Message sent time is within a 1 second range of the current time', () => {
-    // const expectedTime = getTimeStamp();
-    playerChatSendV1(playerId, message);
-    // const timeSent = playerChatListV1(playerId).jsonBody.timeSent as number;
-    // checkTimeStamp(timeSent, expectedTime);
-  });
-});
-
 describe('Testing GET/v1/player/{playerid}/chat', () => {
   let token: string;
   let quizId: number;
@@ -424,6 +375,48 @@ describe('Testing GET/v1/player/{playerid}/chat', () => {
   describe('BAD_REQUEST_ERROR', () => {
     test('Player Id does not refer to a valid player', () => {
       const response = playerChatListV1(playerId + 1);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+});
+
+describe('Testing POST/v1/player/{playerid}/chat', () => {
+  let token: string;
+  let quizId: number;
+  let sessionId: number;
+  let playerId: number;
+
+  beforeEach(() => {
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY1).jsonBody.questionId as number;
+    sessionId = quizSessionStartV1(token, quizId, 0).jsonBody.sessionId as number;
+    playerId = playerJoinV1(sessionId, PLAYER_BODY1.name).jsonBody.playerId as number;
+  });
+
+  test('Correct status code and return value with given name', () => {
+    const response = playerChatSendV1(playerId, MESSAGE1);
+    const message = playerChatListV1(playerId).jsonBody;
+    const expected = { messages: [{ messageBody: 'This is a message', playerId: playerId, playerName: PLAYER_BODY1.name, timeSent: expect.any(Number) }] };
+    expect(response.statusCode).toStrictEqual(200);
+    expect(message).toStrictEqual(expected);
+  });
+
+  describe('BAD_REQUEST_ERROR', () => {
+    test('Player Id does not refer to a valid player', () => {
+      const response = playerChatSendV1(playerId + 1, MESSAGE1);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Message is less than 1 characters', () => {
+      const message1 = { messageBody: '' };
+      const response = playerChatSendV1(playerId, message1);
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('Message is greater than 100 characters', () => {
+      const message1 = { messageBody: 'm'.repeat(101) };
+      const response = playerChatSendV1(playerId, message1);
       expect(response).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
