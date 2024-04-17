@@ -911,7 +911,7 @@ describe('Question and final results for session with 2 questions', () => {
     expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
       questionResults: questionResults as PlayerQuestionResultsReturn[],
-    })
+    });
 
     expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,

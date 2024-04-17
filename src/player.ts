@@ -2,7 +2,6 @@ import { getData, setData } from './dataStore';
 import HTTPError from 'http-errors';
 import {
   State,
-  // Action,
 } from './dataTypes';
 import {
   EmptyObject,
@@ -265,35 +264,14 @@ export function playerQuestionResults(playerId: number, questionPosition: number
  */
 export function playerFinalResults(playerId: number): PlayerFinalResultsReturn {
   const data = getData();
-  // if playerId does not exist, throw an error
   const player = data.players.find((p) => p.playerId === playerId);
   if (!player) {
     throw HTTPError(400, 'Player Id does not exists');
   }
-
-  // if session does not exist or is not in FINAL_RESULTS state, throw an error
   const session = data.quizSessions.find((s) => s.sessionId === player.sessionId);
-  if (!session) {
-    throw HTTPError(400, 'Session Id does not refer to a valid session ');
-  } else if (session.state !== State.FINAL_RESULTS) {
+  if (!session || session.state !== State.FINAL_RESULTS) {
     throw HTTPError(400, 'Session is not in FINAL_RESULTS state');
   }
-
-  const questions = session.metadata.questions;
-  const questionResults: PlayerQuestionResultsReturn[] = questions.map((question) => {
-    const totalTime = question.playerAnswers.reduce((total, answer) => total + answer.answerTime, 0);
-    const averageAnswerTime = Math.round(totalTime / question.playerAnswers.length);
-    const totalCorrect = question.playerCorrectList.length;
-    const totalPlayers = data.players.filter((p) => p.sessionId === player.sessionId).length;
-    const percentCorrect = Math.round((totalCorrect / totalPlayers) * 100);
-    const sortedCorrectList = [...question.playerCorrectList].map((player) => player.name).sort();
-    return {
-      questionId: question.questionId,
-      playersCorrectList: sortedCorrectList,
-      averageAnswerTime: averageAnswerTime,
-      percentCorrect: percentCorrect,
-    };
-  });
 
   const players = data.players.filter((p) => p.sessionId === player.sessionId);
   players.forEach((p) => {
@@ -302,19 +280,29 @@ export function playerFinalResults(playerId: number): PlayerFinalResultsReturn {
     setData(data);
   });
 
-  // list of all users who played ranked in descending order by score
-  const usersRankedByScore = data.players
-    .filter(p => p.sessionId === player.sessionId)
+  const usersRankedByScore = players
     .sort((a, b) => b.score - a.score)
-    .map(p => ({
+    .map((p) => ({
       name: p.name,
-      score: Math.round(p.score)
+      score: p.score,
     }));
 
-  return {
-    usersRankedByScore: usersRankedByScore,
-    questionResults: questionResults,
-  };
+  const questions = session.metadata.questions;
+  const questionResults: PlayerQuestionResultsReturn[] = questions.map((q) => {
+    const totalTime = q.playerAnswers.reduce((acc, a) => acc + a.answerTime, 0);
+    const averageTime = Math.round(totalTime / q.playerAnswers.length);
+    const totalCorrect = q.playerCorrectList.length;
+    const totalPlayers = data.players.filter((p) => p.sessionId === player.sessionId).length;
+    const percentCorrect = Math.round((totalCorrect / totalPlayers) * 100);
+    return {
+      questionId: q.questionId,
+      playersCorrectList: q.playerCorrectList.map((p) => p.name).sort(),
+      averageAnswerTime: averageTime || 0,
+      percentCorrect: percentCorrect
+    };
+  });
+
+  return { usersRankedByScore, questionResults };
 }
 
 /**

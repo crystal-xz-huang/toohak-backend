@@ -2,13 +2,15 @@ import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import crypto from 'crypto';
 import { ErrorMessage, QuestionBodyInput, QuizMetadata } from './functionTypes';
-
 import {
   Data,
   User,
   Quiz,
-  QuizMetadata as SessionQuizMetadata,
   SessionQuestionBody,
+  QuizMetadata as SessionQuizMetadata,
+} from './dataTypes';
+
+import {
   MIN_USER_NAME_LENGTH,
   MAX_USER_NAME_LENGTH,
   MIN_PASSWORD_LENGTH,
@@ -20,14 +22,11 @@ import {
   MAX_QUIZ_DESCRIPTION_LENGTH,
   URL_PROTOCOL,
   URL_FILETYPE,
-} from './dataTypes';
+} from './functionTypes';
 
-/// ////////////////////////////////////////////////////////////////////////////////////
-/// //////////////////////////  GENERATE FUNCTIONS  ////////////////////////////////////
-/// ////////////////////////////////////////////////////////////////////////////////////
-/**
- * Generate a random colour
- */
+// ====================================================================
+//                      GENERATE FUNCTIONS
+// ====================================================================
 export function generateRandomColour(): string {
   const colours = [
     'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown', 'cyan', 'magenta', 'teal', 'lime', 'indigo',
@@ -35,16 +34,10 @@ export function generateRandomColour(): string {
   return colours[Math.floor(Math.random() * colours.length)];
 }
 
-/**
- * Generates a token for a new session (unique string each time)
- */
 export function generateToken(): string {
   return uuidv4();
 }
 
-/**
- * Generate a random 6-digit number
- */
 export function generateRandomNumber(): number {
   return Math.floor(Math.random() * 900000) + 100000;
 }
@@ -59,17 +52,13 @@ export function generateRandomStringPlayer() {
   const letterArray = letters.split('');
   const numberArray = numbers.split('');
 
-  // Shuffle arrays to randomize order
   shuffleArray(letterArray);
   shuffleArray(numberArray);
 
-  // Select first 5 letters and first 3 numbers
   const selectedLetters = letterArray.slice(0, 5);
   const selectedNumbers = numberArray.slice(0, 3);
 
-  // Join letters and numbers
   const randomString = selectedLetters.join('') + selectedNumbers.join('');
-
   return randomString;
 }
 
@@ -81,9 +70,10 @@ function shuffleArray(array: Array<number | string>) {
   return array;
 }
 
-/// ////////////////////////////////////////////////////////////////////////////////////
-/// //////////////////////////  GET FUNCTIONS  ////////////////////////////////////////
-/// ////////////////////////////////////////////////////////////////////////////////////
+// ====================================================================
+//                       GET FUNCTIONS
+// ====================================================================
+
 /**
  * Returns the Unix timestamp in seconds
  */
@@ -98,25 +88,9 @@ export function getHashOf(plaintext: string): string {
   return crypto.createHash('sha256').update(plaintext).digest('hex');
 }
 
-// /**
-//  * Returns the index of the quiz with the given quizId's in data.quizzes array
-//  * Otherwise, returns null if the quiz is not found
-//  *
-//  * @param { number}  quizId
-//  * @param { object } data - the data object from getData()
-//  * @returns { number | null } - the index of the quiz in data.quizzes array
-//  */
-// export function getQuizIndex(quizId: number, data: Data): number | null {
-//   const index = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-//   if (index === -1) {
-//     return null;
-//   }
-// }
-
-/// ////////////////////////////////////////////////////////////////////////////////////
-/// //////////////////////////  FIND FUNCTIONS  ////////////////////////////////////////
-/// ////////////////////////////////////////////////////////////////////////////////////
-
+// ====================================================================
+//                       FIND FUNCTIONS
+// ====================================================================
 /**
  * Given a token, returns the user associated with the token
  * If the token refers to a VALID session, returns the user object
@@ -155,10 +129,9 @@ export function findQuizbyId(quizId: number, data: Data): Quiz | null {
   return data.quizzes.find(quiz => quiz.quizId === quizId) ?? null;
 }
 
-/// ////////////////////////////////////////////////////////////////////////////////////
-/// ////////////////////////  IS VALID FUNCTIONS  //////////////////////////////////////
-/// ////////////////////////////////////////////////////////////////////////////////////
-
+// ====================================================================
+//                       IS VALID FUNCTIONS
+// ====================================================================
 function createError(message: string): ErrorMessage {
   return { error: message };
 }
@@ -408,9 +381,6 @@ export function isValidImgURL(imgUrl: string): ErrorMessage | null {
   } else if (!URL_PROTOCOL.test(imgUrl)) {
     return createError('URL does not begin with http:// or https://');
   }
-  // else if (!validator.isURL(imgUrl, { protocols: ['http', 'https'], require_protocol: true, require_valid_protocol: true })) {
-  //   return createError('URL is not a valid URL');
-  // }
   return null;
 }
 
@@ -429,9 +399,10 @@ export function isPlayerNameUsed(name: string, sessionId: number, data: Data): E
   return null;
 }
 
-/**
- * Copy the question object and return a new question object
- */
+// ====================================================================
+//                      SESSION FUNCTIONS
+// ====================================================================
+
 export function copyQuizToQuizMetadata(quiz: Quiz): SessionQuizMetadata {
   return {
     quizId: quiz.quizId,
@@ -477,23 +448,22 @@ export function convertSessionMetadata(sessionQuizMetadata: SessionQuizMetadata)
   };
 }
 
-// Calculate the score of a player for a question
-export function getPlayerScore(playerId: number, question: SessionQuestionBody): number {
+/**
+ * Calculate the total score of a player in a quiz session
+ */
+export function getPlayerTotalScore(playerId: number, questions: SessionQuestionBody[]): number {
+  return questions.reduce((acc, question) => acc + getPlayerScore(playerId, question), 0);
+}
+
+function getPlayerScore(playerId: number, question: SessionQuestionBody): number {
   const playerAnswer = question.playerAnswers.find(answer => answer.playerId === playerId);
   if (!playerAnswer) {
     return 0;
   }
-
-  // in UNIX timestamp so the difference is in seconds
-  // the smaller the time, the higher the score
   question.playerCorrectList.sort((a, b) => a.submittedTime - b.submittedTime);
   const N = question.playerCorrectList.findIndex((p) => p.playerId === playerId);
   if (N === -1) {
     return 0;
   }
   return question.points * (1 / (N + 1));
-}
-
-export function getPlayerTotalScore(playerId: number, questions: SessionQuestionBody[]): number {
-  return questions.reduce((acc, question) => acc + getPlayerScore(playerId, question), 0);
 }
