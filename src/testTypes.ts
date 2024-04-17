@@ -426,3 +426,15 @@ export const PLAYER_BODY2 = {
 export const PLAYER_BODY3 = {
   name: 'Hayden Smith'
 };
+
+export const MESSAGE1 = {
+  messageBody: 'This is a message'
+};
+
+export const MESSAGE2 = {
+  messageBody: 'This is another message'
+};
+
+export const MESSAGE3 = {
+  messageBody: 'This is yet another message'
+};

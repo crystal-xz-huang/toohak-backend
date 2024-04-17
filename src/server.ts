@@ -52,7 +52,7 @@ import {
   playerQuestionAnswer,
   playerQuestionResults,
   playerFinalResults,
-  // playerChatList,
+  playerChatList,
   playerChatSend
 } from './player';
 
@@ -489,11 +489,11 @@ app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
   res.json(response);
 });
 
-/* app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
   const response = playerChatList(playerId);
   res.json(response);
-}); */
+});
 
 app.post('/v1/player/:playerid/chat', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
