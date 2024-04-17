@@ -11,7 +11,6 @@ import {
   quizQuestionDuplicateV2,
   quizSessionStartV1,
   quizSessionUpdateV1,
-  quizSessionStatusV1,
 } from '../httpHelpers';
 
 import {
@@ -20,7 +19,6 @@ import {
 } from '../testHelpers';
 
 import {
-  OK_SUCCESS,
   BAD_REQUEST_ERROR,
   UNAUTHORISED_ERROR,
   FORBIDDEN_ERROR,
@@ -31,23 +29,23 @@ import {
   QUESTION_BODY2,
   QUESTION_BODY3,
   QUESTION_BODY4,
-  SHORT_QUESTION_STRING,
-  LONG_QUESTION_STRING,
-  MORE_QUESTION_ANSWERS,
-  LESS_QUESTION_ANSWERS,
-  LONG_QUESTION_DURATION,
-  NEGATIVE_QUESTION_DURATION,
-  MORE_QUESTION_DURATION_SUM,
-  LESS_QUESTION_POINTS,
-  MORE_QUESTION_POINTS,
-  SHORT_QUESTION_ANSWERS,
-  LONG_QUESTION_ANSWERS,
-  DUPLICATE_QUESTION_ANSWERS,
-  FALSE_QUESTION_ANSWERS,
-  INVALID_IMG_URLS,
+  // SHORT_QUESTION_STRING,
+  // LONG_QUESTION_STRING,
+  // MORE_QUESTION_ANSWERS,
+  // LESS_QUESTION_ANSWERS,
+  // LONG_QUESTION_DURATION,
+  // NEGATIVE_QUESTION_DURATION,
+  // MORE_QUESTION_DURATION_SUM,
+  // LESS_QUESTION_POINTS,
+  // MORE_QUESTION_POINTS,
+  // SHORT_QUESTION_ANSWERS,
+  // LONG_QUESTION_ANSWERS,
+  // DUPLICATE_QUESTION_ANSWERS,
+  // FALSE_QUESTION_ANSWERS,
+  // INVALID_IMG_URLS,
 } from '../testTypes';
 
-import { State, Action } from '../dataTypes';
+import { Action } from '../dataTypes';
 import sleep from 'atomic-sleep';
 
 beforeEach(() => {
@@ -62,7 +60,6 @@ afterEach(() => {
 // Remove .skip from describe.skip to run the tests
 // Use .only to run only that block of tests
 //= =============================================================================
-
 
 describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () => {
   let token1: string;
@@ -259,37 +256,37 @@ describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', ()
       expect(quizQuestionRemoveV2(token1, quizId, questionId)).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test(`All sessions are in END state`, () => {
+    test('All sessions are in END state', () => {
       quizSessionUpdateV1(token1, quizId, sessionId2, Action.END);
       expect(quizQuestionRemoveV2(token1, quizId, questionId).statusCode).toStrictEqual(200);
     });
 
-    test(`One session is in QUESTION_COUNTDOWN state`, () => {
+    test('One session is in QUESTION_COUNTDOWN state', () => {
       quizSessionUpdateV1(token1, quizId, sessionId2, Action.NEXT_QUESTION);
       expect(quizQuestionRemoveV2(token1, quizId, questionId)).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test(`One session is in QUESTION_OPEN state`, () => {
-        quizSessionUpdateV1(token1, quizId, sessionId2, Action.NEXT_QUESTION);
-        quizSessionUpdateV1(token1, quizId, sessionId2, Action.SKIP_COUNTDOWN);
-        expect(quizQuestionRemoveV2(token1, quizId, questionId)).toStrictEqual(BAD_REQUEST_ERROR);
+    test('One session is in QUESTION_OPEN state', () => {
+      quizSessionUpdateV1(token1, quizId, sessionId2, Action.NEXT_QUESTION);
+      quizSessionUpdateV1(token1, quizId, sessionId2, Action.SKIP_COUNTDOWN);
+      expect(quizQuestionRemoveV2(token1, quizId, questionId)).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test(`One session is in QUESTION_COUNTDOWN state`, () => {
-        quizSessionUpdateV1(token1, quizId, sessionId2, Action.NEXT_QUESTION);
-        quizSessionUpdateV1(token1, quizId, sessionId2, Action.SKIP_COUNTDOWN);
-        sleep(QUESTION_BODY1.duration * 1000);
-        expect(quizQuestionRemoveV2(token1, quizId, questionId)).toStrictEqual(BAD_REQUEST_ERROR);
+    test('One session is in QUESTION_COUNTDOWN state', () => {
+      quizSessionUpdateV1(token1, quizId, sessionId2, Action.NEXT_QUESTION);
+      quizSessionUpdateV1(token1, quizId, sessionId2, Action.SKIP_COUNTDOWN);
+      sleep(QUESTION_BODY1.duration * 1000);
+      expect(quizQuestionRemoveV2(token1, quizId, questionId)).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test(`One session is in ANSWER_SHOW state`, () => {
-        quizSessionUpdateV1(token1, quizId, sessionId2, Action.NEXT_QUESTION);
-        quizSessionUpdateV1(token1, quizId, sessionId2, Action.SKIP_COUNTDOWN);
-        quizSessionUpdateV1(token1, quizId, sessionId2, Action.GO_TO_ANSWER);
-        expect(quizQuestionRemoveV2(token1, quizId, questionId)).toStrictEqual(BAD_REQUEST_ERROR);
+    test('One session is in ANSWER_SHOW state', () => {
+      quizSessionUpdateV1(token1, quizId, sessionId2, Action.NEXT_QUESTION);
+      quizSessionUpdateV1(token1, quizId, sessionId2, Action.SKIP_COUNTDOWN);
+      quizSessionUpdateV1(token1, quizId, sessionId2, Action.GO_TO_ANSWER);
+      expect(quizQuestionRemoveV2(token1, quizId, questionId)).toStrictEqual(BAD_REQUEST_ERROR);
     });
 
-    test(`One session is in FINAL_RESULTS state`, () => {
+    test('One session is in FINAL_RESULTS state', () => {
       quizSessionUpdateV1(token1, quizId, sessionId2, Action.NEXT_QUESTION);
       quizSessionUpdateV1(token1, quizId, sessionId2, Action.SKIP_COUNTDOWN);
       quizSessionUpdateV1(token1, quizId, sessionId2, Action.GO_TO_ANSWER);
@@ -297,7 +294,6 @@ describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', ()
       expect(quizQuestionRemoveV2(token1, quizId, questionId)).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
-
 });
 
 describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}/move', () => {
