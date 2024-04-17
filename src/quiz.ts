@@ -496,6 +496,7 @@ export function adminQuizQuestionUpdate(token: string, quizId: number, questionI
     colour: generateRandomColour(),
     correct: answer.correct
   }));
+  question.thumbnailUrl = questionBody.thumbnailUrl;
 
   setData(data);
   return {};
