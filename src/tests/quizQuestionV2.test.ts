@@ -60,6 +60,97 @@ afterEach(() => {
 // Remove .skip from describe.skip to run the tests
 // Use .only to run only that block of tests
 //= =============================================================================
+describe('Testing POST /v2/admin/quiz/{quizid}/question', () => {
+  let token: string;
+  let quizId: number;
+  beforeEach(() => {
+    token = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+  });
+
+  test('Creates a new stub question for the quiz', () => {
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY1);
+    const response = quizInfoV2(token, quizId).jsonBody;
+    const expectedQuestion = {
+      questionId: expect.any(Number),
+      question: QUESTION_BODY1.question,
+      duration: QUESTION_BODY1.duration,
+      points: QUESTION_BODY1.points,
+      answers: [
+        {
+          answerId: expect.any(Number),
+          answer: QUESTION_BODY1.answers[0].answer,
+          colour: expect.any(String),
+          correct: QUESTION_BODY1.answers[0].correct
+        },
+        {
+          answerId: expect.any(Number),
+          answer: QUESTION_BODY1.answers[1].answer,
+          colour: expect.any(String),
+          correct: QUESTION_BODY1.answers[1].correct
+        }
+      ],
+      thumbnailUrl: QUESTION_BODY1.thumbnailUrl
+    };
+
+    expect(response.quizId).toStrictEqual(quizId);
+    expect(response.questions).toStrictEqual([expectedQuestion]);
+    expect(response.duration).toStrictEqual(QUESTION_BODY1.duration);
+    expect(response.numQuestions).toStrictEqual(1);
+  });
+
+  test('Successfully creates 2 new stub questions for the quiz', () => {
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY1);
+    quizQuestionCreateV2(token, quizId, QUESTION_BODY2);
+    const response = quizInfoV2(token, quizId).jsonBody;
+    const expectedQuestion1 = {
+      questionId: expect.any(Number),
+      question: QUESTION_BODY1.question,
+      duration: QUESTION_BODY1.duration,
+      points: QUESTION_BODY1.points,
+      answers: [
+        {
+          answerId: expect.any(Number),
+          answer: QUESTION_BODY1.answers[0].answer,
+          colour: expect.any(String),
+          correct: QUESTION_BODY1.answers[0].correct
+        },
+        {
+          answerId: expect.any(Number),
+          answer: QUESTION_BODY1.answers[1].answer,
+          colour: expect.any(String),
+          correct: QUESTION_BODY1.answers[1].correct
+        }
+      ],
+      thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
+    };
+    const expectedQuestion2 = {
+      questionId: expect.any(Number),
+      question: QUESTION_BODY2.question,
+      duration: QUESTION_BODY2.duration,
+      points: QUESTION_BODY2.points,
+      answers: [
+        {
+          answerId: expect.any(Number),
+          answer: QUESTION_BODY2.answers[0].answer,
+          colour: expect.any(String),
+          correct: QUESTION_BODY2.answers[0].correct
+        },
+        {
+          answerId: expect.any(Number),
+          answer: QUESTION_BODY2.answers[1].answer,
+          colour: expect.any(String),
+          correct: QUESTION_BODY2.answers[1].correct
+        }
+      ],
+      thumbnailUrl: QUESTION_BODY2.thumbnailUrl,
+    };
+    expect(response.quizId).toStrictEqual(quizId);
+    expect(response.questions).toStrictEqual([expectedQuestion1, expectedQuestion2]);
+    expect(response.duration).toStrictEqual(QUESTION_BODY1.duration + QUESTION_BODY2.duration);
+    expect(response.numQuestions).toStrictEqual(2);
+  });
+});
 
 describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () => {
   let token1: string;
@@ -191,7 +282,7 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
   });
 });
 
-describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', () => {
+describe('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', () => {
   let token1: string;
   let token2: string;
   let quizId: number;
@@ -222,6 +313,7 @@ describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', ()
           questionId: expect.any(Number),
           question: QUESTION_BODY1.question,
           duration: QUESTION_BODY1.duration,
+          thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
           points: QUESTION_BODY1.points,
           answers: [
             {
@@ -240,7 +332,7 @@ describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', ()
         }
       ],
       duration: 4,
-      thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
+      thumbnailUrl: ''
     };
     expect(response2).toStrictEqual(expected);
   });
