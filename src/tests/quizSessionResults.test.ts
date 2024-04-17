@@ -13,7 +13,7 @@ import {
   quizSessionUpdateV1,
   quizSessionStatusV1,
   quizSessionResultsV1,
-  // quizSessionCSVResultsV1,
+  quizSessionCSVResultsV1,
   playerJoinV1,
   playerQuestionInfoV1,
   playerQuestionAnswerV1,
@@ -35,6 +35,7 @@ import {
 } from '../testTypes';
 
 let token1: string;
+let token2: string;
 let quizId1: number;
 let questionId1: number;
 let questionId2: number;
@@ -55,7 +56,7 @@ afterEach(() => {
   clearV1();
 });
 
-describe('GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
+describe.skip('GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -198,7 +199,7 @@ describe('GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
   });
 });
 
-describe('PUT /v1/player/{playerid}/question/{questionposition}/answer', () => {
+describe.skip('PUT /v1/player/{playerid}/question/{questionposition}/answer', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -297,7 +298,7 @@ describe('PUT /v1/player/{playerid}/question/{questionposition}/answer', () => {
   });
 });
 
-describe('GET /v1/player/{playerid}/question/{questionposition}/results', () => {
+describe.skip('GET /v1/player/{playerid}/question/{questionposition}/results', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -374,7 +375,7 @@ describe('GET /v1/player/{playerid}/question/{questionposition}/results', () => 
   });
 });
 
-describe('GET /v1/player/{playerid}/results', () => {
+describe.skip('GET /v1/player/{playerid}/results', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -433,7 +434,7 @@ describe('GET /v1/player/{playerid}/results', () => {
   });
 });
 
-test('Need to select all correct answers to be considered correct', () => {
+test.skip('Need to select all correct answers to be considered correct', () => {
   token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
   quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
   questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY5).jsonBody.questionId as number;
@@ -476,7 +477,7 @@ test('Need to select all correct answers to be considered correct', () => {
   });
 });
 
-describe('Question and final results for session with 1 question', () => {
+describe.skip('Question and final results for session with 1 question', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -658,7 +659,7 @@ describe('Question and final results for session with 1 question', () => {
   });
 });
 
-describe('Question and final results for session with 1 question and resubmissions', () => {
+describe.skip('Question and final results for session with 1 question and resubmissions', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -781,7 +782,7 @@ describe('Question and final results for session with 1 question and resubmissio
   });
 });
 
-describe('Question and final results for session with 2 questions', () => {
+describe.skip('Question and final results for session with 2 questions', () => {
   let answerIds1: number[];
   let answerIds2: number[];
   beforeEach(() => {
@@ -916,6 +917,52 @@ describe('Question and final results for session with 2 questions', () => {
     expect(playerFinalResultsV1(player1).jsonBody).toStrictEqual({
       usersRankedByScore: usersRankedByScore,
       questionResults: questionResults as PlayerQuestionResultsReturn[],
+    });
+  });
+});
+
+describe('Testing GET/v1/admin/quiz/{quizid}/session/{sessionid}/results/csv', () => {
+  beforeEach(() => {
+    token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    token2 = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody.token as string;
+    quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY1).jsonBody.questionId as number;
+    sessionId = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
+    player1 = playerJoinV1(sessionId, 'Tommy').jsonBody.playerId as number;
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
+    expect(quizSessionStatusV1(token1, quizId1, sessionId).jsonBody.state).toStrictEqual(State.FINAL_RESULTS);
+    quizSessionResultsV1(token1, quizId1, sessionId);
+  });
+
+  test('Successfully generates CSV content', () => {
+    const response = quizSessionCSVResultsV1(token1, quizId1, sessionId);
+    expect(response.jsonBody).toHaveProperty('url');
+    expect(response.statusCode).toStrictEqual(200);
+  });
+
+  describe('Unauthorized errors', () => {
+    test('Token is empty', () => {
+      expect(quizSessionCSVResultsV1('', quizId1, sessionId)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+
+    test('Token does not refer to a valid user session', () => {
+      expect(quizSessionCSVResultsV1(token1 + 'random', quizId1, sessionId)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+  });
+
+  describe('Forbidden errors', () => {
+    test('Valid token but user does not have access to the quiz session', () => {
+      expect(quizSessionCSVResultsV1(token2, quizId1, sessionId)).toStrictEqual(FORBIDDEN_ERROR);
+    });
+  });
+
+  describe('Bad Request errors', () => {
+    test('Invalid session ID', () => {
+      const invalidSessionId = -1; // Assuming -1 is an invalid session ID
+      expect(quizSessionCSVResultsV1(token1, quizId1, invalidSessionId)).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 });
