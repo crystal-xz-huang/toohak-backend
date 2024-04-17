@@ -484,7 +484,9 @@ export function getPlayerScore(playerId: number, question: SessionQuestionBody):
     return 0;
   }
 
-  question.playerCorrectList.sort((a, b) => b.submittedTime - a.submittedTime);
+  // in UNIX timestamp so the difference is in seconds
+  // the smaller the time, the higher the score
+  question.playerCorrectList.sort((a, b) => a.submittedTime - b.submittedTime);
   const N = question.playerCorrectList.findIndex((p) => p.playerId === playerId);
   if (N === -1) {
     return 0;

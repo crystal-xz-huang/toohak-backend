@@ -20,6 +20,7 @@ import {
   generateRandomStringPlayer,
   isPlayerNameUsed,
   getCurrentTime,
+  getPlayerTotalScore,
 } from './functionHelpers';
 
 /**
@@ -146,9 +147,7 @@ export function playerQuestionAnswer(playerId: number, questionPosition: number,
   }
 
   const session = data.quizSessions.find((s) => s.sessionId === player.sessionId);
-  if (!session) {
-    throw HTTPError(400, 'Session Id does not refer to a valid session ');
-  } else if (session.state !== State.QUESTION_OPEN) {
+  if (!session || session.state !== State.QUESTION_OPEN) {
     throw HTTPError(400, 'Session is not in QUESTION_OPEN state');
   }
 
@@ -227,9 +226,7 @@ export function playerQuestionResults(playerId: number, questionPosition: number
   }
 
   const session = data.quizSessions.find((s) => s.sessionId === player.sessionId);
-  if (!session) {
-    throw HTTPError(400, 'Session Id does not refer to a valid session ');
-  } else if (session.state !== State.ANSWER_SHOW) {
+  if (!session || session.state !== State.ANSWER_SHOW) {
     throw HTTPError(400, 'Session is not in ANSWER_SHOW state');
   }
 
@@ -241,18 +238,15 @@ export function playerQuestionResults(playerId: number, questionPosition: number
 
   const question = session.metadata.questions[questionPosition - 1];
 
-  // calculate the average time taken to answer the question
   let totalTime = 0;
   question.playerAnswers.forEach((answer) => {
     totalTime += answer.answerTime;
   });
-  const averageAnswerTime = Math.round(totalTime / question.playerAnswers.length);
 
-  // calculate the percentage of players who answered the question correctly
+  const averageAnswerTime = Math.round(totalTime / question.playerAnswers.length) || 0;
   const totalCorrect = question.playerCorrectList.length;
   const totalPlayers = data.players.filter((p) => p.sessionId === player.sessionId).length;
   const percentCorrect = Math.round((totalCorrect / totalPlayers) * 100);
-
   const sortedCorrectList = [...question.playerCorrectList].map((player) => player.name).sort();
 
   return {
@@ -299,6 +293,13 @@ export function playerFinalResults(playerId: number): PlayerFinalResultsReturn {
       averageAnswerTime: averageAnswerTime,
       percentCorrect: percentCorrect,
     };
+  });
+
+  const players = data.players.filter((p) => p.sessionId === player.sessionId);
+  players.forEach((p) => {
+    const totalScore = getPlayerTotalScore(p.playerId, session.metadata.questions);
+    p.score = Math.round(totalScore);
+    setData(data);
   });
 
   // list of all users who played ranked in descending order by score

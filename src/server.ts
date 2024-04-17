@@ -10,7 +10,6 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 
-// import { getData, setData } from './dataStore';
 import { clear } from './other';
 import {
   adminAuthRegister,
@@ -51,7 +50,7 @@ import {
   playerStatus,
   playerQuestionInfo,
   playerQuestionAnswer,
-  // playerQuestionResults,
+  playerQuestionResults,
   // playerFinalResults,
   // playerChatList,
   playerChatSend
@@ -77,8 +76,6 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
-
-// Check if database file exists
 
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
@@ -479,13 +476,14 @@ app.put('/v1/player/:playerid/question/:questionposition/answer', (req: Request,
   res.json(response);
 });
 
-/* app.get('/v1/player/:playerid/question/:questionposition/results', (req: Request, res: Response) => {
+app.get('/v1/player/:playerid/question/:questionposition/results', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
   const questionPosition = parseInt(req.params.questionposition);
   const response = playerQuestionResults(playerId, questionPosition);
   res.json(response);
 });
 
+/*
 app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
   const playerId = parseInt(req.params.playerid);
   const response = playerFinalResults(playerId);
