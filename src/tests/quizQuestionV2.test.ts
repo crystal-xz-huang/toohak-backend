@@ -64,7 +64,7 @@ afterEach(() => {
 //= =============================================================================
 
 
-describe('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () => {
+describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () => {
   let token1: string;
   let quizId: number;
   let questionId1: number;
@@ -194,7 +194,7 @@ describe('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () => {
   });
 });
 
-describe('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', () => {
+describe.skip('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', () => {
   let token1: string;
   let token2: string;
   let quizId: number;

@@ -639,6 +639,11 @@ export function adminQuizQuestionRemove(token: string, quizId: number, questionI
     throw HTTPError(400, questionIdError.error);
   }
 
+  const sessions = data.quizSessions.filter((s) => s.metadata.quizId === quizId && s.state !== 'END');
+  if (sessions.length > 0) {
+    throw HTTPError(400, 'Any session for this quiz is not in END state');
+  }
+
   quiz.numQuestions = quiz.numQuestions - 1;
   quiz.timeLastEdited = getCurrentTime();
   quiz.duration = quiz.duration - question.duration;
@@ -679,7 +684,7 @@ export function adminQuizThumbnailUpdate(token: string, quizId: number, imgUrl: 
 
   const quiz = findQuizbyId(quizId, data);
   quiz.thumbnailUrl = imgUrl;
-  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+  quiz.timeLastEdited = getCurrentTime();
 
   return {};
 }
