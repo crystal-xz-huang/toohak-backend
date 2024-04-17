@@ -19,6 +19,7 @@ import {
   getCurrentTime,
   copyQuizToQuizMetadata,
   convertSessionMetadata,
+  getPlayerTotalScore,
 } from './functionHelpers';
 
 /**
@@ -103,36 +104,6 @@ export function adminQuizSessionStart(token: string, quizId: number, autoStartNu
     atQuestion: 0,
     metadata: copyQuizToQuizMetadata(quiz)
   });
-
-  // data.quizSessions.push({
-  //   sessionId: newSessionId,
-  //   autoStartNum: autoStartNum,
-  //   state: State.LOBBY,
-  //   atQuestion: 0,
-  //   metadata: {
-  //     quizId: quiz.quizId,
-  //     name: quiz.name,
-  //     timeCreated: quiz.timeCreated,
-  //     timeLastEdited: quiz.timeLastEdited,
-  //     description: quiz.description,
-  //     numQuestions: quiz.numQuestions,
-  //     questions: quiz.questions,
-  //     duration: quiz.duration,
-  //     thumbnailUrl: quiz.thumbnailUrl
-  //   }
-  // });
-
-  // data.results.push({
-  //   sessionId: newSessionId,
-  //   questionResults: quiz.questions.map((q) => {
-  //     return {
-  //       questionId: q.questionId,
-  //       correctAnswerIds: q.answers.filter((a) => a.correct).map((a) => a.answerId),
-  //       playerCorrectList: [],
-  //       playerAnswers: [],
-  //     };
-  //   }),
-  // });
 
   setData(data);
   return { sessionId: newSessionId };
@@ -324,15 +295,21 @@ export function adminQuizSessionResults(token: string, quizId: number, sessionId
     throw HTTPError(400, 'The session is not in the FINAL_RESULTS state');
   }
 
-  const usersRankedByScore = data.players
-    .filter((p) => p.sessionId === sessionId)
-    .sort((a, b) => (b.score || 0) - (a.score || 0))
-    .map((p) => {
-      return {
-        name: p.name,
-        score: Math.round(p.score || 0)
-      };
-    });
+  // calculate the total score for each player in the session
+  const players = data.players.filter((p) => p.sessionId === sessionId);
+  players.forEach((p) => {
+    const totalScore = getPlayerTotalScore(p.playerId, session.metadata.questions);
+    p.score = Math.round(totalScore);
+    setData(data);
+  });
+
+  // Rank users by score in descending order
+  const usersRankedByScore = players
+    .sort((a, b) => b.score - a.score)
+    .map((p) => ({
+      name: p.name,
+      score: p.score,
+    }));
 
   const questions = session.metadata.questions;
   const questionResults: PlayerQuestionResultsReturn[] = questions.map((q) => {
@@ -340,7 +317,7 @@ export function adminQuizSessionResults(token: string, quizId: number, sessionId
     const averageTime = Math.round(totalTime / q.playerAnswers.length);
     const totalCorrect = q.playerCorrectList.length;
     const totalPlayers = data.players.filter((p) => p.sessionId === sessionId).length;
-    const percentCorrect = totalPlayers === 0 ? 0 : Math.round((totalCorrect / totalPlayers) * 100);
+    const percentCorrect = Math.round((totalCorrect / totalPlayers) * 100);
     return {
       questionId: q.questionId,
       playersCorrectList: q.playerCorrectList.map((p) => p.name).sort(),

@@ -477,22 +477,21 @@ export function convertSessionMetadata(sessionQuizMetadata: SessionQuizMetadata)
   };
 }
 
-export function getQuestionAverageAnswerTime(question: SessionQuestionBody): number {
-  const totalTime = question.playerAnswers.reduce((acc, answer) => acc + answer.answerTime, 0);
-  // Return 0 if no player has answered the question
-  if (question.playerAnswers.length === 0) {
+// Calculate the score of a player for a question
+export function getPlayerScore(playerId: number, question: SessionQuestionBody): number {
+  const playerAnswer = question.playerAnswers.find(answer => answer.playerId === playerId);
+  if (!playerAnswer) {
     return 0;
-  } else {
-    return Math.round(totalTime / question.playerAnswers.length);
   }
+
+  question.playerCorrectList.sort((a, b) => b.submittedTime - a.submittedTime);
+  const N = question.playerCorrectList.findIndex((p) => p.playerId === playerId);
+  if (N === -1) {
+    return 0;
+  }
+  return question.points * (1 / (N + 1));
 }
 
-export function getQuestionPercentageCorrect(question: SessionQuestionBody): number {
-  const totalCorrect = question.playerCorrectList.length;
-  // Return 0 if no player has answered the question
-  if (question.playerAnswers.length === 0) {
-    return 0;
-  } else {
-    return Math.round((totalCorrect / question.playerAnswers.length) * 100);
-  }
+export function getPlayerTotalScore(playerId: number, questions: SessionQuestionBody[]): number {
+  return questions.reduce((acc, question) => acc + getPlayerScore(playerId, question), 0);
 }

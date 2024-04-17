@@ -26,6 +26,7 @@ import {
   QUIZ2,
   QUESTION_BODY1,
   QUESTION_BODY2,
+  QUESTION_BODY4,
   QUESTION_BODY5,
 } from '../testTypes';
 import {
@@ -338,98 +339,88 @@ describe.skip('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results',
     });
   });
 
-  describe.skip('Final results for session with 1 question with multiple-correct-answers', () => {
+  describe('Final results for session with 1 question and resubmissions', () => {
     beforeEach(() => {
-      questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY5).jsonBody.questionId as number;
+      questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY4).jsonBody.questionId as number;
       sessionId = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
       player1 = playerJoinV1(sessionId, 'Tommy').jsonBody.playerId as number;
       player2 = playerJoinV1(sessionId, 'Mason').jsonBody.playerId as number;
       player3 = playerJoinV1(sessionId, 'Alice').jsonBody.playerId as number;
+      player4 = playerJoinV1(sessionId, 'Katie').jsonBody.playerId as number;
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
-      quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
+      quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN); // move to question open
       const questionInfo = playerQuestionInfoV1(player1, 1).jsonBody as PlayerQuestionInfoReturn;
       answerIds = getQuestionAnswerIds(questionInfo);
     });
 
-    // answerIds[0] and answerIds[1] are correct
-    // duration = 6, points = 7
-    test('Resubmitting an already correct answer', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[0]]);
-      playerQuestionAnswerV1(player2, 1, [answerIds[1]]); // Mason: 7 * 1/1 = 7
-      playerQuestionAnswerV1(player1, 1, [answerIds[0]]); // Tommy: 7 * 1/2 = 3.5 = 4
-      playerQuestionAnswerV1(player3, 1, [answerIds[1]]); // Alice: 7 * 1/3 = 2.33 = 3
-      quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
-      quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
-      expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
-        usersRankedByScore: [
-          { name: 'Mason', score: 7 },
-          { name: 'Tommy', score: 4 },
-          { name: 'Alice', score: 3 },
-        ],
-        questionResults: [
-          {
-            questionId: questionId1,
-            playersCorrectList: sortStringArray(['Mason', 'Tommy', 'Alice']),
-            averageAnswerTime: expect.any(Number),
-            percentCorrect: 100,
-          },
-        ],
-      });
-    });
-
-    test('Resubmitting an already incorrect answer does not change the score', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[0]]); // Tommy: 7 * 1/1 = 7
-      playerQuestionAnswerV1(player2, 1, [answerIds[2]]); // Mason: 0
-      playerQuestionAnswerV1(player3, 1, [answerIds[1]]); // Alice: 7 * 1/2 = 3.5 = 4
-      playerQuestionAnswerV1(player2, 1, [answerIds[3]]); // Mason: 0
-      quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
-      quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
-      expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
-        usersRankedByScore: [
-          { name: 'Tommy', score: 7 },
-          { name: 'Alice', score: 4 },
-          { name: 'Mason', score: 0 },
-        ],
-        questionResults: [
-          {
-            questionId: questionId1,
-            playersCorrectList: sortStringArray(['Tommy', 'Alice']),
-            averageAnswerTime: expect.any(Number),
-            percentCorrect: 0,
-          },
-        ],
-      });
-    });
-
     test('Resubmitting a correct answer after initial incorrect answer', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[2]]); // Tommy: 0
-      playerQuestionAnswerV1(player2, 1, [answerIds[1]]); // Mason: 7 * 1/1 = 7
-      playerQuestionAnswerV1(player3, 1, [answerIds[2]]); // Alice: 0
-      playerQuestionAnswerV1(player1, 1, [answerIds[0]]); // Tommy: 7 * 1/2 = 3.5 = 4
+      playerQuestionAnswerV1(player1, 1, [answerIds[0]]);
+      playerQuestionAnswerV1(player2, 1, [answerIds[0]]);
+      playerQuestionAnswerV1(player3, 1, [answerIds[0]]);
+      playerQuestionAnswerV1(player4, 1, [answerIds[0]]); // Katie: 7/1
+      playerQuestionAnswerV1(player2, 1, [answerIds[0]]); // Mason: 7/2
+      playerQuestionAnswerV1(player3, 1, [answerIds[0]]); // Alice  7/3
+      playerQuestionAnswerV1(player1, 1, [answerIds[0]]); // Tommy  7/4
+
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
+
+      const ret1 = quizSessionResultsV1(token1, quizId1, sessionId).jsonBody;
+      expect(ret1.usersRankedByScore).toStrictEqual([
+        { name: 'Katie', score: 7 },
+        { name: 'Mason', score: Math.round(7 / 2) },
+        { name: 'Alice', score: Math.round(7 / 3) },
+        { name: 'Tommy', score: Math.round(7 / 4) },
+      ]);
+
+      expect(ret1.questionResults).toStrictEqual([
+        {
+          questionId: questionId1,
+          playersCorrectList: sortStringArray(['Tommy', 'Mason', 'Alice', 'Katie']),
+          averageAnswerTime: expect.any(Number),
+          percentCorrect: 100,
+        },
+      ]);
+    });
+
+    test('Resubmitting a correct answer after submitting an incorrect answer', () => {
+      playerQuestionAnswerV1(player1, 1, [answerIds[1]]);
+      playerQuestionAnswerV1(player2, 1, [answerIds[0]]);
+      playerQuestionAnswerV1(player3, 1, [answerIds[1]]);
+      playerQuestionAnswerV1(player4, 1, [answerIds[0]]); // Katie:
+      playerQuestionAnswerV1(player2, 1, [answerIds[0]]); // Mason:
+      playerQuestionAnswerV1(player1, 1, [answerIds[1]]);
+      playerQuestionAnswerV1(player3, 1, [answerIds[0]]); // Alice:
+
+      quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
+      quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
+
       expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
         usersRankedByScore: [
-          { name: 'Mason', score: 7 },
-          { name: 'Tommy', score: 4 },
-          { name: 'Alice', score: 0 },
+          { name: 'Katie', score: 7 },
+          { name: 'Mason', score: Math.round(7 / 2) },
+          { name: 'Alice', score: Math.round(7 / 3) },
+          { name: 'Tommy', score: 0 },
         ],
         questionResults: [
           {
             questionId: questionId1,
-            playersCorrectList: sortStringArray(['Mason', 'Tommy']),
+            playersCorrectList: sortStringArray(['Katie', 'Mason', 'Alice']),
             averageAnswerTime: expect.any(Number),
-            percentCorrect: Math.round(2 / 3 * 100),
+            percentCorrect: Math.round(3 / 4 * 100),
           },
         ],
       });
     });
 
     test('Resubmitting an incorrect answer after initial correct answer', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[0]]);
-      playerQuestionAnswerV1(player2, 1, [answerIds[1]]); // Mason: 7 * 1/1 = 7
+      playerQuestionAnswerV1(player1, 1, [answerIds[1]]);
+      playerQuestionAnswerV1(player2, 1, [answerIds[0]]); // Mason: 7 * 1/1 = 7
+      playerQuestionAnswerV1(player4, 1, [answerIds[0]]);
       playerQuestionAnswerV1(player3, 1, [answerIds[0]]); // Alice: 7 * 1/2 = 3.5 = 4
-      playerQuestionAnswerV1(player1, 1, [answerIds[2]]); // Tommy: 0
+      playerQuestionAnswerV1(player1, 1, [answerIds[1]]); // Tommy: 0
+      playerQuestionAnswerV1(player4, 1, [answerIds[1]]); // Katie: 0
+
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
       expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
@@ -437,94 +428,52 @@ describe.skip('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results',
           { name: 'Mason', score: 7 },
           { name: 'Alice', score: 4 },
           { name: 'Tommy', score: 0 },
+          { name: 'Katie', score: 0 },
         ],
         questionResults: [
           {
             questionId: questionId1,
             playersCorrectList: sortStringArray(['Mason', 'Alice']),
             averageAnswerTime: expect.any(Number),
-            percentCorrect: Math.round(2 / 3 * 100),
-          },
-        ],
-      });
-    });
-
-    test('Need to select all correct answers to be considered correct', () => {
-      playerQuestionAnswerV1(player1, 1, [answerIds[0], answerIds[1]]); // Tommy: 7 * 1/1 = 7
-      playerQuestionAnswerV1(player2, 1, [answerIds[1], answerIds[2]]); // Mason: 0
-      playerQuestionAnswerV1(player3, 1, [answerIds[2], answerIds[0]]); // Alice: 0
-      quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
-      quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
-      expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
-        usersRankedByScore: [
-          { name: 'Tommy', score: 7 },
-          { name: 'Mason', score: 0 },
-          { name: 'Alice', score: 0 },
-        ],
-        questionResults: [
-          {
-            questionId: questionId1,
-            playersCorrectList: ['Tommy'],
-            averageAnswerTime: expect.any(Number),
-            percentCorrect: Math.round(1 / 3 * 100),
+            percentCorrect: Math.round(2 / 4 * 100),
           },
         ],
       });
     });
   });
 
-  describe.skip('Final results for session with multiple questions', () => {
-    /**
-     * QUESTION 1
-     * answerIds[0] = correct, answerIds[1] = incorrect
-     * Duration = 10, points = 5
-     *
-     * QUESTION 2
-     * answerIds[0] - answerIds[1] are correct, answerIds[2] - answerIds[3] are incorrect
-     * Duration = 6, points = 7
-     */
+  describe('Final results for session with 2 questions', () => {
     let answerIds1: number[];
     let answerIds2: number[];
     beforeEach(() => {
-      questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY2).jsonBody.questionId as number;
-      questionId2 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY5).jsonBody.questionId as number;
+      questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY1).jsonBody.questionId as number;
+      questionId2 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY4).jsonBody.questionId as number;
       sessionId = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
       player1 = playerJoinV1(sessionId, 'Tommy').jsonBody.playerId as number;
       player2 = playerJoinV1(sessionId, 'Mason').jsonBody.playerId as number;
       player3 = playerJoinV1(sessionId, 'Alice').jsonBody.playerId as number;
-      player4 = playerJoinV1(sessionId, 'Katie').jsonBody.playerId as number;
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
-      quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
-      const questionInfo = playerQuestionInfoV1(player1, 1).jsonBody as PlayerQuestionInfoReturn;
-      answerIds1 = getQuestionAnswerIds(questionInfo);
+      quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN); // move to question open
+      const quizInfo = quizInfoV2(token1, quizId1).jsonBody as AdminQuizInfoReturn;
+      answerIds1 = getAnswerIds(quizInfo, questionId1);
+      answerIds2 = getAnswerIds(quizInfo, questionId2);
     });
 
     test('No resubmissions', () => {
       // QUESTION 1
-      playerQuestionAnswerV1(player1, 1, [answerIds1[1]]); // Tommy: 0
-      sleep(100);
-      playerQuestionAnswerV1(player2, 1, [answerIds1[0]]); // Mason: 5 * 1/1 = 5
-      sleep(100);
-      playerQuestionAnswerV1(player3, 1, [answerIds1[1], answerIds1[0]]); // Alice: 0
-      sleep(100);
-      playerQuestionAnswerV1(player4, 1, [answerIds1[0]]); // Katie: 5 * 1/2 = 2.5
+      playerQuestionAnswerV1(player1, 1, [answerIds1[1]]);
+      playerQuestionAnswerV1(player2, 1, [answerIds1[0]]); // Mason
+      playerQuestionAnswerV1(player3, 1, [answerIds1[0]]); // Alice
 
       // MOVE TO QUESTION 2
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
-      const questionInfo = playerQuestionInfoV1(player1, 2).jsonBody as PlayerQuestionInfoReturn;
-      answerIds2 = getQuestionAnswerIds(questionInfo);
-      expect(questionInfo.questionId).toStrictEqual(questionId2);
 
       // QUESTION 2
-      playerQuestionAnswerV1(player1, 2, [answerIds2[0], answerIds2[1]]); // Tommy: 7 * 1/1 = 7
-      sleep(100);
-      playerQuestionAnswerV1(player2, 2, [answerIds2[1]]); // Mason: 7 * 1/2 = 3.5
-      sleep(100);
-      playerQuestionAnswerV1(player3, 2, [answerIds2[1], answerIds2[0]]); // Alice: 7 * 1/3 = 2.33
-      sleep(100);
-      playerQuestionAnswerV1(player4, 2, [answerIds2[0], answerIds2[1]]); // Katie: 7 * 1/4 = 1.75
+      playerQuestionAnswerV1(player1, 2, [answerIds2[0]]); // Tommy
+      playerQuestionAnswerV1(player2, 2, [answerIds2[0]]); // Mason
+      playerQuestionAnswerV1(player3, 2, [answerIds2[0]]); // Alice
 
       // MOVE TO FINAL RESULTS
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
@@ -533,10 +482,9 @@ describe.skip('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results',
       // CHECK RESULTS
       const response = quizSessionResultsV1(token1, quizId1, sessionId).jsonBody;
       expect(response.usersRankedByScore).toStrictEqual([
-        { name: 'Mason', score: 9 },
-        { name: 'Tommy', score: 7 },
-        { name: 'Katie', score: 4 },
-        { name: 'Alice', score: 2 },
+        { name: 'Mason', score: 8 }, // 5 + 3.5 = 8.5 = 9
+        { name: 'Tommy', score: 7 }, // 7
+        { name: 'Alice', score: 4 }, // 2.5 + 2.33 = 4.83 = 5
       ]);
 
       expect(response.questionResults).toStrictEqual([
@@ -544,13 +492,13 @@ describe.skip('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results',
           questionResults: [
             {
               questionId: questionId1,
-              playersCorrectList: sortStringArray(['Mason', 'Katie']),
+              playersCorrectList: sortStringArray(['Mason', 'Alice']),
               averageAnswerTime: expect.any(Number),
-              percentCorrect: 50,
+              percentCorrect: Math.round(2 / 3 * 100),
             },
             {
               questionId: questionId2,
-              playersCorrectList: sortStringArray(['Tommy', 'Mason', 'Alice', 'Katie']),
+              playersCorrectList: sortStringArray(['Tommy', 'Mason', 'Alice']),
               averageAnswerTime: expect.any(Number),
               percentCorrect: 100,
             },
@@ -562,15 +510,8 @@ describe.skip('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results',
     test('With resubmissions', () => {
       // QUESTION 1 NEW SUBMISSIONS
       playerQuestionAnswerV1(player1, 1, [answerIds1[1]]);
-      playerQuestionAnswerV1(player2, 1, [answerIds1[0], answerIds1[1]]);
+      playerQuestionAnswerV1(player2, 1, [answerIds1[0]]);
       playerQuestionAnswerV1(player3, 1, [answerIds1[0]]);
-      playerQuestionAnswerV1(player4, 1, [answerIds1[0]]); // Katie: 5 * 1/1 = 5
-
-      // QUESTION 1 RESUBMISSIONS
-      playerQuestionAnswerV1(player1, 1, [answerIds1[0]]); // Tommy: 5 * 1/2 = 2.5
-      playerQuestionAnswerV1(player2, 1, [answerIds1[1]]); // Mason: 0
-      playerQuestionAnswerV1(player3, 1, [answerIds1[0]]); // Alice: 5 * 1/3 = 1.67
-
       // MOVE TO QUESTION 2
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
@@ -579,31 +520,30 @@ describe.skip('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results',
       const questionInfo = playerQuestionInfoV1(player1, 2).jsonBody as PlayerQuestionInfoReturn;
       answerIds2 = getQuestionAnswerIds(questionInfo);
       expect(questionInfo.questionId).toStrictEqual(questionId2);
+      // QUESTION 1 RESUBMISSIONS
+      playerQuestionAnswerV1(player1, 1, [answerIds1[0]]); // Tommy: 5
+      playerQuestionAnswerV1(player2, 1, [answerIds1[1]]); // Mason: 0
+      playerQuestionAnswerV1(player3, 1, [answerIds1[0]]); // Alice: 5/2
 
       // QUESTION 2 NEW SUBMISSIONS
-      playerQuestionAnswerV1(player1, 2, [answerIds2[0], answerIds2[1]]);
-      playerQuestionAnswerV1(player2, 2, [answerIds2[1]]); // Mason: 7 * 1/1 = 7
-      playerQuestionAnswerV1(player3, 2, [answerIds2[1], answerIds2[0]]);
-      playerQuestionAnswerV1(player4, 2, [answerIds2[1], answerIds2[0]]); // Katie: 7 * 1/2 = 3.5
-
+      playerQuestionAnswerV1(player1, 2, [answerIds2[1]]);
+      playerQuestionAnswerV1(player2, 2, [answerIds2[0]]); // Mason: 7
+      playerQuestionAnswerV1(player3, 2, [answerIds2[1]]);
       // QUESTION 2 RESUBMISSIONS
       playerQuestionAnswerV1(player1, 2, [answerIds2[0]]);
-      playerQuestionAnswerV1(player3, 2, [answerIds2[2], answerIds2[0]]);
-      playerQuestionAnswerV1(player1, 2, [answerIds2[3]]);
-      playerQuestionAnswerV1(player3, 2, [answerIds2[1]]); // Alice: 7 * 1/3 = 2.33
-      playerQuestionAnswerV1(player1, 2, [answerIds2[1], answerIds[2]]); // Tommy: 7 * 1/4 = 1.75
-
+      playerQuestionAnswerV1(player3, 2, [answerIds2[1]]);
+      playerQuestionAnswerV1(player1, 2, [answerIds2[1]]);
+      playerQuestionAnswerV1(player3, 2, [answerIds2[0]]); // Alice: 7/2
+      playerQuestionAnswerV1(player1, 2, [answerIds2[0]]); // Tommy: 7/3
       // MOVE TO FINAL RESULTS
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
       quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
-
       // CHECK RESULTS
       const response = quizSessionResultsV1(token1, quizId1, sessionId).jsonBody;
       expect(response.usersRankedByScore).toStrictEqual([
-        { name: 'Katie', score: 9 },
         { name: 'Mason', score: 7 },
-        { name: 'Alice', score: 4 },
-        { name: 'Tommy', score: 4 },
+        { name: 'Tommy', score: 7 },
+        { name: 'Alice', score: 6 },
       ]);
 
       expect(response.questionResults).toStrictEqual([
@@ -611,13 +551,13 @@ describe.skip('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results',
           questionResults: [
             {
               questionId: questionId1,
-              playersCorrectList: sortStringArray(['Katie', 'Alice', 'Tommy']),
+              playersCorrectList: sortStringArray(['Tommy', 'Alice']),
               averageAnswerTime: expect.any(Number),
-              percentCorrect: 75,
+              percentCorrect: Math.round(2 / 3 * 100),
             },
             {
               questionId: questionId2,
-              playersCorrectList: ['Alice', 'Mason', 'Katie', 'Tommy'],
+              playersCorrectList: sortStringArray(['Mason', 'Tommy', 'Alice']),
               averageAnswerTime: expect.any(Number),
               percentCorrect: 100,
             },
@@ -649,6 +589,38 @@ describe.skip('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results',
     test('Token does not refer to a valid logged in user session', () => {
       authLogoutV1(token1);
       expect(quizSessionResultsV1(token1, quizId1, sessionId)).toStrictEqual(UNAUTHORISED_ERROR);
+    });
+  });
+
+  test('Need to select all correct answers to be considered correct', () => {
+    questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY5).jsonBody.questionId as number;
+    sessionId = quizSessionStartV1(token1, quizId1, 0).jsonBody.sessionId as number;
+    player1 = playerJoinV1(sessionId, 'Tommy').jsonBody.playerId as number;
+    player2 = playerJoinV1(sessionId, 'Mason').jsonBody.playerId as number;
+    player3 = playerJoinV1(sessionId, 'Alice').jsonBody.playerId as number;
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.NEXT_QUESTION);
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.SKIP_COUNTDOWN);
+    const questionInfo = playerQuestionInfoV1(player1, 1).jsonBody as PlayerQuestionInfoReturn;
+    answerIds = getQuestionAnswerIds(questionInfo);
+    playerQuestionAnswerV1(player1, 1, [answerIds[0], answerIds[1]]); // Tommy: 7 * 1/1 = 7
+    playerQuestionAnswerV1(player2, 1, [answerIds[1], answerIds[2]]); // Mason: 0
+    playerQuestionAnswerV1(player3, 1, [answerIds[2], answerIds[0]]); // Alice: 0
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_ANSWER);
+    quizSessionUpdateV1(token1, quizId1, sessionId, Action.GO_TO_FINAL_RESULTS);
+    expect(quizSessionResultsV1(token1, quizId1, sessionId).jsonBody).toStrictEqual({
+      usersRankedByScore: [
+        { name: 'Tommy', score: 7 },
+        { name: 'Mason', score: 0 },
+        { name: 'Alice', score: 0 },
+      ],
+      questionResults: [
+        {
+          questionId: questionId1,
+          playersCorrectList: ['Tommy'],
+          averageAnswerTime: expect.any(Number),
+          percentCorrect: Math.round(1 / 3 * 100),
+        },
+      ],
     });
   });
 

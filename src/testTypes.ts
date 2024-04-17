@@ -372,8 +372,8 @@ export const QUESTION_BODY3 = {
 
 export const QUESTION_BODY4 = {
   question: 'What is the capital of Japan?',
-  duration: 1,
-  points: 5,
+  duration: 4,
+  points: 7,
   answers: [
     { answer: 'Tokyo', correct: true },
     { answer: 'Osaka', correct: false },
