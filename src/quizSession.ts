@@ -19,6 +19,7 @@ import {
   getCurrentTime,
   copyQuizToQuizMetadata,
   convertSessionMetadata,
+  getPlayerTotalScore,
 } from './functionHelpers';
 
 /**
@@ -103,6 +104,7 @@ export function adminQuizSessionStart(token: string, quizId: number, autoStartNu
     atQuestion: 0,
     metadata: copyQuizToQuizMetadata(quiz)
   });
+
   setData(data);
   return { sessionId: newSessionId };
 }
@@ -142,9 +144,7 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
   const questions = session.metadata.questions;
   const questionCount = questions.length;
 
-  // If the quiz is in either LOBBY, FINAL_RESULTS, or END state then at Question should be 0
   if (action === Action.NEXT_QUESTION) {
-    // only valid in LOBBY, QUESTION_CLOSE and ANSWER_SHOW states
     if (![State.LOBBY, State.QUESTION_CLOSE, State.ANSWER_SHOW].includes(session.state as State)) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
@@ -159,28 +159,23 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
     session.state = State.QUESTION_COUNTDOWN;
     const question = questions[session.atQuestion - 1];
     setData(data);
-    // set the countdown timer to open the question after 3 seconds
     setTimer(session.sessionId, TimerState.questionCountDown, 3, () => {
       session.state = State.QUESTION_OPEN;
       question.timeOpen = getCurrentTime();
       setData(data);
-      // set the duration timer to close the question after the question duration
       setTimer(session.sessionId, TimerState.questionDuration, question.duration, () => {
         session.state = State.QUESTION_CLOSE;
         setData(data);
       });
     });
   } else if (action === Action.SKIP_COUNTDOWN) {
-    // only valid in QUESTION_COUNTDOWN
     if (session.state !== State.QUESTION_COUNTDOWN) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
 
-    // clear the countdown timer and open the question immediately
     clearTimer(session.sessionId, TimerState.questionCountDown);
     clearTimer(session.sessionId, TimerState.questionDuration);
 
-    // set the duration timer to close the question after the question duration
     const question = questions[session.atQuestion - 1];
     session.state = State.QUESTION_OPEN;
     question.timeOpen = getCurrentTime();
@@ -189,27 +184,22 @@ export function adminQuizSessionUpdate(token: string, quizId: number, sessionId:
       setData(data);
     });
   } else if (action === Action.GO_TO_ANSWER) {
-    // only valid in QUESTION_OPEN and QUESTION_CLOSE
     if (![State.QUESTION_OPEN, State.QUESTION_CLOSE].includes(session.state as State)) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
 
-    // clear the duration timer and show the answer immediately
     clearTimer(session.sessionId, TimerState.questionDuration);
     session.state = State.ANSWER_SHOW;
   } else if (action === Action.GO_TO_FINAL_RESULTS) {
-    // only valid in ANSWER_SHOW and QUESTION_CLOSE
     if (![State.ANSWER_SHOW, State.QUESTION_CLOSE].includes(session.state)) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
     session.state = State.FINAL_RESULTS;
     session.atQuestion = 0;
   } else if (action === Action.END) {
-    // valid in all states except END itself
     if (session.state === State.END) {
       throw HTTPError(400, `Action ${action} cannot be applied in the current ${session.state} state`);
     }
-    // clear all timers and end the session
     clearTimer(session.sessionId, TimerState.questionCountDown);
     clearTimer(session.sessionId, TimerState.questionDuration);
     session.atQuestion = 0;
@@ -288,15 +278,23 @@ export function adminQuizSessionResults(token: string, quizId: number, sessionId
     throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
   }
 
-  // check if the session is in the FINAL_RESULTS state
   if (session.state !== State.FINAL_RESULTS) {
     throw HTTPError(400, 'The session is not in the FINAL_RESULTS state');
   }
 
-  const usersRankedByScore = data.players
-    .filter((p) => p.sessionId === sessionId)
+  const players = data.players.filter((p) => p.sessionId === sessionId);
+  players.forEach((p) => {
+    const totalScore = getPlayerTotalScore(p.playerId, session.metadata.questions);
+    p.score = Math.round(totalScore);
+    setData(data);
+  });
+
+  const usersRankedByScore = players
     .sort((a, b) => b.score - a.score)
-    .map((p) => ({ name: p.name, score: p.score }));
+    .map((p) => ({
+      name: p.name,
+      score: p.score,
+    }));
 
   const questions = session.metadata.questions;
   const questionResults: PlayerQuestionResultsReturn[] = questions.map((q) => {
@@ -304,11 +302,11 @@ export function adminQuizSessionResults(token: string, quizId: number, sessionId
     const averageTime = Math.round(totalTime / q.playerAnswers.length);
     const totalCorrect = q.playerCorrectList.length;
     const totalPlayers = data.players.filter((p) => p.sessionId === sessionId).length;
-    const percentCorrect = totalPlayers === 0 ? 0 : Math.round((totalCorrect / totalPlayers) * 100);
+    const percentCorrect = Math.round((totalCorrect / totalPlayers) * 100);
     return {
       questionId: q.questionId,
-      playersCorrectList: q.playerCorrectList,
-      averageAnswerTime: averageTime,
+      playersCorrectList: q.playerCorrectList.map((p) => p.name).sort(),
+      averageAnswerTime: averageTime || 0,
       percentCorrect: percentCorrect
     };
   });

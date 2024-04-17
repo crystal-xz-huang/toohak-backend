@@ -1,7 +1,6 @@
 // ====================================================================
 // DATA STORE
 // ====================================================================
-
 export interface Data {
   users: User[];
   quizzes: Quiz[];
@@ -10,9 +9,8 @@ export interface Data {
   players: Player[];
   messages: Message[];
 }
-
 // ====================================================================
-// USER TYPES
+// USER INTERFACES
 // ====================================================================
 export interface User {
   authUserId: number;
@@ -30,11 +28,13 @@ export interface UserSession {
   token: string;
   valid: boolean;
 }
-
+// ====================================================================
+// QUIZ INTERFACES
+// ====================================================================
 export interface Quiz {
   quizId: number;
   name: string;
-  authUserId: number; // the id of the user who created the quiz
+  authUserId: number;
   description: string;
   timeCreated: number;
   timeLastEdited: number;
@@ -42,7 +42,7 @@ export interface Quiz {
   questions: QuestionBody[];
   duration: number;
   thumbnailUrl: string;
-  valid: boolean; // false if the quiz has been moved to the trash
+  valid: boolean;
 }
 
 interface QuestionBody {
@@ -63,10 +63,10 @@ interface AnswerBody {
 
 export interface QuizSession {
   sessionId: number;
-  autoStartNum: number; // number of players needed to auto start the quiz
-  state: State, // the current state of the quiz session
-  atQuestion: number; // the question the quiz session is currently at
-  metadata: QuizMetadata; // the metadata of the quiz
+  autoStartNum: number;
+  state: State,
+  atQuestion: number;
+  metadata: QuizMetadata;
 }
 
 export interface QuizMetadata {
@@ -88,17 +88,25 @@ export interface SessionQuestionBody {
   thumbnailUrl: string;
   points: number;
   answers: AnswerBody[];
-  timeOpen: number | null; // the time the question was opened
-  playerCorrectList: string[]; // the list of players who answered the question correctly
-  playerAnswers: AnswerSubmission[]; // the answers submitted by the players
+  timeOpen: number;
+  playerCorrectList: PlayerInfo[];
+  playerAnswers: PlayerAnswer[];
 }
 
-export interface AnswerSubmission {
+export interface PlayerAnswer {
   playerId: number;
-  answerTime: number; // average time taken to answer the question
-  answers: number[]; // the answer ids submitted by the player
+  answerTime: number;
 }
 
+export interface PlayerInfo {
+  playerId: number;
+  name: string;
+  submittedTime: number;
+}
+
+// ====================================================================
+// PLAYER INTERFACES
+// ====================================================================
 interface Player {
   playerId: number;
   sessionId: number;
@@ -114,13 +122,13 @@ interface Message {
 }
 
 export enum State {
-  LOBBY = 'LOBBY', // players can join
-  QUESTION_COUNTDOWN = 'QUESTION_COUNTDOWN', // countdown to question open
-  QUESTION_OPEN = 'QUESTION_OPEN', // question is open for viewing and answering
-  QUESTION_CLOSE = 'QUESTION_CLOSE', // question is closed for answering (still open for viewing)
-  ANSWER_SHOW = 'ANSWER_SHOW', // correct answers are shown
-  FINAL_RESULTS = 'FINAL_RESULTS', // final results are shown
-  END = 'END', // quiz session has ended (inactive state)
+  LOBBY = 'LOBBY',
+  QUESTION_COUNTDOWN = 'QUESTION_COUNTDOWN',
+  QUESTION_OPEN = 'QUESTION_OPEN',
+  QUESTION_CLOSE = 'QUESTION_CLOSE',
+  ANSWER_SHOW = 'ANSWER_SHOW',
+  FINAL_RESULTS = 'FINAL_RESULTS',
+  END = 'END',
 }
 
 export enum Action {
@@ -130,26 +138,3 @@ export enum Action {
   GO_TO_FINAL_RESULTS = 'GO_TO_FINAL_RESULTS',
   END = 'END',
 }
-
-// ====================================================================
-// CONSTANTS
-// ====================================================================
-
-// USERS
-export const MIN_USER_NAME_LENGTH = 2;
-export const MAX_USER_NAME_LENGTH = 20;
-export const USERNAME_REGEX = /^[a-zA-Z\s'-]+$/;
-
-// PASSWORDS
-export const MIN_PASSWORD_LENGTH = 8;
-export const PASSWORD_REGEX = /^(?=.*[0-9])(?=.*[a-zA-Z]).*$/;
-
-// QUIZZES
-export const MIN_QUIZ_NAME_LENGTH = 3;
-export const MAX_QUIZ_NAME_LENGTH = 30;
-export const QUIZNAME_REGEX = /^[a-zA-Z0-9\s]+$/;
-export const MAX_QUIZ_DESCRIPTION_LENGTH = 100;
-
-// URLS
-export const URL_PROTOCOL = /^(http|https):\/\//;
-export const URL_FILETYPE = /\.(jpg|jpeg|png)$/i;

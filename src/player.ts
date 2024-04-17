@@ -2,7 +2,6 @@ import { getData, setData } from './dataStore';
 import HTTPError from 'http-errors';
 import {
   State,
-  // Action,
 } from './dataTypes';
 import {
   EmptyObject,
@@ -20,6 +19,7 @@ import {
   generateRandomStringPlayer,
   isPlayerNameUsed,
   getCurrentTime,
+  getPlayerTotalScore,
 } from './functionHelpers';
 
 /**
@@ -146,9 +146,7 @@ export function playerQuestionAnswer(playerId: number, questionPosition: number,
   }
 
   const session = data.quizSessions.find((s) => s.sessionId === player.sessionId);
-  if (!session) {
-    throw HTTPError(400, 'Session Id does not refer to a valid session ');
-  } else if (session.state !== State.QUESTION_OPEN) {
+  if (!session || session.state !== State.QUESTION_OPEN) {
     throw HTTPError(400, 'Session is not in QUESTION_OPEN state');
   }
 
@@ -158,10 +156,10 @@ export function playerQuestionAnswer(playerId: number, questionPosition: number,
     throw HTTPError(400, 'Session is not yet up to this question');
   }
 
-  // Check if the answerIds submitted are valid
+  // Check if the answerIds submitted are valid for this question
   const question = session.metadata.questions[questionPosition - 1];
-  const validAnswers = question.answers.map((answer) => answer.answerId);
-  if (answerIds.some((answerId) => !validAnswers.includes(answerId))) {
+  const validAnswers = question.answers.map((a) => a.answerId);
+  if (!answerIds.every((answerId) => validAnswers.includes(answerId))) {
     throw HTTPError(400, 'Answer ID is not valid for this question');
   }
 
@@ -175,33 +173,36 @@ export function playerQuestionAnswer(playerId: number, questionPosition: number,
     throw HTTPError(400, 'At least one answer must be submitted');
   }
 
-  const timeTaken = getCurrentTime() - question.timeOpen;
-  // update the player's submissions
-  const correctAnswers = question.answers.filter((answer) => answer.correct).map((answer) => answer.answerId).sort();
-  const playerAnswers = question.playerAnswers.find((answer) => answer.playerId === playerId);
-  if (playerAnswers) {
-    playerAnswers.answerTime = timeTaken;
-    playerAnswers.answers = answerIds;
+  const timeOpen = question.timeOpen || 0;
+  const timeTaken = getCurrentTime() - timeOpen;
+
+  const correctAnswers = question.answers.filter((answer) => answer.correct).map((answer) => answer.answerId);
+  // check if all the answerIds submitted are correct
+  const correct = answerIds.length === correctAnswers.length && answerIds.every((answerId) => correctAnswers.includes(answerId));
+
+  if (correct) {
+    const alreadyCorrect = question.playerCorrectList.find((p) => p.name === player.name);
+    if (!alreadyCorrect) {
+      question.playerCorrectList.push({
+        playerId: playerId,
+        name: player.name,
+        submittedTime: getCurrentTime(),
+      });
+    } else {
+      alreadyCorrect.submittedTime = getCurrentTime();
+    }
+  } else {
+    question.playerCorrectList = question.playerCorrectList.filter((p) => p.name !== player.name);
+  }
+
+  const existingSubmission = question.playerAnswers.find((a) => a.playerId === playerId);
+  if (existingSubmission) {
+    existingSubmission.answerTime = timeTaken;
   } else {
     question.playerAnswers.push({
       playerId: playerId,
       answerTime: timeTaken,
-      answers: answerIds,
     });
-  }
-
-  const questionPoints = question.points;
-  const correct = answerIds.sort().every((answerId, index) => answerId === correctAnswers[index]);
-  if (correct && !question.playerCorrectList.includes(player.name)) {
-    // add the player to the correct list if they answered correctly
-    question.playerCorrectList.push(player.name);
-    const N = question.playerCorrectList.indexOf(player.name);
-    player.score += questionPoints * (1 / (N + 1));
-  } else if (!correct && question.playerCorrectList.includes(player.name)) {
-    // remove the player from the correct list if they answered incorrectly
-    const N = question.playerCorrectList.indexOf(player.name);
-    player.score -= questionPoints * (1 / (N + 1));
-    question.playerCorrectList = question.playerCorrectList.filter((name) => name !== player.name);
   }
 
   setData(data);
@@ -224,9 +225,7 @@ export function playerQuestionResults(playerId: number, questionPosition: number
   }
 
   const session = data.quizSessions.find((s) => s.sessionId === player.sessionId);
-  if (!session) {
-    throw HTTPError(400, 'Session Id does not refer to a valid session ');
-  } else if (session.state !== State.ANSWER_SHOW) {
+  if (!session || session.state !== State.ANSWER_SHOW) {
     throw HTTPError(400, 'Session is not in ANSWER_SHOW state');
   }
 
@@ -238,18 +237,20 @@ export function playerQuestionResults(playerId: number, questionPosition: number
 
   const question = session.metadata.questions[questionPosition - 1];
 
-  // calculate the average time taken to answer the question
-  const totalTime = question.playerAnswers.reduce((total, answer) => total + answer.answerTime, 0);
-  const averageAnswerTime = Math.round(totalTime / question.playerAnswers.length);
+  let totalTime = 0;
+  question.playerAnswers.forEach((answer) => {
+    totalTime += answer.answerTime;
+  });
 
-  // calculate the percentage of players who answered the question correctly
+  const averageAnswerTime = Math.round(totalTime / question.playerAnswers.length) || 0;
   const totalCorrect = question.playerCorrectList.length;
   const totalPlayers = data.players.filter((p) => p.sessionId === player.sessionId).length;
   const percentCorrect = Math.round((totalCorrect / totalPlayers) * 100);
+  const sortedCorrectList = [...question.playerCorrectList].map((player) => player.name).sort();
 
   return {
     questionId: question.questionId,
-    playersCorrectList: question.playerCorrectList,
+    playersCorrectList: sortedCorrectList,
     averageAnswerTime: averageAnswerTime,
     percentCorrect: percentCorrect,
   };
@@ -263,49 +264,45 @@ export function playerQuestionResults(playerId: number, questionPosition: number
  */
 export function playerFinalResults(playerId: number): PlayerFinalResultsReturn {
   const data = getData();
-  // if playerId does not exist, throw an error
   const player = data.players.find((p) => p.playerId === playerId);
   if (!player) {
     throw HTTPError(400, 'Player Id does not exists');
   }
-
-  // if session does not exist or is not in FINAL_RESULTS state, throw an error
   const session = data.quizSessions.find((s) => s.sessionId === player.sessionId);
-  if (!session) {
-    throw HTTPError(400, 'Session Id does not refer to a valid session ');
-  } else if (session.state !== State.FINAL_RESULTS) {
+  if (!session || session.state !== State.FINAL_RESULTS) {
     throw HTTPError(400, 'Session is not in FINAL_RESULTS state');
   }
 
+  const players = data.players.filter((p) => p.sessionId === player.sessionId);
+  players.forEach((p) => {
+    const totalScore = getPlayerTotalScore(p.playerId, session.metadata.questions);
+    p.score = Math.round(totalScore);
+    setData(data);
+  });
+
+  const usersRankedByScore = players
+    .sort((a, b) => b.score - a.score)
+    .map((p) => ({
+      name: p.name,
+      score: p.score,
+    }));
+
   const questions = session.metadata.questions;
-  const questionResults: PlayerQuestionResultsReturn[] = questions.map((question) => {
-    const totalTime = question.playerAnswers.reduce((total, answer) => total + answer.answerTime, 0);
-    const averageAnswerTime = Math.round(totalTime / question.playerAnswers.length);
-    const totalCorrect = question.playerCorrectList.length;
+  const questionResults: PlayerQuestionResultsReturn[] = questions.map((q) => {
+    const totalTime = q.playerAnswers.reduce((acc, a) => acc + a.answerTime, 0);
+    const averageTime = Math.round(totalTime / q.playerAnswers.length);
+    const totalCorrect = q.playerCorrectList.length;
     const totalPlayers = data.players.filter((p) => p.sessionId === player.sessionId).length;
-    const percentCorrect = totalPlayers === 0 ? 0 : Math.round((totalCorrect / totalPlayers) * 100);
+    const percentCorrect = Math.round((totalCorrect / totalPlayers) * 100);
     return {
-      questionId: question.questionId,
-      playersCorrectList: question.playerCorrectList,
-      averageAnswerTime: averageAnswerTime,
-      percentCorrect: percentCorrect,
+      questionId: q.questionId,
+      playersCorrectList: q.playerCorrectList.map((p) => p.name).sort(),
+      averageAnswerTime: averageTime || 0,
+      percentCorrect: percentCorrect
     };
   });
 
-  const usersRankedByScore = data.players
-    .filter((p) => p.sessionId === player.sessionId)
-    .sort((a, b) => b.score - a.score)
-    .map((p) => {
-      return {
-        name: p.name,
-        score: p.score,
-      };
-    });
-
-  return {
-    usersRankedByScore: usersRankedByScore,
-    questionResults: questionResults,
-  };
+  return { usersRankedByScore, questionResults };
 }
 
 /**

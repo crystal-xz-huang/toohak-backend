@@ -1,6 +1,6 @@
 // Module to manage timers for quiz sessions
 
-const activeTimers = new Map(); // Map<key, timer>
+const activeTimers = new Map();
 
 export enum TimerState {
   questionCountDown = 'QUESTION_COUNTDOWN',
@@ -42,18 +42,3 @@ export function clearAllTimers() {
   }
   activeTimers.clear();
 }
-
-// // Store the timers in an array
-// let timers: ReturnType<typeof setTimeout>[] = [];
-
-// // Set a timer and store it in our timers array
-// const timer = setTimeout(() => console.log("Timer done"), 1000);
-// timers.push(timer);
-
-// // Clear function example
-// function clear() {
-//   for (const timer of timers) {
-//     clearTimeout(timer);
-//   }
-//   // Also clear the data store
-// }

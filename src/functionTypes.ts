@@ -1,4 +1,27 @@
 // ====================================================================
+//  CONSTANTS
+// ====================================================================
+
+// USERS
+export const MIN_USER_NAME_LENGTH = 2;
+export const MAX_USER_NAME_LENGTH = 20;
+export const USERNAME_REGEX = /^[a-zA-Z\s'-]+$/;
+
+// PASSWORDS
+export const MIN_PASSWORD_LENGTH = 8;
+export const PASSWORD_REGEX = /^(?=.*[0-9])(?=.*[a-zA-Z]).*$/;
+
+// QUIZZES
+export const MIN_QUIZ_NAME_LENGTH = 3;
+export const MAX_QUIZ_NAME_LENGTH = 30;
+export const QUIZNAME_REGEX = /^[a-zA-Z0-9\s]+$/;
+export const MAX_QUIZ_DESCRIPTION_LENGTH = 100;
+
+// URLS
+export const URL_PROTOCOL = /^(http|https):\/\//;
+export const URL_FILETYPE = /\.(jpg|jpeg|png)$/i;
+
+// ====================================================================
 //  GLOBALS
 // ====================================================================
 export type EmptyObject = Record<string, never>;
@@ -31,7 +54,6 @@ export type AdminUserDetailsReturn = {
 // ====================================================================
 // ADMIN QUIZ
 // ====================================================================
-
 type QuizDetails = {
   quizId: number;
   name: string;
@@ -160,7 +182,7 @@ export type PlayerQuestionInfoReturn = {
 
 export type PlayerQuestionResultsReturn = {
   questionId: number;
-  playersCorrectList: string[]; // array of strings in ascending order
+  playersCorrectList: string[];
   averageAnswerTime: number;
   percentCorrect: number;
 }
