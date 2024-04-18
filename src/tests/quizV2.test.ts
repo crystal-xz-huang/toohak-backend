@@ -584,7 +584,6 @@ describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
 
   describe('Bad request error if any session for this quiz is not in END state', () => {
     let sessionId1: number, sessionId2: number;
-    let questionId: number;
     beforeEach(() => {
       quizQuestionCreateV2(tokenUser1, quizId1, QUESTION_BODY1);
       sessionId1 = quizSessionStartV1(tokenUser1, quizId1, 0).jsonBody.sessionId as number;
@@ -594,7 +593,6 @@ describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
     test('One session is in LOBBY state`', () => {
       expect(quizTransferV2(tokenUser1, quizId1, USER2.email)).toStrictEqual(BAD_REQUEST_ERROR);
     });
-
 
     test('All sessions are in END state', () => {
       quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.END);
@@ -698,5 +696,4 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
       expect(quizThumbnailUpdateV1(token1, quizId1, imgUrl)).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
-
 });
