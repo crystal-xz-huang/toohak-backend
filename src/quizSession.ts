@@ -2,6 +2,8 @@ import HTTPError from 'http-errors';
 import { getData, setData } from './dataStore';
 import { clearTimer, setTimer, TimerState } from './timerStore';
 import { Action, State } from './dataTypes';
+import fs from 'fs';
+import path from 'path';
 import {
   EmptyObject,
   AdminQuizSessionListReturn,
@@ -20,6 +22,7 @@ import {
   copyQuizToQuizMetadata,
   convertSessionMetadata,
   getPlayerTotalScore,
+  generateCSVContent,
 } from './functionHelpers';
 
 /**
@@ -323,5 +326,43 @@ export function adminQuizSessionResults(token: string, quizId: number, sessionId
  * @returns { AdminQuizSessionResultsCSVReturn } - an object containing the URL to the CSV file
  */
 export function adminQuizSessionResultsCSV(token: string, quizId: number, sessionId: number): AdminQuizSessionResultsCSVReturn {
-  return { url: 'http://google.com/some/image/path.csv' };
+  const data = getData();
+
+  // Check token validity
+  const tokenError = isValidToken(token, data);
+  if (tokenError) {
+    throw HTTPError(401, tokenError);
+  }
+
+  // Check if user has access to the quiz
+  const user = findUserbyToken(token, data);
+  const userError = isValidQuizIdForUser(user.authUserId, quizId, data);
+  if (userError) {
+    throw HTTPError(403, userError);
+  }
+
+  // Find the session and validate its state
+  const session = data.quizSessions.find((s) => s.sessionId === sessionId && s.metadata.quizId === quizId);
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+  if (session.state !== State.FINAL_RESULTS) {
+    throw HTTPError(400, 'The session is not in the FINAL_RESULTS state');
+  }
+
+  // Filter players and get questions
+  const players = data.players.filter((p) => p.sessionId === sessionId);
+  const questions = session.metadata.questions;
+
+  // Generate CSV content
+  const csvContent = generateCSVContent(players, questions);
+
+  // Write CSV content into a file
+  const fileName = 'quizSessionResults.csv';
+  const filePath = path.join(__dirname, './', fileName);
+  fs.writeFileSync(filePath, csvContent);
+
+  // Return the URL of the generated CSV file
+  const fileUrl = `https://example.com/${fileName}`;
+  return { url: fileUrl };
 }

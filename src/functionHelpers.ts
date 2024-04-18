@@ -6,6 +6,7 @@ import {
   Data,
   User,
   Quiz,
+  Player,
   SessionQuestionBody,
   QuizMetadata as SessionQuizMetadata,
 } from './dataTypes';
@@ -466,4 +467,52 @@ function getPlayerScore(playerId: number, question: SessionQuestionBody): number
     return 0;
   }
   return question.points * (1 / (N + 1));
+}
+
+export function generateCSVContent(players: Player[], questions: SessionQuestionBody[]): string {
+  let csvContent = 'Player';
+  questions.forEach((q, index) => {
+    csvContent += `,question${index + 1}score,question${index + 1}rank`;
+  });
+  csvContent += '\n';
+
+  // Sort players alphabetically
+  const sortedPlayers = players.sort((a, b) => a.name.localeCompare(b.name));
+
+  // Generate CSV content for each player
+  sortedPlayers.forEach((player) => {
+    let line = `${player.name}`;
+    questions.forEach((q) => {
+      const playerAnswer = q.playerCorrectList.find((p) => p.playerId === player.playerId);
+      const score = playerAnswer ? 1 : 0; // If player answered, score is 1, otherwise 0
+      line += `,${score}`;
+    });
+
+    // Calculate rank for each question
+    questions.forEach((q) => {
+      const playerAnswer = q.playerCorrectList.find((p) => p.playerId === player.playerId);
+      const playerScore = playerAnswer ? 1 : 0;
+      const rank = getRankForPlayer(playerScore, q);
+      line += `,${playerScore},${rank}`;
+    });
+
+    csvContent += `${line}\n`;
+  });
+
+  return csvContent;
+}
+
+function getRankForPlayer(playerScore: number, question: SessionQuestionBody): number {
+  const scores = question.playerCorrectList.map((player) => {
+    const score = player.playerId === playerScore ? 1 : 0;
+    return score;
+  });
+
+  // Sort scores in descending order
+  scores.sort((a, b) => b - a);
+
+  // Find the rank of the player's score
+  const rank = scores.findIndex((score) => score === 1) + 1;
+
+  return rank;
 }

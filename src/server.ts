@@ -441,7 +441,7 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
   res.json(response);
 });
 
-app.get('v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, res: Response) => {
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   const sessionId = parseInt(req.params.sessionid);
   const token = req.header('token');
