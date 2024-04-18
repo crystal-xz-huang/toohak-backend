@@ -693,7 +693,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
     });
   });
 
-  describe('Bad Request errors', () => {
+  describe('Bad request errors', () => {
     test.each(INVALID_IMG_URLS)('Invalid image URL format="%s"', (imgUrl) => {
       expect(quizThumbnailUpdateV1(token1, quizId1, imgUrl)).toStrictEqual(BAD_REQUEST_ERROR);
     });
