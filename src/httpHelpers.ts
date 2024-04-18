@@ -76,26 +76,26 @@ export function requestHelper(method: HttpVerb, path: string, payload: object, h
 }
 
 // ========================================================================= //
-import { Data } from './dataTypes';
-export const getData = (): Data => {
-  try {
-    const res = requestHelper('GET', '/data', {});
-    return res.jsonBody.data;
-  } catch (e) {
-    return {
-      users: [],
-      quizzes: [],
-      userSessions: [],
-      quizSessions: [],
-      players: [],
-      messages: [],
-    };
-  }
-};
+// import { Data } from './dataTypes';
+// export const getData = (): Data => {
+//   try {
+//     const res = requestHelper('GET', '/data', {});
+//     return res.jsonBody.data;
+//   } catch (e) {
+//     return {
+//       users: [],
+//       quizzes: [],
+//       userSessions: [],
+//       quizSessions: [],
+//       players: [],
+//       messages: [],
+//     };
+//   }
+// };
 
-export const setData = (newData: Data) => {
-  requestHelper('PUT', '/data', { data: newData });
-};
+// export const setData = (newData: Data) => {
+//   requestHelper('PUT', '/data', { data: newData });
+// };
 
 /***********************************************************************
 * Iteration 2 (Using Iteration 1)
