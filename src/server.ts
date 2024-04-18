@@ -94,13 +94,13 @@ app.get('/echo', (req: Request, res: Response) => {
 * Routes to connect to the database
 ***********************************************************************/
 app.get('/data', async (req: Request, res: Response) => {
-  const data = await database.hgetall('data:names');
+  const data = await database.hgetall('data');
   res.status(200).json(data);
 });
 
 app.put('/data', async (req: Request, res: Response) => {
   const { data } = req.body;
-  await database.hset('data:names', data);
+  await database.hset('data', data);
   return res.status(200).json({});
 });
 
