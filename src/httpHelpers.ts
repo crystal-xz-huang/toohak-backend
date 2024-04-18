@@ -1,6 +1,8 @@
-import request, { HttpVerb } from 'sync-request-curl';
-import { port, url } from './config.json';
-const SERVER_URL = `${url}:${port}`;
+// import request, { HttpVerb } from 'sync-request-curl';
+import request, { HttpVerb } from 'sync-request';
+// import { port, url } from './config.json';
+// const SERVER_URL = `${url}:${port}`;
+const DEPLOYED_URL = 'https://1531-24t1-h17a-dream1.vercel.app';
 
 // ========================================================================= //
 const TIMEOUT_MS = 2000;
@@ -26,7 +28,7 @@ interface RequestResponse {
  * Normal responses will be in the form
  *  { statusCode: number, jsonBody: object }
  */
-function requestHelper(method: HttpVerb, path: string, payload: object, headers?: { token: string }): RequestResponse {
+export function requestHelper(method: HttpVerb, path: string, payload: object, headers?: { token: string }): RequestResponse {
   let qs = {};
   let json = {};
   if (['GET', 'DELETE'].includes(method)) {
@@ -35,7 +37,7 @@ function requestHelper(method: HttpVerb, path: string, payload: object, headers?
     json = payload;
   }
 
-  const res = request(method, SERVER_URL + path, { qs, json, timeout: TIMEOUT_MS, headers: headers });
+  const res = request(method, DEPLOYED_URL + path, { qs, json, timeout: TIMEOUT_MS, headers: headers });
   const bodyString = res.body as string;
 
   let responseBody;
@@ -74,6 +76,26 @@ function requestHelper(method: HttpVerb, path: string, payload: object, headers?
 }
 
 // ========================================================================= //
+import { Data } from './dataTypes';
+export const getData = (): Data => {
+  try {
+    const res = requestHelper('GET', '/data', {});
+    return res.jsonBody.data;
+  } catch (e) {
+    return {
+      users: [],
+      quizzes: [],
+      userSessions: [],
+      quizSessions: [],
+      players: [],
+      messages: [],
+    };
+  }
+};
+
+export const setData = (newData: Data) => {
+  requestHelper('PUT', '/data', { data: newData });
+};
 
 /***********************************************************************
 * Iteration 2 (Using Iteration 1)

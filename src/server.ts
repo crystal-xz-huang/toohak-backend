@@ -11,6 +11,7 @@ import path from 'path';
 import process from 'process';
 import { createClient } from '@vercel/kv';
 import { clear } from './other';
+import { DATABASE_FILE, setData } from './dataStore';
 import {
   adminAuthRegister,
   adminAuthLogin,
@@ -72,8 +73,8 @@ app.use('/docs', sui.serve, sui.setup(YAML.parse(file), { swaggerOptions: { docE
 const PORT: number = parseInt(process.env.PORT || config.port);
 // const HOST: string = process.env.IP || 'localhost';
 const HOST: string = process.env.IP || '127.0.0.1';
-const KV_REST_API_URL="https://quality-tuna-50488.upstash.io";
-const KV_REST_API_TOKEN="AcU4ASQgMWY2ZDRhZTAtNjMwNC00NzA3LWI1N2MtZDc1NDc1YjQ0ZTQxNzRlODQ2YzE5Njc2NDQwMmJmMWFkZTFlYzMwZjA0MGM=";
+const KV_REST_API_URL = 'https://quality-tuna-50488.upstash.io';
+const KV_REST_API_TOKEN = 'AcU4ASQgMWY2ZDRhZTAtNjMwNC00NzA3LWI1N2MtZDc1NDc1YjQ0ZTQxNzRlODQ2YzE5Njc2NDQwMmJmMWFkZTFlYzMwZjA0MGM=';
 const database = createClient({
   url: KV_REST_API_URL,
   token: KV_REST_API_TOKEN,
@@ -93,13 +94,13 @@ app.get('/echo', (req: Request, res: Response) => {
 * Routes to connect to the database
 ***********************************************************************/
 app.get('/data', async (req: Request, res: Response) => {
-  const data = await database.hgetall("data:names");
+  const data = await database.hgetall('data:names');
   res.status(200).json(data);
 });
 
 app.put('/data', async (req: Request, res: Response) => {
   const { data } = req.body;
-  await database.hset("data:names", { data });
+  await database.hset('data:names', { data });
   return res.status(200).json({});
 });
 
@@ -546,11 +547,24 @@ app.use(errorHandler());
 
 // start server
 const server = app.listen(PORT, HOST, () => {
-  // DO NOT CHANGE THIS LINE
+  // Load existing persistent data before server starts
+  if (fs.existsSync(DATABASE_FILE)) {
+    setData(JSON.parse(String(fs.readFileSync(DATABASE_FILE))));
+  } else {
+    fs.writeFileSync(DATABASE_FILE, JSON.stringify({
+      users: [],
+      quizzes: [],
+      userSessions: [],
+      quizSessions: [],
+      players: [],
+      messages: [],
+    }));
+  }
   console.log(`⚡️ Server started on port ${PORT} at ${HOST}`);
 });
 
 // For coverage, handle Ctrl+C gracefully
 process.on('SIGINT', () => {
   server.close(() => console.log('Shutting down server gracefully.'));
+  process.exit();
 });

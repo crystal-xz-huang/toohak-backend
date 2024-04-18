@@ -1,5 +1,6 @@
 // YOU SHOULD MODIFY THIS OBJECT BELOW ONLY
 import { Data } from './dataTypes';
+export const DATABASE_FILE = 'database.json';
 import fs from 'fs';
 
 let data: Data = {
@@ -10,8 +11,6 @@ let data: Data = {
   players: [],
   messages: [],
 };
-
-// YOU SHOULD MODIFY THIS OBJECT ABOVE ONLY
 
 // YOU SHOULDNT NEED TO MODIFY THE FUNCTIONS BELOW IN ITERATION 1
 
