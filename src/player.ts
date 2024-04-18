@@ -324,6 +324,13 @@ export function playerChatList(playerId: number): PlayerChatListReturn {
   return { messages: messages };
 }
 
+/**
+ * Adds a new message that is linked to a player ID
+ *
+ * @param { number } playerId - the player ID to add the message to
+ * @param { ChatMessage } message - the message to add
+ * @returns { EmptyObject }
+ */
 export function playerChatSend(playerId: number, message: ChatMessage): EmptyObject {
   const data = getData();
 
