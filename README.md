@@ -12,6 +12,7 @@
 * 02/04: Point out a new error condition for two existing iteration 2 routes.
 * 04/04: Point out a new error condition for another iteration 2 route.
 * 09/04: More information about final presentations added
+* 15/04: Change references from quiz session to user session for auth logout
 
 ## 🫡 0. Aims:
 
