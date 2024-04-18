@@ -4,14 +4,14 @@ export const DATABASE_FILE = 'database.json';
 // import fs from 'fs';
 import { requestHelper } from './httpHelpers';
 
-// let data: Data = {
-//   users: [],
-//   quizzes: [],
-//   userSessions: [],
-//   quizSessions: [],
-//   players: [],
-//   messages: [],
-// };
+let data: Data = {
+  users: [],
+  quizzes: [],
+  userSessions: [],
+  quizSessions: [],
+  players: [],
+  messages: [],
+};
 
 
 export const getData = (): Data => {
