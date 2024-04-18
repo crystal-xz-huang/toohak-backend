@@ -94,13 +94,25 @@ app.get('/echo', (req: Request, res: Response) => {
 * Routes to connect to the database
 ***********************************************************************/
 app.get('/data', async (req: Request, res: Response) => {
-  const data = await database.hgetall('data');
+  const data = {
+    users: await database.hgetall("data:users"),
+    quizzes: await database.hgetall("data:quizzes"),
+    userSessions: await database.hgetall("data:userSessions"),
+    quizSessions: await database.hgetall("data:quizSessions"),
+    players: await database.hgetall("data:players"),
+    messages: await database.hgetall("data:messages"),
+  };
   res.status(200).json(data);
 });
 
 app.put('/data', async (req: Request, res: Response) => {
   const { data } = req.body;
-  await database.hset('data', data);
+  await database.hset("data:users", data.users);
+  await database.hset("data:quizzes", data.quizzes);
+  await database.hset("data:userSessions", data.userSessions);
+  await database.hset("data:quizSessions", data.quizSessions);
+  await database.hset("data:players", data.players);
+  await database.hset("data:messages", data.messages);
   return res.status(200).json({});
 });
 
