@@ -12,13 +12,8 @@ import {
   quizRestoreV2,
   quizTrashEmptyV2,
   quizQuestionCreateV2,
-  // quizQuestionUpdateV2,
-  // quizQuestionRemoveV2,
-  // quizQuestionMoveV2,
   quizSessionStartV1,
   quizSessionUpdateV1,
-  // quizSessionListV1,
-  // quizSessionStatusV1,
 } from '../httpHelpers';
 
 import {

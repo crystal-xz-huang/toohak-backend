@@ -56,7 +56,7 @@ afterEach(() => {
   clearV1();
 });
 
-describe.skip('GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
+describe('GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -199,7 +199,7 @@ describe.skip('GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
   });
 });
 
-describe.skip('PUT /v1/player/{playerid}/question/{questionposition}/answer', () => {
+describe('PUT /v1/player/{playerid}/question/{questionposition}/answer', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -298,7 +298,7 @@ describe.skip('PUT /v1/player/{playerid}/question/{questionposition}/answer', ()
   });
 });
 
-describe.skip('GET /v1/player/{playerid}/question/{questionposition}/results', () => {
+describe('GET /v1/player/{playerid}/question/{questionposition}/results', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -375,7 +375,7 @@ describe.skip('GET /v1/player/{playerid}/question/{questionposition}/results', (
   });
 });
 
-describe.skip('GET /v1/player/{playerid}/results', () => {
+describe('GET /v1/player/{playerid}/results', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -434,7 +434,7 @@ describe.skip('GET /v1/player/{playerid}/results', () => {
   });
 });
 
-test.skip('Need to select all correct answers to be considered correct', () => {
+test('Need to select all correct answers to be considered correct', () => {
   token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
   quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
   questionId1 = quizQuestionCreateV2(token1, quizId1, QUESTION_BODY5).jsonBody.questionId as number;
@@ -477,7 +477,7 @@ test.skip('Need to select all correct answers to be considered correct', () => {
   });
 });
 
-describe.skip('Question and final results for session with 1 question', () => {
+describe('Question and final results for session with 1 question', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -659,7 +659,7 @@ describe.skip('Question and final results for session with 1 question', () => {
   });
 });
 
-describe.skip('Question and final results for session with 1 question and resubmissions', () => {
+describe('Question and final results for session with 1 question and resubmissions', () => {
   beforeEach(() => {
     token1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
     quizId1 = quizCreateV2(token1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
@@ -782,7 +782,7 @@ describe.skip('Question and final results for session with 1 question and resubm
   });
 });
 
-describe.skip('Question and final results for session with 2 questions', () => {
+describe('Question and final results for session with 2 questions', () => {
   let answerIds1: number[];
   let answerIds2: number[];
   beforeEach(() => {
