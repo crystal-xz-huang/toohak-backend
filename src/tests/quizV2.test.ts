@@ -40,12 +40,8 @@ afterEach(() => {
   clearV1();
 });
 
-//= =============================================================================
-// Remove .skip from describe.skip to run the tests
-// Use .only to run only that block of tests
-//= =============================================================================
 
-describe.skip('Testing GET /v2/admin/quiz/list', () => {
+describe('Testing GET /v2/admin/quiz/list', () => {
   let token: string;
   beforeEach(() => {
     const ret = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
@@ -92,7 +88,7 @@ describe.skip('Testing GET /v2/admin/quiz/list', () => {
   });
 });
 
-describe.skip('Testing POST /v2/admin/quiz', () => {
+describe('Testing POST /v2/admin/quiz', () => {
   let token: string;
   beforeEach(() => {
     const ret = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
@@ -200,7 +196,7 @@ describe.skip('Testing POST /v2/admin/quiz', () => {
   });
 });
 
-describe.skip('Testing GET /v2/admin/quiz/{quizid}', () => {
+describe('Testing GET /v2/admin/quiz/{quizid}', () => {
   let token: string;
   let quizId: number;
   beforeEach(() => {
@@ -222,6 +218,7 @@ describe.skip('Testing GET /v2/admin/quiz/{quizid}', () => {
       numQuestions: expect.any(Number),
       questions: expect.any(Array),
       duration: expect.any(Number),
+      thumbnailUrl: expect.any(String),
     });
   });
 
@@ -293,7 +290,7 @@ describe.skip('Testing GET /v2/admin/quiz/{quizid}', () => {
   });
 });
 
-describe.skip('Testing PUT /v2/admin/quiz/{quizid}/name', () => {
+describe('Testing PUT /v2/admin/quiz/{quizid}/name', () => {
   let token: string;
   let quizId: number;
   beforeEach(() => {
@@ -413,7 +410,7 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/name', () => {
   });
 });
 
-describe.skip('Testing PUT /v2/admin/quiz/{quizid}/description', () => {
+describe('Testing PUT /v2/admin/quiz/{quizid}/description', () => {
   let token: string;
   let quizId: number;
   beforeEach(() => {
