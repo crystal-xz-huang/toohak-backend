@@ -9,7 +9,7 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-
+import { createClient } from '@vercel/kv';
 import { clear } from './other';
 import {
   adminAuthRegister,
@@ -72,6 +72,12 @@ app.use('/docs', sui.serve, sui.setup(YAML.parse(file), { swaggerOptions: { docE
 const PORT: number = parseInt(process.env.PORT || config.port);
 // const HOST: string = process.env.IP || 'localhost';
 const HOST: string = process.env.IP || '127.0.0.1';
+const KV_REST_API_URL="https://quality-tuna-50488.upstash.io";
+const KV_REST_API_TOKEN="AcU4ASQgMWY2ZDRhZTAtNjMwNC00NzA3LWI1N2MtZDc1NDc1YjQ0ZTQxNzRlODQ2YzE5Njc2NDQwMmJmMWFkZTFlYzMwZjA0MGM=";
+const database = createClient({
+  url: KV_REST_API_URL,
+  token: KV_REST_API_TOKEN,
+});
 
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
@@ -81,6 +87,20 @@ const HOST: string = process.env.IP || '127.0.0.1';
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   return res.json(echo(data));
+});
+
+/***********************************************************************
+* Routes to connect to the database
+***********************************************************************/
+app.get('/data', async (req: Request, res: Response) => {
+  const data = await database.hgetall("data:names");
+  res.status(200).json(data);
+});
+
+app.put('/data', async (req: Request, res: Response) => {
+  const { data } = req.body;
+  await database.hset("data:names", { data });
+  return res.status(200).json({});
 });
 
 /***********************************************************************

@@ -11,6 +11,7 @@
         "posttest": "npm run cleanup-sync-request || true"
     },
     "dependencies": {
+        "@vercel/kv": "^1.0.1",
         "atomic-sleep": "^1.0.0",
         "cors": "^2.8.5",
         "express": "^4.18.0",
