@@ -12,13 +12,8 @@ import {
   quizRestoreV2,
   quizTrashEmptyV2,
   quizQuestionCreateV2,
-  // quizQuestionUpdateV2,
-  // quizQuestionRemoveV2,
-  // quizQuestionMoveV2,
   quizSessionStartV1,
   quizSessionUpdateV1,
-  // quizSessionListV1,
-  // quizSessionStatusV1,
 } from '../httpHelpers';
 
 import {
@@ -31,8 +26,6 @@ import {
   QUIZ2,
   QUIZ3,
   QUESTION_BODY1,
-  // QUESTION_BODY2,
-  // OK_SUCCESS,
 } from '../testTypes';
 
 import {
@@ -41,7 +34,6 @@ import {
 } from '../testHelpers';
 
 import {
-  // State,
   Action,
 } from '../dataTypes';
 
@@ -54,11 +46,6 @@ beforeEach(() => {
 afterEach(() => {
   clearV1();
 });
-
-//= =============================================================================
-// Remove .skip from describe.skip to run the tests
-// Use .only to run only that block of tests
-//= =============================================================================
 
 describe('Testing DELETE /v2/admin/quiz/{quizid}', () => {
   let token: string;
@@ -158,7 +145,7 @@ describe('Testing DELETE /v2/admin/quiz/{quizid}', () => {
   });
 });
 
-describe.skip('Testing GET /v2/admin/quiz/trash', () => {
+describe('Testing GET /v2/admin/quiz/trash', () => {
   let token: string;
   let quizId1: number;
   let quizId2: number;
@@ -226,7 +213,7 @@ describe.skip('Testing GET /v2/admin/quiz/trash', () => {
   });
 });
 
-describe.skip('Testing POST /v2/admin/quiz/{quizid}/restore', () => {
+describe('Testing POST /v2/admin/quiz/{quizid}/restore', () => {
   let tokenUser1: string;
   let tokenUser2: string;
   let quizId1: number;
@@ -337,7 +324,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/restore', () => {
   });
 });
 
-describe.skip('Testing POST /v2/admin/quiz/trash/empty', () => {
+describe('Testing POST /v2/admin/quiz/trash/empty', () => {
   let tokenUser1: string;
   let quizId1: number;
   let quizId2: number;
@@ -460,7 +447,7 @@ describe.skip('Testing POST /v2/admin/quiz/trash/empty', () => {
   });
 });
 
-describe.skip('Testing POST /v2/admin/quiz', () => {
+describe('Testing POST /v2/admin/quiz', () => {
   let token: string;
   let quizId1: number;
   beforeEach(() => {
@@ -493,7 +480,7 @@ describe.skip('Testing POST /v2/admin/quiz', () => {
   });
 });
 
-describe.skip('Testing GET /v2/admin/quiz/list', () => {
+describe('Testing GET /v2/admin/quiz/list', () => {
   let token: string;
   let quizId1: number;
   let quizId2: number;
@@ -552,7 +539,7 @@ describe.skip('Testing GET /v2/admin/quiz/list', () => {
     quizTrashV2(token, quizId2);
     quizTrashV2(token, quizId3);
     quizTrashEmptyV2(token, [quizId1]);
-    const response = quizListV2(token).jsonBody;
+    const response = quizTrashViewV2(token).jsonBody;
     const expected = { quizzes: [{ quizId: quizId2, name: QUIZ2.name }, { quizId: quizId3, name: QUIZ3.name }] };
     expect(response).toStrictEqual(expected);
   });
@@ -579,7 +566,7 @@ describe.skip('Testing GET /v2/admin/quiz/list', () => {
   });
 });
 
-describe.skip('Testing POST /v2/admin/quiz', () => {
+describe('Testing POST /v2/admin/quiz', () => {
   let token: string;
   let quizId1: number;
   beforeEach(() => {
@@ -606,13 +593,13 @@ describe.skip('Testing POST /v2/admin/quiz', () => {
 
   test('Unsuccessful quiz creation of a quiz restored from the trash', () => {
     quizTrashV2(token, quizId1);
-    quizTrashV2(token, quizId1);
+    quizRestoreV2(token, quizId1);
     const response = quizCreateV2(token, QUIZ1.name, QUIZ1.description);
     expect(response).toStrictEqual(BAD_REQUEST_ERROR);
   });
 });
 
-describe.skip('Testing GET /v2/admin/quiz/list', () => {
+describe('Testing GET /v2/admin/quiz/list', () => {
   let token: string;
   let quizId1: number;
   let quizId2: number;
@@ -648,7 +635,7 @@ describe.skip('Testing GET /v2/admin/quiz/list', () => {
     quizTrashV2(token, quizId1);
     quizTrashV2(token, quizId2);
     quizTrashV2(token, quizId3);
-    quizTrashV2(token, quizId1);
+    quizRestoreV2(token, quizId1);
     const response = quizListV2(token).jsonBody;
     const expected: AdminQuizListReturn = { quizzes: [{ quizId: quizId1, name: QUIZ1.name }] };
     expect(response).toStrictEqual(expected);
@@ -659,9 +646,9 @@ describe.skip('Testing GET /v2/admin/quiz/list', () => {
     quizTrashV2(token, quizId1);
     quizTrashV2(token, quizId2);
     quizTrashV2(token, quizId3);
-    quizTrashV2(token, quizId1);
-    quizTrashV2(token, quizId2);
-    quizTrashV2(token, quizId3);
+    quizRestoreV2(token, quizId1);
+    quizRestoreV2(token, quizId2);
+    quizRestoreV2(token, quizId3);
     const after = quizListV2(token).jsonBody;
     expect(after).toStrictEqual(before);
   });
@@ -696,7 +683,7 @@ describe.skip('Testing GET /v2/admin/quiz/list', () => {
   });
 });
 
-describe.skip('Testing GET /v2/admin/quiz/{quizid}', () => {
+describe('Testing GET /v2/admin/quiz/{quizid}', () => {
   let token: string;
   let quizId: number;
   beforeEach(() => {
@@ -709,21 +696,14 @@ describe.skip('Testing GET /v2/admin/quiz/{quizid}', () => {
   test('Successful quiz info retrieval after quiz is restored from the trash', () => {
     const before = quizInfoV2(token, quizId).jsonBody;
     quizTrashV2(token, quizId);
-    quizTrashV2(token, quizId);
-    const after = quizInfoV2(token, quizId).jsonBody;
-    expect(after).toStrictEqual(before);
-  });
-
-  test('Successful quiz info retrieval after quiz is sent to the trash', () => {
-    const before = quizInfoV2(token, quizId).jsonBody;
-    quizTrashV2(token, quizId);
+    quizRestoreV2(token, quizId);
     const after = quizInfoV2(token, quizId).jsonBody;
     expect(after).toStrictEqual(before);
   });
 
   test('Successful quiz info retrieval after quiz is restored from the trash and quiz name is updated', () => {
     quizTrashV2(token, quizId);
-    quizTrashV2(token, quizId);
+    quizRestoreV2(token, quizId);
     quizNameUpdateV2(token, quizId, QUIZ2.name);
     const response = quizInfoV2(token, quizId).jsonBody as AdminQuizInfoReturn;
     expect(response.name).toStrictEqual(QUIZ2.name);

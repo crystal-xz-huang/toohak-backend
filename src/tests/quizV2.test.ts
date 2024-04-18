@@ -8,7 +8,10 @@ import {
   quizNameUpdateV2,
   quizDescriptionUpdateV2,
   quizTransferV2,
+  quizQuestionCreateV2,
   quizThumbnailUpdateV1,
+  quizSessionStartV1,
+  quizSessionUpdateV1,
 } from '../httpHelpers';
 
 import {
@@ -23,6 +26,8 @@ import {
   QUIZ3,
   SHORT_QUIZ_NAMES,
   INVALID_QUIZ_NAMES,
+  INVALID_IMG_URLS,
+  QUESTION_BODY1,
 } from '../testTypes';
 
 import {
@@ -30,6 +35,8 @@ import {
   checkTimeStamp,
 } from '../testHelpers';
 
+import { Action } from '../dataTypes';
+import sleep from 'atomic-sleep';
 import { AdminQuizListReturn, AdminQuizInfoReturn } from '../functionTypes';
 
 beforeEach(() => {
@@ -40,12 +47,7 @@ afterEach(() => {
   clearV1();
 });
 
-//= =============================================================================
-// Remove .skip from describe.skip to run the tests
-// Use .only to run only that block of tests
-//= =============================================================================
-
-describe.skip('Testing GET /v2/admin/quiz/list', () => {
+describe('Testing GET /v2/admin/quiz/list', () => {
   let token: string;
   beforeEach(() => {
     const ret = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
@@ -92,7 +94,7 @@ describe.skip('Testing GET /v2/admin/quiz/list', () => {
   });
 });
 
-describe.skip('Testing POST /v2/admin/quiz', () => {
+describe('Testing POST /v2/admin/quiz', () => {
   let token: string;
   beforeEach(() => {
     const ret = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
@@ -200,7 +202,7 @@ describe.skip('Testing POST /v2/admin/quiz', () => {
   });
 });
 
-describe.skip('Testing GET /v2/admin/quiz/{quizid}', () => {
+describe('Testing GET /v2/admin/quiz/{quizid}', () => {
   let token: string;
   let quizId: number;
   beforeEach(() => {
@@ -222,6 +224,7 @@ describe.skip('Testing GET /v2/admin/quiz/{quizid}', () => {
       numQuestions: expect.any(Number),
       questions: expect.any(Array),
       duration: expect.any(Number),
+      thumbnailUrl: expect.any(String),
     });
   });
 
@@ -293,7 +296,7 @@ describe.skip('Testing GET /v2/admin/quiz/{quizid}', () => {
   });
 });
 
-describe.skip('Testing PUT /v2/admin/quiz/{quizid}/name', () => {
+describe('Testing PUT /v2/admin/quiz/{quizid}/name', () => {
   let token: string;
   let quizId: number;
   beforeEach(() => {
@@ -413,7 +416,7 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/name', () => {
   });
 });
 
-describe.skip('Testing PUT /v2/admin/quiz/{quizid}/description', () => {
+describe('Testing PUT /v2/admin/quiz/{quizid}/description', () => {
   let token: string;
   let quizId: number;
   beforeEach(() => {
@@ -509,19 +512,13 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/description', () => {
 });
 
 describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
-  let tokenUser1: string;
-  let tokenUser2: string;
+  let tokenUser1: string, tokenUser2: string;
   let quizId1: number;
 
   beforeEach(() => {
-    const user1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody;
-    tokenUser1 = user1.token as string;
-
-    const q1 = quizCreateV2(tokenUser1, QUIZ1.name, QUIZ1.description).jsonBody;
-    quizId1 = q1.quizId as number;
-
-    const user2 = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
-    tokenUser2 = user2.token as string;
+    tokenUser1 = authRegisterV1(USER1.email, USER1.password, USER1.nameFirst, USER1.nameLast).jsonBody.token as string;
+    quizId1 = quizCreateV2(tokenUser1, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
+    tokenUser2 = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody.token as string;
   });
 
   test('Correct status code and return value', () => {
@@ -585,6 +582,57 @@ describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
     });
   });
 
+  describe('Bad request error if any session for this quiz is not in END state', () => {
+    let sessionId1: number, sessionId2: number;
+    beforeEach(() => {
+      quizQuestionCreateV2(tokenUser1, quizId1, QUESTION_BODY1);
+      sessionId1 = quizSessionStartV1(tokenUser1, quizId1, 0).jsonBody.sessionId as number;
+      sessionId2 = quizSessionStartV1(tokenUser1, quizId1, 0).jsonBody.sessionId as number;
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId1, Action.END);
+    });
+    test('One session is in LOBBY state`', () => {
+      expect(quizTransferV2(tokenUser1, quizId1, USER2.email)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('All sessions are in END state', () => {
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.END);
+      expect(quizTransferV2(tokenUser1, quizId1, USER2.email).statusCode).toStrictEqual(200);
+    });
+
+    test('One session is in QUESTION_COUNTDOWN state', () => {
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.NEXT_QUESTION);
+      expect(quizTransferV2(tokenUser1, quizId1, USER2.email)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('One session is in QUESTION_OPEN state', () => {
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.NEXT_QUESTION);
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.SKIP_COUNTDOWN);
+      expect(quizTransferV2(tokenUser1, quizId1, USER2.email)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('One session is in QUESTION_COUNTDOWN state', () => {
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.NEXT_QUESTION);
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.SKIP_COUNTDOWN);
+      sleep(QUESTION_BODY1.duration * 1000);
+      expect(quizTransferV2(tokenUser1, quizId1, USER2.email)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('One session is in ANSWER_SHOW state', () => {
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.NEXT_QUESTION);
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.SKIP_COUNTDOWN);
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.GO_TO_ANSWER);
+      expect(quizTransferV2(tokenUser1, quizId1, USER2.email)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+
+    test('One session is in FINAL_RESULTS state', () => {
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.NEXT_QUESTION);
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.SKIP_COUNTDOWN);
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.GO_TO_ANSWER);
+      quizSessionUpdateV1(tokenUser1, quizId1, sessionId2, Action.GO_TO_FINAL_RESULTS);
+      expect(quizTransferV2(tokenUser1, quizId1, USER2.email)).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
+
   describe('Errors are returned in the correct order', () => {
     const invalidToken = tokenUser1 + 'random';
     const invalidQuizId = -1;
@@ -606,7 +654,7 @@ describe('Testing POST /v2/admin/quiz/{quizid}/transfer', () => {
   });
 });
 
-describe('Testing quizThumbnailUpdateV1', () => {
+describe('Testing PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
   let token1: string;
   let token2: string;
   let quizId1: number;
@@ -643,10 +691,9 @@ describe('Testing quizThumbnailUpdateV1', () => {
     });
   });
 
-  describe('Bad Request errors', () => {
-    test('Invalid image URL format', () => {
-      const invalidImgUrl = 'not-a-valid-url';
-      expect(quizThumbnailUpdateV1(token1, quizId1, invalidImgUrl)).toStrictEqual(BAD_REQUEST_ERROR);
+  describe('Bad request errors', () => {
+    test.each(INVALID_IMG_URLS)('Invalid image URL format="%s"', (imgUrl) => {
+      expect(quizThumbnailUpdateV1(token1, quizId1, imgUrl)).toStrictEqual(BAD_REQUEST_ERROR);
     });
   });
 });

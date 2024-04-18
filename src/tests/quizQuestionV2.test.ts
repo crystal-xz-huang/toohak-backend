@@ -29,20 +29,7 @@ import {
   QUESTION_BODY2,
   QUESTION_BODY3,
   QUESTION_BODY4,
-  // SHORT_QUESTION_STRING,
-  // LONG_QUESTION_STRING,
-  // MORE_QUESTION_ANSWERS,
-  // LESS_QUESTION_ANSWERS,
-  // LONG_QUESTION_DURATION,
-  // NEGATIVE_QUESTION_DURATION,
-  // MORE_QUESTION_DURATION_SUM,
-  // LESS_QUESTION_POINTS,
-  // MORE_QUESTION_POINTS,
-  // SHORT_QUESTION_ANSWERS,
-  // LONG_QUESTION_ANSWERS,
-  // DUPLICATE_QUESTION_ANSWERS,
-  // FALSE_QUESTION_ANSWERS,
-  // INVALID_IMG_URLS,
+  INVALID_IMG_URLS,
 } from '../testTypes';
 
 import { Action } from '../dataTypes';
@@ -56,10 +43,6 @@ afterEach(() => {
   clearV1();
 });
 
-//= =============================================================================
-// Remove .skip from describe.skip to run the tests
-// Use .only to run only that block of tests
-//= =============================================================================
 describe('Testing POST /v2/admin/quiz/{quizid}/question', () => {
   let token: string;
   let quizId: number;
@@ -68,13 +51,14 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question', () => {
     quizId = quizCreateV2(token, QUIZ1.name, QUIZ1.description).jsonBody.quizId as number;
   });
 
-  test('Creates a new stub question for the quiz', () => {
+  test('Creates a new stub question for the quiz with thumbnail Url', () => {
     quizQuestionCreateV2(token, quizId, QUESTION_BODY1);
     const response = quizInfoV2(token, quizId).jsonBody;
     const expectedQuestion = {
       questionId: expect.any(Number),
       question: QUESTION_BODY1.question,
       duration: QUESTION_BODY1.duration,
+      thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
       points: QUESTION_BODY1.points,
       answers: [
         {
@@ -90,7 +74,6 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question', () => {
           correct: QUESTION_BODY1.answers[1].correct
         }
       ],
-      thumbnailUrl: QUESTION_BODY1.thumbnailUrl
     };
 
     expect(response.quizId).toStrictEqual(quizId);
@@ -99,7 +82,7 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question', () => {
     expect(response.numQuestions).toStrictEqual(1);
   });
 
-  test('Successfully creates 2 new stub questions for the quiz', () => {
+  test('Successfully creates 2 new stub questions with thumbnail Urls for the quiz', () => {
     quizQuestionCreateV2(token, quizId, QUESTION_BODY1);
     quizQuestionCreateV2(token, quizId, QUESTION_BODY2);
     const response = quizInfoV2(token, quizId).jsonBody;
@@ -107,6 +90,7 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question', () => {
       questionId: expect.any(Number),
       question: QUESTION_BODY1.question,
       duration: QUESTION_BODY1.duration,
+      thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
       points: QUESTION_BODY1.points,
       answers: [
         {
@@ -122,12 +106,12 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question', () => {
           correct: QUESTION_BODY1.answers[1].correct
         }
       ],
-      thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
     };
     const expectedQuestion2 = {
       questionId: expect.any(Number),
       question: QUESTION_BODY2.question,
       duration: QUESTION_BODY2.duration,
+      thumbnailUrl: QUESTION_BODY2.thumbnailUrl,
       points: QUESTION_BODY2.points,
       answers: [
         {
@@ -143,16 +127,22 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question', () => {
           correct: QUESTION_BODY2.answers[1].correct
         }
       ],
-      thumbnailUrl: QUESTION_BODY2.thumbnailUrl,
     };
     expect(response.quizId).toStrictEqual(quizId);
     expect(response.questions).toStrictEqual([expectedQuestion1, expectedQuestion2]);
     expect(response.duration).toStrictEqual(QUESTION_BODY1.duration + QUESTION_BODY2.duration);
     expect(response.numQuestions).toStrictEqual(2);
   });
+
+  describe('Bad request errors', () => {
+    test.each(INVALID_IMG_URLS)('Invalid thumbnailUrl format="%s"', (imgUrl) => {
+      const response = quizQuestionCreateV2(token, quizId, { ...QUESTION_BODY1, thumbnailUrl: imgUrl });
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
+  });
 });
 
-describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () => {
+describe('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () => {
   let token1: string;
   let quizId: number;
   let questionId1: number;
@@ -193,7 +183,8 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
               colour: expect.any(String),
               correct: QUESTION_BODY2.answers[1].correct
             }
-          ]
+          ],
+          thumbnailUrl: QUESTION_BODY2.thumbnailUrl
         },
         {
           questionId: questionId2,
@@ -213,11 +204,12 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
               colour: expect.any(String),
               correct: QUESTION_BODY2.answers[1].correct
             }
-          ]
+          ],
+          thumbnailUrl: QUESTION_BODY2.thumbnailUrl
         }
       ],
       duration: QUESTION_BODY2.duration * 2,
-      thumbnailUrl: QUESTION_BODY2.thumbnailUrl,
+      thumbnailUrl: ''
     };
     expect(response).toStrictEqual(expected);
   });
@@ -238,6 +230,7 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
           questionId: questionId1,
           question: QUESTION_BODY3.question,
           duration: QUESTION_BODY3.duration,
+          thumbnailUrl: QUESTION_BODY3.thumbnailUrl,
           points: QUESTION_BODY3.points,
           answers: [
             {
@@ -258,6 +251,7 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
           questionId: questionId2,
           question: QUESTION_BODY4.question,
           duration: QUESTION_BODY4.duration,
+          thumbnailUrl: QUESTION_BODY4.thumbnailUrl,
           points: QUESTION_BODY4.points,
           answers: [
             {
@@ -276,7 +270,7 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}', () =>
         }
       ],
       duration: QUESTION_BODY3.duration + QUESTION_BODY4.duration,
-      thumbnailUrl: QUESTION_BODY4.thumbnailUrl,
+      thumbnailUrl: ''
     };
     expect(response).toStrictEqual(expected);
   });
@@ -388,7 +382,7 @@ describe('Testing DELETE /v2/admin/quiz/{quizid}/question/{questionid}', () => {
   });
 });
 
-describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}/move', () => {
+describe('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}/move', () => {
   let token1: string;
   let quizId: number;
   let quesId1: number;
@@ -508,17 +502,17 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}/move', 
   });
 
   describe('Unauthorised errors', () => {
-    test('token1 is empty', () => {
+    test('Token is empty', () => {
       newPosition = 0;
       expect(quizQuestionMoveV2('', quizId, quesId2, newPosition)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
-    test('token1 does not refer to a valid user session', () => {
+    test('Token does not refer to a valid user session', () => {
       newPosition = 0;
       expect(quizQuestionMoveV2(token1 + 'random', quizId, quesId2, newPosition)).toStrictEqual(UNAUTHORISED_ERROR);
     });
 
-    test('token1 does not refer to a logged in user session', () => {
+    test('Token does not refer to a logged in user session', () => {
       newPosition = 0;
       authLogoutV2(token1);
       expect(quizQuestionMoveV2(token1, quizId, quesId2, newPosition)).toStrictEqual(UNAUTHORISED_ERROR);
@@ -526,16 +520,16 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}/move', 
   });
 
   describe('Forbidden errors', () => {
-    test('Valid token1 but invalid quizId', () => {
+    test('Valid token but invalid quizId', () => {
       newPosition = 0;
       const response = quizQuestionMoveV2(token1, quizId + 1, quesId2, newPosition);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
 
-    test('Valid token1 but user does not own the quiz', () => {
+    test('Valid token but user does not own the quiz', () => {
       const invalidUser = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
-      const token12 = invalidUser.token1 as string;
-      const response = quizQuestionMoveV2(token12, quizId, quesId2, newPosition);
+      const tokenUser2 = invalidUser.token as string;
+      const response = quizQuestionMoveV2(tokenUser2, quizId, quesId2, newPosition);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
   });
@@ -565,7 +559,7 @@ describe.skip('Testing PUT /v2/admin/quiz/{quizid}/question/{questionid}/move', 
   });
 });
 
-describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
+describe('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
   let token1: string;
   let quizId: number;
   let questionId1: number;
@@ -598,6 +592,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           questionId: questionId1,
           question: QUESTION_BODY1.question,
           duration: QUESTION_BODY1.duration,
+          thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
           points: QUESTION_BODY1.points,
           answers: [
             {
@@ -618,6 +613,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           questionId: newQuestionId,
           question: QUESTION_BODY1.question,
           duration: QUESTION_BODY1.duration,
+          thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
           points: QUESTION_BODY1.points,
           answers: [
             {
@@ -638,6 +634,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           questionId: questionId2,
           question: QUESTION_BODY2.question,
           duration: QUESTION_BODY2.duration,
+          thumbnailUrl: QUESTION_BODY2.thumbnailUrl,
           points: QUESTION_BODY2.points,
           answers: [
             {
@@ -655,7 +652,8 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           ]
         },
       ],
-      duration: QUESTION_BODY1.duration * 2 + QUESTION_BODY2.duration
+      duration: QUESTION_BODY1.duration * 2 + QUESTION_BODY2.duration,
+      thumbnailUrl: ''
     };
     expect(response).toStrictEqual(expected);
   });
@@ -676,6 +674,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           questionId: questionId1,
           question: QUESTION_BODY1.question,
           duration: QUESTION_BODY1.duration,
+          thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
           points: QUESTION_BODY1.points,
           answers: [
             {
@@ -696,6 +695,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           questionId: questionId2,
           question: QUESTION_BODY2.question,
           duration: QUESTION_BODY2.duration,
+          thumbnailUrl: QUESTION_BODY2.thumbnailUrl,
           points: QUESTION_BODY2.points,
           answers: [
             {
@@ -716,6 +716,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           questionId: newQuestionId,
           question: QUESTION_BODY2.question,
           duration: QUESTION_BODY2.duration,
+          thumbnailUrl: QUESTION_BODY2.thumbnailUrl,
           points: QUESTION_BODY2.points,
           answers: [
             {
@@ -736,6 +737,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           questionId: questionId3,
           question: QUESTION_BODY3.question,
           duration: QUESTION_BODY3.duration,
+          thumbnailUrl: QUESTION_BODY3.thumbnailUrl,
           points: QUESTION_BODY3.points,
           answers: [
             {
@@ -753,7 +755,8 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           ]
         }
       ],
-      duration: QUESTION_BODY1.duration + QUESTION_BODY2.duration * 2 + QUESTION_BODY3.duration
+      duration: QUESTION_BODY1.duration + QUESTION_BODY2.duration * 2 + QUESTION_BODY3.duration,
+      thumbnailUrl: ''
     };
     expect(response).toStrictEqual(expected);
   });
@@ -773,6 +776,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           questionId: questionId1,
           question: QUESTION_BODY1.question,
           duration: QUESTION_BODY1.duration,
+          thumbnailUrl: QUESTION_BODY1.thumbnailUrl,
           points: QUESTION_BODY1.points,
           answers: [
             {
@@ -793,6 +797,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           questionId: questionId2,
           question: QUESTION_BODY2.question,
           duration: QUESTION_BODY2.duration,
+          thumbnailUrl: QUESTION_BODY2.thumbnailUrl,
           points: QUESTION_BODY2.points,
           answers: [
             {
@@ -813,6 +818,7 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           questionId: newQuestionId,
           question: QUESTION_BODY2.question,
           duration: QUESTION_BODY2.duration,
+          thumbnailUrl: QUESTION_BODY2.thumbnailUrl,
           points: QUESTION_BODY2.points,
           answers: [
             {
@@ -830,7 +836,8 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
           ]
         }
       ],
-      duration: QUESTION_BODY1.duration + QUESTION_BODY2.duration * 2
+      duration: QUESTION_BODY1.duration + QUESTION_BODY2.duration * 2,
+      thumbnailUrl: ''
     };
     expect(response).toStrictEqual(expected);
   });
@@ -859,15 +866,15 @@ describe.skip('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplic
   });
 
   describe('Forbidden errors', () => {
-    test('Valid token1 but invalid quizId', () => {
+    test('Valid token but invalid quizId', () => {
       const response = quizQuestionDuplicateV2(token1, -1, questionId1);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
 
-    test('Valid token1 but user does not own the quiz', () => {
+    test('Valid token but user does not own the quiz', () => {
       const invalidUser = authRegisterV1(USER2.email, USER2.password, USER2.nameFirst, USER2.nameLast).jsonBody;
-      const token12 = invalidUser.token1 as string;
-      const response = quizQuestionDuplicateV2(token12, quizId, questionId1);
+      const tokenUser2 = invalidUser.token as string;
+      const response = quizQuestionDuplicateV2(tokenUser2, quizId, questionId1);
       expect(response).toStrictEqual(FORBIDDEN_ERROR);
     });
   });
