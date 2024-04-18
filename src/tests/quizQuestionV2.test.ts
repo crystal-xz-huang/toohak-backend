@@ -29,6 +29,7 @@ import {
   QUESTION_BODY2,
   QUESTION_BODY3,
   QUESTION_BODY4,
+  INVALID_IMG_URLS,
 } from '../testTypes';
 
 import { Action } from '../dataTypes';
@@ -131,6 +132,13 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question', () => {
     expect(response.questions).toStrictEqual([expectedQuestion1, expectedQuestion2]);
     expect(response.duration).toStrictEqual(QUESTION_BODY1.duration + QUESTION_BODY2.duration);
     expect(response.numQuestions).toStrictEqual(2);
+  });
+
+  describe('Bad request errors', () => {
+    test.each(INVALID_IMG_URLS)('Invalid thumbnailUrl format="%s"', (imgUrl) => {
+      const response = quizQuestionCreateV2(token, quizId, { ...QUESTION_BODY1, thumbnailUrl: imgUrl });
+      expect(response).toStrictEqual(BAD_REQUEST_ERROR);
+    });
   });
 });
 
