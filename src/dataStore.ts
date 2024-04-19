@@ -2,6 +2,7 @@
 import fs from 'fs';
 export const DATABASE_FILE = 'database.json';
 import { Data } from './dataTypes';
+
 export let dataStore: Data = {
   users: [],
   quizzes: [],
@@ -33,20 +34,9 @@ export const setData = (newData: Data) => {
 
 // Get data from the remote database
 export const getData = (): Data => {
-  try {
-    const res = requestHelper('GET', '/data', {});
-    return res.jsonBody.data;
-  } catch (e) {
-    return {
-      users: [],
-      quizzes: [],
-      userSessions: [],
-      quizSessions: [],
-      players: [],
-      messages: [],
-    };
-  }
-};
+  const res = requestHelper('GET', '/data', {});
+  return res.data;
+};  
 
 // ========================================================================= //
 
@@ -65,7 +55,6 @@ export const loadData = (): Data => {
     };
   }
 }
-
 
 // Save data to the remote database
 export const saveData = (dataStore: Data) => {
