@@ -549,18 +549,18 @@ app.use(errorHandler());
 // start server
 const server = app.listen(PORT, HOST, () => {
   // Load existing persistent data before server starts
-  // if (fs.existsSync(DATABASE_FILE)) {
-  //   setData(JSON.parse(String(fs.readFileSync(DATABASE_FILE))));
-  // } else {
-  //   fs.writeFileSync(DATABASE_FILE, JSON.stringify({
-  //     users: [],
-  //     quizzes: [],
-  //     userSessions: [],
-  //     quizSessions: [],
-  //     players: [],
-  //     messages: [],
-  //   }));
-  // }
+  if (fs.existsSync(DATABASE_FILE)) {
+    setData(JSON.parse(String(fs.readFileSync(DATABASE_FILE))));
+  } else {
+    fs.writeFileSync(DATABASE_FILE, JSON.stringify({
+      users: [],
+      quizzes: [],
+      userSessions: [],
+      quizSessions: [],
+      players: [],
+      messages: [],
+    }));
+  }
   console.log(`⚡️ Server started on port ${PORT} at ${HOST}`);
 });
 
