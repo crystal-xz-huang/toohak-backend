@@ -11,7 +11,6 @@ export let dataStore: Data = {
   messages: [],
 };
 
-// ========================================================================= //
 const DEPLOYED_URL = 'https://1531-24t1-h17a-dream1.vercel.app';
 import request, { HttpVerb } from 'sync-request';
 const requestHelper = (method: HttpVerb, path: string, payload: object) => {
@@ -27,8 +26,13 @@ const requestHelper = (method: HttpVerb, path: string, payload: object) => {
   return JSON.parse(res.body.toString());
 };
 
-// Load data from the remote database
-export const loadData = (): Data => {
+// Save data to the remote database
+export const setData = (newData: Data) => {
+  requestHelper('PUT', '/data', { data: newData });
+};
+
+// Get data from the remote database
+export const getData = (): Data => {
   try {
     const res = requestHelper('GET', '/data', {});
     return res.jsonBody.data;
@@ -44,18 +48,10 @@ export const loadData = (): Data => {
   }
 };
 
-// Save data to the database file
-export const setData = (dataStore: Data) => {
-  fs.writeFileSync(DATABASE_FILE, JSON.stringify(dataStore, null, 2));
-}
-
-// Save data to the remote database
-export const saveData = (newData: Data) => {
-  requestHelper('PUT', '/data', { data: newData });
-};
+// ========================================================================= //
 
 // Load data from the database file
-export const getData = (): Data => {
+export const loadData = (): Data => {
   if (fs.existsSync(DATABASE_FILE)) {
     return JSON.parse(String(fs.readFileSync(DATABASE_FILE)));
   } else {
@@ -70,3 +66,8 @@ export const getData = (): Data => {
   }
 }
 
+
+// Save data to the remote database
+export const saveData = (dataStore: Data) => {
+  fs.writeFileSync(DATABASE_FILE, JSON.stringify(dataStore, null, 2));
+}
