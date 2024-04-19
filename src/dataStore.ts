@@ -12,7 +12,7 @@ export let dataStore: Data = {
   messages: [],
 };
 
-const DEPLOYED_URL = 'https://1531-24t1-h17a-dream1.vercel.app';
+const DEPLOYED_URL = 'https://1531-24t1-h17a-dream.vercel.app';
 import request, { HttpVerb } from 'sync-request';
 const requestHelper = (method: HttpVerb, path: string, payload: object) => {
   let json = {};
