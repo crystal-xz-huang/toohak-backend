@@ -1,7 +1,24 @@
 {
-  "users": [],
+  "users": [
+    {
+      "authUserId": 1,
+      "email": "crystalhuang@y7mail.com",
+      "password": "27cc6994fc1c01ce6659c6bddca9b69c4c6a9418065e612c69d110b3f7b11f8a",
+      "nameFirst": "Crystal",
+      "nameLast": "Huang",
+      "numSuccessfulLogins": 1,
+      "numFailedPasswordsSinceLastLogin": 0,
+      "usedPasswords": []
+    }
+  ],
   "quizzes": [],
-  "userSessions": [],
+  "userSessions": [
+    {
+      "authUserId": 1,
+      "token": "e08f421f-00a1-496f-9a9d-9c41368d4886",
+      "valid": true
+    }
+  ],
   "quizSessions": [],
   "players": [],
   "messages": []
