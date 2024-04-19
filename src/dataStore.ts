@@ -28,7 +28,7 @@ const requestHelper = (method: HttpVerb, path: string, payload: object) => {
 };
 
 // Load data from the remote database
-export const getData = (): Data => {
+export const loadData = (): Data => {
   try {
     const res = requestHelper('GET', '/data', {});
     return res.jsonBody.data;
@@ -44,18 +44,18 @@ export const getData = (): Data => {
   }
 };
 
-// Save data to the remote database
-export const setData = (newData: Data) => {
-  requestHelper('PUT', '/data', { data: newData });
-};
-
 // Save data to the database file
-export const saveData = (dataStore: Data) => {
+export const setData = (dataStore: Data) => {
   fs.writeFileSync(DATABASE_FILE, JSON.stringify(dataStore, null, 2));
 }
 
+// Save data to the remote database
+export const saveData = (newData: Data) => {
+  requestHelper('PUT', '/data', { data: newData });
+};
+
 // Load data from the database file
-export const loadData = (): Data => {
+export const getData = (): Data => {
   if (fs.existsSync(DATABASE_FILE)) {
     return JSON.parse(String(fs.readFileSync(DATABASE_FILE)));
   } else {
