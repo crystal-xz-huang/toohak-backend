@@ -1,6 +1,7 @@
-import request, { HttpVerb } from 'sync-request-curl';
+import request, { HttpVerb } from 'sync-request';
 import { port, url } from './config.json';
-const SERVER_URL = `${url}:${port}`;
+// const SERVER_URL = `${url}:${port}`;
+const DEPLOYED_URL = 'https://1531-24t1-h17a-dream1.vercel.app';
 const TIMEOUT_MS = 2000;
 
 interface RequestResponse {
@@ -33,7 +34,7 @@ export function requestHelper(method: HttpVerb, path: string, payload: object, h
     json = payload;
   }
 
-  const res = request(method, SERVER_URL + path, { qs, json, timeout: TIMEOUT_MS, headers: headers });
+  const res = request(method, DEPLOYED_URL + path, { qs, json, timeout: TIMEOUT_MS, headers: headers });
   const bodyString = res.body as string;
 
   let responseBody;
