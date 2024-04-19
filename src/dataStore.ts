@@ -1,10 +1,10 @@
 // YOU SHOULD MODIFY THIS OBJECT BELOW ONLY
-import { Data } from './dataTypes';
+import fs from 'fs';
 export const DATABASE_FILE = 'database.json';
-// import fs from 'fs';
+import { Data } from './dataTypes';
 import { requestHelper } from './httpHelpers';
 
-let data: Data = {
+export let dataStore: Data = {
   users: [],
   quizzes: [],
   userSessions: [],
@@ -13,8 +13,8 @@ let data: Data = {
   messages: [],
 };
 
-
-export const getData = (): Data => {
+// Load data from the remote database
+export const loadData = (): Data => {
   try {
     const res = requestHelper('GET', '/data', {});
     return res.jsonBody.data;
@@ -30,23 +30,30 @@ export const getData = (): Data => {
   }
 };
 
-export const setData = (newData: Data) => {
+// Save data to the remote database
+export const saveData = (newData: Data) => {
   requestHelper('PUT', '/data', { data: newData });
 };
 
+// Save data to the database file
+export const setData = (dataStore: Data) => {
+  fs.writeFileSync(DATABASE_FILE, JSON.stringify(dataStore, null, 2));
+  return { message: 'Data saved successfully' };
+}
 
-// // Use get() to access the data
-// export function getData(): Data {
-//   if (fs.existsSync('./database.json')) {
-//     const file = fs.readFileSync('./database.json', { flag: 'r' });
-//     return JSON.parse(file.toString());
-//   }
-//   return data;
-// }
+// Load data from the database file
+export const getData = (): Data => {
+  if (fs.existsSync(DATABASE_FILE)) {
+    return JSON.parse(String(fs.readFileSync(DATABASE_FILE)));
+  } else {
+    return {
+      users: [],
+      quizzes: [],
+      userSessions: [],
+      quizSessions: [],
+      players: [],
+      messages: [],
+    };
+  }
+}
 
-// // Use set(newData) to pass in the entire data object, with modifications made
-// export function setData(newData: Data): void {
-//   data = newData;
-//   const dataStr = JSON.stringify(data, null, 2);
-//   fs.writeFileSync('./database.json', dataStr, { flag: 'w' });
-// }

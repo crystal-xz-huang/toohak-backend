@@ -80,6 +80,21 @@ const database = createClient({
   token: KV_REST_API_TOKEN,
 });
 
+/***********************************************************************
+* Routes to connect to the database
+***********************************************************************/
+app.get('/data', async (req: Request, res: Response) => {
+  const data = await database.hgetall("data:toohak");
+  res.status(200).json({data});
+});
+
+app.put('/data', async (req: Request, res: Response) => {
+  const { data } = req.body;
+  await database.hset("data:toohak", data);
+  return res.status(200).json({});
+});
+
+
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
@@ -88,32 +103,6 @@ const database = createClient({
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   return res.json(echo(data));
-});
-
-/***********************************************************************
-* Routes to connect to the database
-***********************************************************************/
-app.get('/data', async (req: Request, res: Response) => {
-  const data = {
-    users: await database.hgetall("data:users"),
-    quizzes: await database.hgetall("data:quizzes"),
-    userSessions: await database.hgetall("data:userSessions"),
-    quizSessions: await database.hgetall("data:quizSessions"),
-    players: await database.hgetall("data:players"),
-    messages: await database.hgetall("data:messages"),
-  };
-  res.status(200).json(data);
-});
-
-app.put('/data', async (req: Request, res: Response) => {
-  const { data } = req.body;
-  await database.hset("data:users", data.users);
-  await database.hset("data:quizzes", data.quizzes);
-  await database.hset("data:userSessions", data.userSessions);
-  await database.hset("data:quizSessions", data.quizSessions);
-  await database.hset("data:players", data.players);
-  await database.hset("data:messages", data.messages);
-  return res.status(200).json({});
 });
 
 /***********************************************************************
@@ -560,18 +549,18 @@ app.use(errorHandler());
 // start server
 const server = app.listen(PORT, HOST, () => {
   // Load existing persistent data before server starts
-  if (fs.existsSync(DATABASE_FILE)) {
-    setData(JSON.parse(String(fs.readFileSync(DATABASE_FILE))));
-  } else {
-    fs.writeFileSync(DATABASE_FILE, JSON.stringify({
-      users: [],
-      quizzes: [],
-      userSessions: [],
-      quizSessions: [],
-      players: [],
-      messages: [],
-    }));
-  }
+  // if (fs.existsSync(DATABASE_FILE)) {
+  //   setData(JSON.parse(String(fs.readFileSync(DATABASE_FILE))));
+  // } else {
+  //   fs.writeFileSync(DATABASE_FILE, JSON.stringify({
+  //     users: [],
+  //     quizzes: [],
+  //     userSessions: [],
+  //     quizSessions: [],
+  //     players: [],
+  //     messages: [],
+  //   }));
+  // }
   console.log(`⚡️ Server started on port ${PORT} at ${HOST}`);
 });
 
