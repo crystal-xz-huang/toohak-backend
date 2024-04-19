@@ -1,6 +1,4 @@
 import request, { HttpVerb } from 'sync-request';
-import { port, url } from './config.json';
-// const SERVER_URL = `${url}:${port}`;
 const DEPLOYED_URL = 'https://1531-24t1-h17a-dream1.vercel.app';
 const TIMEOUT_MS = 2000;
 
@@ -56,44 +54,7 @@ export function requestHelper(method: HttpVerb, path: string, payload: object, h
   } else {
     return { statusCode: res.statusCode, jsonBody: responseBody };
   }
-
-  // try {
-  //   const parsedBody = JSON.parse(bodyString);
-  //   if (parsedBody.error) {
-  //     return { statusCode: res.statusCode, error: parsedBody.error };
-  //   } else {
-  //     return { statusCode: res.statusCode, jsonBody: parsedBody };
-  //   }
-  // } catch (error) {
-  //   return {
-  //     statusCode: res.statusCode,
-  //     error: `Server returned an invalid JSON response with error: ${error.message}`,
-  //   };
-  // }
 }
-
-// ========================================================================= //
-// import { Data } from './dataTypes';
-// export const getData = (): Data => {
-//   try {
-//     const res = requestHelper('GET', '/data', {});
-//     return res.jsonBody.data;
-//   } catch (e) {
-//     return {
-//       users: [],
-//       quizzes: [],
-//       userSessions: [],
-//       quizSessions: [],
-//       players: [],
-//       messages: [],
-//     };
-//   }
-// };
-
-// export const setData = (newData: Data) => {
-//   requestHelper('PUT', '/data', { data: newData });
-// };
-
 /***********************************************************************
 * Iteration 2 (Using Iteration 1)
 ***********************************************************************/
