@@ -11,29 +11,6 @@ export let dataStore: Data = {
   messages: [],
 };
 
-
-// Save data to the database file
-export const saveData = (dataStore: Data) => {
-  fs.writeFileSync(DATABASE_FILE, JSON.stringify(dataStore, null, 2));
-  return { message: 'Data saved successfully' };
-}
-
-// Load data from the database file
-export const loadData = (): Data => {
-  if (fs.existsSync(DATABASE_FILE)) {
-    return JSON.parse(String(fs.readFileSync(DATABASE_FILE)));
-  } else {
-    return {
-      users: [],
-      quizzes: [],
-      userSessions: [],
-      quizSessions: [],
-      players: [],
-      messages: [],
-    };
-  }
-}
-
 // ========================================================================= //
 const DEPLOYED_URL = 'https://1531-24t1-h17a-dream1.vercel.app';
 import request, { HttpVerb } from 'sync-request';
@@ -71,3 +48,25 @@ export const getData = (): Data => {
 export const setData = (newData: Data) => {
   requestHelper('PUT', '/data', { data: newData });
 };
+
+// Save data to the database file
+export const saveData = (dataStore: Data) => {
+  fs.writeFileSync(DATABASE_FILE, JSON.stringify(dataStore, null, 2));
+}
+
+// Load data from the database file
+export const loadData = (): Data => {
+  if (fs.existsSync(DATABASE_FILE)) {
+    return JSON.parse(String(fs.readFileSync(DATABASE_FILE)));
+  } else {
+    return {
+      users: [],
+      quizzes: [],
+      userSessions: [],
+      quizSessions: [],
+      players: [],
+      messages: [],
+    };
+  }
+}
+
